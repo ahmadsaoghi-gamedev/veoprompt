@@ -176,6 +176,24 @@ interface LanguageOptions {
   aksen: string;
 }
 
+export async function generateKeyImagePrompt(
+  userIdea: string,
+  apiSettings?: APISettings
+): Promise<string> {
+  const prompt = `Act as an expert AI text-to-image prompt engineer. Create a highly descriptive image prompt based on this idea: "${userIdea}"
+
+The prompt must include these elements:
+1. Main Subject: Detailed description of the main character/object and its pose
+2. Setting & Background: The environment around the subject
+3. Art Style: Choose an appropriate style (e.g., 'cinematic digital painting', 'hyperrealistic 3D render', 'surreal concept art')
+4. Lighting: Describe the lighting (e.g., 'dramatic rim lighting', 'soft volumetric light')
+5. Technical Parameters: Include common parameters like '4k, ultra-detailed, photorealistic, --ar 16:9'
+
+Return ONLY the final image prompt text with no additional commentary or formatting.`;
+
+  return await callGeminiAPI(prompt, undefined, apiSettings);
+}
+
 export async function generateAnomalyScenePrompt(
   storyContext: StoryContext,
   characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
