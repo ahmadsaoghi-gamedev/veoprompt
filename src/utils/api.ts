@@ -165,3 +165,51 @@ export async function generateAnomalyStory(
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   return JSON.parse(response);
 }
+
+interface StoryContext {
+  judul: string;
+  sinopsis_per_adegan: string[];
+}
+
+interface LanguageOptions {
+  bahasa: string;
+  aksen: string;
+}
+
+export async function generateAnomalyScenePrompt(
+  storyContext: StoryContext,
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  sceneNumber: number,
+  totalScenes: number,
+  languageOptions: LanguageOptions,
+  apiSettings?: APISettings
+): Promise<string> {
+  const prompt = `**PROMPT UNTUK ADEGAN ${sceneNumber}/${totalScenes}**
+
+**KONTEKS CERITA:**
+* **Judul:** ${storyContext.judul}
+* **Karakter & Deskripsi:**
+  - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
+  - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
+* **Tujuan Adegan Ini:** ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
+
+**PROMPT VISUAL (SANGAT DETAIL):**
+* **Gaya Utama:** 3D Anomaly Brainroot, surealis, fotorealistik dengan bentuk karakter yang absurd.
+* **Perintah untuk AI Sutradara:** "Berdasarkan tujuan adegan, tentukan dan deskripsikan secara spesifik pilihan sinematografi berikut untuk menciptakan nuansa yang aneh dan tidak terduga:"
+    * **Camera Movement:** (Contoh: 'slow, creeping dolly-in', 'handheld-style camera shake')
+    * **Camera Angle:** (Contoh: 'extreme low-angle shot', 'Dutch angle (kamera miring)')
+    * **Lighting:** (Contoh: 'Pencahayaan dari lampu neon yang berkedip', 'cahaya remang dari kulkas yang terbuka')
+    * **Color Grading:** (Contoh: 'Warna hijau dan magenta yang oversaturated', 'palet warna monokrom dengan satu warna cerah yang menonjol')
+* **Setting:** [Deskripsikan lokasi yang relevan dengan cerita]
+* **Aksi Karakter:** [Deskripsikan gerakan dan ekspresi karakter sesuai tujuan adegan].
+
+**PROMPT AUDIO & DIALOG:**
+* **Perintah Dialog:** "Dialog HARUS menggunakan Bahasa ${languageOptions.bahasa} dengan aksen ${languageOptions.aksen}. WAJIB gunakan gaya bicara dan kosakata khas karakter yang sudah ditentukan. JANGAN GUNAKAN BAHASA FORMAL."
+* **Dialog:** [Minta AI untuk menghasilkan 2-3 baris dialog antara karakter yang sesuai dengan tujuan adegan]
+* **Musik & Efek Suara:** [Minta AI untuk menyarankan musik latar dan efek suara yang aneh dan tidak cocok untuk menambah kesan surealis]
+
+**KAITAN KE ADEGAN SELANJUTNYA:**
+* [Minta AI untuk mendeskripsikan satu aksi atau visual di akhir adegan ini yang akan menjadi jembatan ke adegan berikutnya].`;
+
+  return await callGeminiAPI(prompt, undefined, apiSettings);
+}
