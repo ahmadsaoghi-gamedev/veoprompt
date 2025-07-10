@@ -15,7 +15,7 @@ export async function callGeminiAPI(
     throw new Error('API key is not configured');
   }
 
-  const parts: any[] = [{ text: prompt }];
+  const parts: Array<{text: string} | {inlineData: {mimeType: string, data: string}}> = [{ text: prompt }];
   if (imageBase64) {
     parts.push({
       inlineData: {
@@ -83,7 +83,7 @@ export async function validateAPIKey(apiKey: string): Promise<boolean> {
       lastValidated: null 
     });
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -109,24 +109,59 @@ export async function generateVideo(prompt: string, apiSettings?: APISettings): 
 export async function translateText(text: string, targetLanguage: string): Promise<string> {
   // Simple translation using Google Translate API simulation
   // In production, you'd use the actual Google Translate API
-  const translations: Record<string, Record<string, string>> = {
-    'id': {
-      'hello': 'halo',
-      'goodbye': 'selamat tinggal',
-      'thank you': 'terima kasih'
-    },
-    'jv': {
-      'hello': 'sugeng',
-      'goodbye': 'sugeng tindak',
-      'thank you': 'matur nuwun'
-    },
-    'su': {
-      'hello': 'wilujeng',
-      'goodbye': 'wilujeng angkat',
-      'thank you': 'hatur nuhun'
-    }
-  };
+  // Translation placeholder - would use actual API in production
 
   // For now, return the original text with a language indicator
   return `[${targetLanguage.toUpperCase()}] ${text}`;
+}
+
+export async function generateAnomalyCharacters(apiSettings?: APISettings): Promise<{
+  karakter_1: { nama: string; deskripsi_fisik: string };
+  karakter_2: { nama: string; deskripsi_fisik: string };
+}> {
+  const prompt = `Create 2 surreal characters by combining random concepts. 
+    Return ONLY a JSON object in this exact format, with no additional text:
+    {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, 
+     "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}}`;
+
+  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+  return JSON.parse(response);
+}
+
+interface AnomalyCharacter {
+  nama: string;
+  deskripsi_fisik: string;
+}
+
+interface AnomalyStoryResponse {
+  judul: string;
+  sinopsis_per_adegan: string[];
+}
+
+export async function generateAnomalyStory(
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  apiSettings?: APISettings
+): Promise<AnomalyStoryResponse> {
+  const prompt = `Given these two surreal characters:
+    Character 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
+    Character 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+
+    Create a movie title and an 8-scene synopsis featuring these characters.
+    Return ONLY a JSON object in this exact format, with no additional text:
+    {
+      "judul": "...",
+      "sinopsis_per_adegan": [
+        "Scene 1...",
+        "Scene 2...",
+        "Scene 3...",
+        "Scene 4...",
+        "Scene 5...",
+        "Scene 6...",
+        "Scene 7...",
+        "Scene 8..."
+      ]
+    }`;
+
+  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+  return JSON.parse(response);
 }
