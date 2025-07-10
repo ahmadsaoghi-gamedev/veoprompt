@@ -1,10 +1,133 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { 
+  generateAnomalyCharacters,
+  generateAnomalyStory,
+  generateAnomalyScenePrompt 
+} from '../utils/api';
 
-const AnomalyMode: React.FC = () => {
+const AnomalyMode = () => {
+  const [userIdea, setUserIdea] = useState('');
+  const [languageOptions, setLanguageOptions] = useState({
+    bahasa: 'Indonesia',
+    aksen: 'Jaksel'
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const [error, setError] = useState('');
+
+  const handleGenerate = async () => {
+    setIsLoading(true);
+    setError('');
+    setGeneratedPrompts([]);
+
+    try {
+      setLoadingMessage('Menciptakan karakter anomali...');
+      const characters = await generateAnomalyCharacters();
+
+      setLoadingMessage('Merancang alur cerita & judul...');
+      const story = await generateAnomalyStory(characters);
+
+      for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
+        setLoadingMessage(`Menciptakan prompt untuk Adegan ${i + 1}...`);
+        const prompt = await generateAnomalyScenePrompt(
+          story,
+          characters,
+          i + 1,
+          story.sinopsis_per_adegan.length,
+          languageOptions
+        );
+        setGeneratedPrompts(prev => [...prev, prompt]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
+
   return (
-    <div>
-      <h2>Anomaly Brainroot Mode</h2>
-      <p>Fitur ini sedang dalam pengembangan.</p>
+    <div className="p-4 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Anomaly Brainroot Mode</h2>
+      <p className="mb-6">Fitur ini sedang dalam pengembangan.</p>
+
+      <div className="mb-4">
+        <label className="block mb-2 font-medium">Ide Dasar Film:</label>
+        <textarea
+          className="w-full p-2 border rounded"
+          value={userIdea}
+          onChange={(e) => setUserIdea(e.target.value)}
+          rows={4}
+          placeholder="Masukkan ide dasar film surealis Anda..."
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label className="block mb-2 font-medium">Bahasa:</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={languageOptions.bahasa}
+            onChange={(e) => setLanguageOptions(prev => ({
+              ...prev,
+              bahasa: e.target.value
+            }))}
+          >
+            <option value="Indonesia">Indonesia</option>
+            <option value="Inggris">Inggris</option>
+          </select>
+        </div>
+        <div>
+          <label className="block mb-2 font-medium">Aksen:</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={languageOptions.aksen}
+            onChange={(e) => setLanguageOptions(prev => ({
+              ...prev,
+              aksen: e.target.value
+            }))}
+          >
+            <option value="Jaksel">Jakarta Selatan</option>
+            <option value="Betawi">Betawi</option>
+            <option value="Sunda">Sunda</option>
+          </select>
+        </div>
+      </div>
+
+      <button
+        className={`px-4 py-2 rounded text-white ${isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+        onClick={handleGenerate}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Memproses...' : 'Generate Anomaly Film'}
+      </button>
+
+      {loadingMessage && (
+        <div className="mt-4 p-2 bg-blue-100 text-blue-800 rounded">
+          {loadingMessage}
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 p-2 bg-red-100 text-red-800 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-6 space-y-4">
+        {generatedPrompts.map((prompt, index) => (
+          <div key={index} className="border rounded p-4">
+            <h3 className="font-bold mb-2">SCENE {index + 1}</h3>
+            <textarea
+              className="w-full p-2 bg-gray-50 rounded"
+              value={prompt}
+              readOnly
+              rows={8}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
