@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { generateKeyImagePrompt } from '../utils/api';
+import React, { useState, useRef } from 'react';
+import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
 
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
+  const [uploadedImage, setUploadedImage] = useState('');
+  const [videoPrompts, setVideoPrompts] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleGenerate = async () => {
     if (!userIdea.trim()) {
@@ -30,6 +33,40 @@ const ConceptVizMode: React.FC = () => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(generatedImagePrompt);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setUploadedImage(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleGenerateVideoPrompts = async () => {
+    if (!userIdea.trim() || !uploadedImage) {
+      setError('Silakan masukkan ide dan upload gambar terlebih dahulu');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setVideoPrompts([]);
+
+    try {
+      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage);
+      setVideoPrompts(result.video_prompts);
+    } catch (err) {
+      setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
+      console.error('Error generating video prompts:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,10 +116,63 @@ const ConceptVizMode: React.FC = () => {
           />
           <button
             onClick={copyToClipboard}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800"
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 mr-4"
           >
             Salin Prompt
           </button>
+        </div>
+      )}
+
+      {generatedImagePrompt && (
+        <div className="mt-8">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800">Generate Rangkaian Video Prompt</h3>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 mb-4"
+          >
+            {uploadedImage ? 'Ganti Gambar' : 'Upload Gambar Kunci'}
+          </button>
+
+          {uploadedImage && (
+            <div className="mb-4">
+              <img 
+                src={uploadedImage} 
+                alt="Uploaded preview" 
+                className="max-h-40 rounded-lg"
+              />
+            </div>
+          )}
+
+          <button
+            onClick={handleGenerateVideoPrompts}
+            disabled={isLoading || !uploadedImage}
+            className={`px-6 py-3 rounded-lg font-medium ${isLoading || !uploadedImage
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+          >
+            {isLoading ? 'Memproses...' : 'Generate Rangkaian Video Prompt'}
+          </button>
+
+          {videoPrompts.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold mb-2 text-gray-800">Rangkaian Prompt Video:</h4>
+              <ol className="list-decimal pl-6 space-y-2">
+                {videoPrompts.map((prompt, index) => (
+                  <li key={index} className="text-gray-700">
+                    {prompt}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       )}
     </div>
