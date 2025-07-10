@@ -231,3 +231,34 @@ export async function generateAnomalyScenePrompt(
 
   return await callGeminiAPI(prompt, undefined, apiSettings);
 }
+
+export async function generateVideoPromptsFromImage(
+  userIdea: string,
+  keyImage: string,
+  apiSettings?: APISettings
+): Promise<{video_prompts: string[]}> {
+  const prompt = `Act as a professional film director. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story.
+
+IMPORTANT REQUIREMENTS:
+1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
+2. Each scene prompt should include:
+   - Scene setting/location
+   - Character actions and emotions
+   - Camera angles/movements
+   - Lighting details
+   - Any important visual effects
+3. The scenes should flow logically from one to the next to form a coherent narrative.
+
+Return ONLY a JSON object in this exact format (with no additional text or markdown):
+{
+  "video_prompts": [
+    "Scene 1: [detailed prompt]",
+    "Scene 2: [detailed prompt]",
+    ...
+    "Scene 8: [detailed prompt]"
+  ]
+}`;
+
+  const response = await callGeminiAPI(prompt, keyImage, apiSettings);
+  return JSON.parse(response);
+}
