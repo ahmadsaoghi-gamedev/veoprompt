@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'manual', label: t('manualMode.title'), icon: Settings },
     { id: 'marketing', label: t('marketingMode.title'), icon: Video },
     { id: 'bank', label: t('promptBank.title'), icon: Database },
-    { id: 'api', label: t('apiSettings.title'), icon: Zap },
+    { id: 'api', label: t('apiSettings.title'), icon: Zap }
   ];
 
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
@@ -246,21 +246,34 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
 
       {/* Footer */}
       <footer className="bg-white/10 backdrop-blur-sm border-t border-white/20 py-6">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-gray-800">
-            <span>Dibuat dengan</span>
-            <FaHeart className="text-pink-500 animate-pulse" />
-            <span>cinta</span>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-gray-800">
+              <span>Dibuat dengan</span>
+              <FaHeart className="text-pink-500 animate-pulse" />
+              <span>cinta</span>
+            </div>
+            <a
+              href="https://saweria.co/ahmadsaoghi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-medium transition-colors"
+            >
+              <SiBuymeacoffee className="w-5 h-5" />
+              <span>Buy me coffee</span>
+            </a>
           </div>
-          <a
-            href="https://saweria.co/ahmadsaoghi"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-medium transition-colors"
-          >
-            <SiBuymeacoffee className="w-5 h-5" />
-            <span>Buy me coffee</span>
-          </a>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4 text-gray-800">
+            <button onClick={() => onTabChange('disclaimer')} className="hover:underline">
+              {t('disclaimer.title')}
+            </button>
+            <button onClick={() => onTabChange('privacy-policy')} className="hover:underline">
+              {t('privacyPolicy.title')}
+            </button>
+            <button onClick={() => onTabChange('contact')} className="hover:underline">
+              {t('contact.title')}
+            </button>
+          </div>
         </div>
       </footer>
     </div>
