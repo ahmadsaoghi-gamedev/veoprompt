@@ -8,6 +8,11 @@ import MarketingMode from './components/MarketingMode';
 import PromptBank from './components/PromptBank';
 import APISettings from './components/APISettings';
 import ImageAnalysis from './components/ImageAnalysis';
+import Disclaimer from './components/Disclaimer';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import Contact from './components/Contact';
+import AnomalyMode from './components/AnomalyMode';
+import ConceptVizMode from './components/ConceptVizMode';
 import { initDB } from './utils/database';
 
 function App() {
@@ -18,10 +23,10 @@ function App() {
     const initialize = async () => {
       try {
         // Add timeout for database initialization
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Database initialization timeout')), 5000)
         );
-        
+
         await Promise.race([initDB(), timeoutPromise]);
         setIsInitialized(true);
       } catch (error) {
@@ -51,6 +56,16 @@ function App() {
         return <PromptBank />;
       case 'api':
         return <APISettings />;
+      case 'disclaimer':
+        return <Disclaimer />;
+      case 'privacy-policy':
+        return <PrivacyPolicy />;
+      case 'contact':
+        return <Contact />;
+      case 'anomaly':
+        return <AnomalyMode />;
+      case 'concept-viz':
+        return <ConceptVizMode />;
       default:
         return <AssetManagement />;
     }
