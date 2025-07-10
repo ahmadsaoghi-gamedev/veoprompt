@@ -1,0 +1,108 @@
+{
+  "common": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "add": "Tambah",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "copy": "Salin",
+    "download": "Unduh",
+    "search": "Cari",
+    "clear": "Bersihkan",
+    "generate": "Hasilkan",
+    "analyzing": "Menganalisis...",
+    "detecting": "Mendeteksi...",
+    "generating": "Menghasilkan...",
+    "copiedToClipboard": "Disalin ke papan klip!",
+    "error": "Kesalahan",
+    "remove": "Hapus",
+    "english": "Inggris",
+    "indonesian": "Indonesia"
+  },
+  "imageDetector": {
+    "title": "Detektor & Penganalisis Gambar",
+    "subtitle": "Unggah gambar untuk secara otomatis menghasilkan prompt video terperinci menggunakan analisis AI",
+    "createNewCharacter": "Buat Karakter Baru",
+    "characterManagement": "Manajemen Karakter",
+    "name": "Nama",
+    "age": "Usia",
+    "hairColor": "Warna Rambut",
+    "faceShape": "Bentuk Wajah",
+    "faceShapes": {
+      "oval": "Oval",
+      "round": "Bulat",
+      "square": "Kotak",
+      "heart": "Hati",
+      "diamond": "Berlian"
+    },
+    "bodyShape": "Bentuk Tubuh",
+    "bodyShapes": {
+      "slim": "Langsing",
+      "athletic": "Atletis",
+      "average": "Rata-rata",
+      "curvy": "Berlekuk",
+      "plusSize": "Ukuran Besar"
+    },
+    "height": "Tinggi",
+    "heights": {
+      "short": "Pendek",
+      "average": "Rata-rata",
+      "tall": "Tinggi"
+    },
+    "accessories": "Aksesoris",
+    "additionalFeatures": "Fitur Tambahan",
+    "saveCharacter": "Simpan Karakter",
+    "objects": "Objek",
+    "createNewObject": "Buat Objek Baru",
+    "categories": {
+      "products": "Produk",
+      "clothing": "Pakaian",
+      "vehicles": "Kendaraan",
+      "furniture": "Furnitur",
+      "electronics": "Elektronik",
+      "foodAndDrinks": "Makanan & Minuman",
+      "nature": "Alam",
+      "buildings": "Bangunan",
+      "others": "Lainnya"
+    },
+    "description": "Deskripsi",
+    "detailedDescription": "Deskripsi terperinci objek",
+    "saveObject": "Simpan Objek",
+    "mainVideoIdea": "Ide Video Utama",
+    "dialogLanguage": "Bahasa Dialog",
+    "satsetModeFeatures": {
+      "title": "🎬 Fitur Mode Satset",
+      "items": [
+        "Menghasilkan 7 adegan berurutan (8 detik masing-masing)",
+        "Membuat alur narasi lengkap dari ide utama Anda",
+        "Mendukung berbagai bahasa dialog untuk lokalisasi",
+        "Setiap adegan mencakup deskripsi visual dan audio terperinci",
+        "Sempurna untuk membuat konten video terstruktur dan profesional",
+        "Semua adegan dapat disimpan ke Bank Prompt untuk penggunaan masa depan"
+      ]
+    },
+    "tipsForBetterAnalysis": {
+      "title": "💡 Tips untuk Analisis yang Lebih Baik",
+      "items": [
+        "Gunakan gambar berkualitas tinggi dan pencahayaan baik",
+        "Gambar dengan subjek jelas dan sedikit kekacauan bekerja paling baik",
+        "AI dapat mengidentifikasi orang, objek, latar, dan gaya visual",
+        "Edit prompt yang dihasilkan untuk menambahkan detail atau persyaratan spesifik",
+        "Simpan karakter dan objek yang sering digunakan untuk akses cepat"
+      ]
+    },
+    "manualMode": {
+      "title": "Mode Manual - Kontrol Lanjutan",
+      "description": "Buat prompt video terperinci dengan kontrol presisi atas setiap aspek",
+      "videoDuration": "Durasi Video",
+      "mainVideoDescription": "Deskripsi Video Utama",
+      "charactersObjects": "Karakter & Objek",
+      "characters": "Karakter",
+      "objects": "Objek",
+      "actionEmotion": "Aksi & Emosi",
+      "mainAction": "Aksi Utama",
+      "characterEmotion": "Emosi Karakter",
+      "cameraVisualSettings": "Pengaturan Kamera & Visual"
+    }
+  }
+}
