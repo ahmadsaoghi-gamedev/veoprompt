@@ -14,7 +14,7 @@ import {
 import { FaYoutube, FaTiktok, FaApple, FaHeart } from 'react-icons/fa';
 import { SiBuymeacoffee } from 'react-icons/si';
 import { getSettings } from '../utils/database';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { useTranslation } from 'react-i18next';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,7 +25,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [apiStatus, setApiStatus] = useState<'active' | 'inactive' | 'error'>('inactive');
-  const { t, i18n } = useTranslation(); // Initialize useTranslation
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const checkApiStatus = async () => {
@@ -53,23 +53,23 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'marketing', label: t('marketingMode.title'), icon: Video },
     { id: 'bank', label: t('promptBank.title'), icon: Database },
     { id: 'api', label: t('apiSettings.title'), icon: Zap },
-    { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb }
+    { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb },
+    { id: 'concept-viz', label: 'Visualisasi Konsep', icon: Image }
   ];
 
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
 
   const changeLanguage = async (lng: string) => {
     if (isChangingLanguage || i18n.language === lng) return;
-    
+
     setIsChangingLanguage(true);
     try {
       await i18n.changeLanguage(lng);
       localStorage.setItem('i18nextLng', lng);
-      
-      // Smooth transition before reload
+
       document.body.style.opacity = '0.8';
       document.body.style.transition = 'opacity 300ms ease-out';
-      
+
       setTimeout(() => {
         window.location.reload();
       }, 300);
@@ -88,38 +88,15 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     }
   }, [i18n]);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Beautiful Header */}
       <header className="beautiful-header">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                apiStatus === 'active' ? 'bg-green-500' :
-                apiStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
-              } shadow-lg`}>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${apiStatus === 'active' ? 'bg-green-500' :
+                  apiStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                } shadow-lg`}>
                 <Video className="w-7 h-7 text-white" />
               </div>
               <div className="flex items-center gap-4">
@@ -132,36 +109,36 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <a 
-                    href="https://www.youtube.com/@ahmadsaoghi/shorts" 
-                    target="_blank" 
+                  <a
+                    href="https://www.youtube.com/@ahmadsaoghi/shorts"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all"
                     aria-label="YouTube"
                   >
                     <FaYoutube className="w-5 h-5 text-white" />
                   </a>
-                  <a 
-                    href="https://www.tiktok.com/@scenecrafter" 
-                    target="_blank" 
+                  <a
+                    href="https://www.tiktok.com/@scenecrafter"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all"
                     aria-label="TikTok"
                   >
                     <FaTiktok className="w-5 h-5 text-white" />
                   </a>
-                  <a 
-                    href="https://apps.apple.com/to/developer/hermizariafis/id1662246465" 
-                    target="_blank" 
+                  <a
+                    href="https://apps.apple.com/to/developer/hermizariafis/id1662246465"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all"
                     aria-label="App Store"
                   >
                     <FaApple className="w-5 h-5 text-white" />
                   </a>
-                  <a 
-                    href="https://lynk.id/oghiezr" 
-                    target="_blank" 
+                  <a
+                    href="https://lynk.id/oghiezr"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all"
                     aria-label="MyLynkid"
@@ -175,16 +152,14 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
             </div>
 
             <div className="flex items-center gap-4">
-              <div className={`status-indicator ${
-                apiStatus === 'active' ? 'status-active' :
-                apiStatus === 'error' ? 'status-error' : 'status-inactive'
-              }`}>
-                <div className={`w-2 h-2 rounded-full ${
-                  apiStatus === 'active' ? 'bg-white' :
-                  apiStatus === 'error' ? 'bg-white' : 'bg-white'
-                }`} />
+              <div className={`status-indicator ${apiStatus === 'active' ? 'status-active' :
+                  apiStatus === 'error' ? 'status-error' : 'status-inactive'
+                }`}>
+                <div className={`w-2 h-2 rounded-full ${apiStatus === 'active' ? 'bg-white' :
+                    apiStatus === 'error' ? 'bg-white' : 'bg-white'
+                  }`} />
                 {apiStatus === 'active' ? t('apiSettings.apiActive') :
-                 apiStatus === 'error' ? t('apiSettings.apiError') : t('apiSettings.apiInactive')}
+                  apiStatus === 'error' ? t('apiSettings.apiError') : t('apiSettings.apiInactive')}
               </div>
 
               <button
@@ -194,7 +169,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
                 {isDarkMode ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5 text-white" />}
               </button>
 
-              {/* Language Selector */}
               <select
                 id="language-select"
                 onChange={(e) => changeLanguage(e.target.value)}
@@ -214,8 +188,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
         </div>
       </header>
 
-
-      {/* Navigation */}
       <nav className="bg-white/60 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
         <div className="container mx-auto px-4">
           <div className="flex overflow-x-auto">
@@ -225,11 +197,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
                 <button
                   key={tab.id}
                   onClick={() => onTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap border-b-3 transition-all ${
-                    activeTab === tab.id
+                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap border-b-3 transition-all ${activeTab === tab.id
                       ? 'border-purple-500 text-purple-600 bg-purple-50'
                       : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-4 h-4" />
                   {tab.label}
@@ -240,12 +211,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {children}
       </main>
 
-      {/* Footer */}
       <footer className="bg-white/10 backdrop-blur-sm border-t border-white/20 py-6">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
