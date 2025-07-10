@@ -52,7 +52,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'manual', label: t('manualMode.title'), icon: Settings },
     { id: 'marketing', label: t('marketingMode.title'), icon: Video },
     { id: 'bank', label: t('promptBank.title'), icon: Database },
-    { id: 'api', label: t('apiSettings.title'), icon: Zap }
+    { id: 'api', label: t('apiSettings.title'), icon: Zap },
+    { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb }
   ];
 
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
