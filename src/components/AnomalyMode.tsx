@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
+import {
   generateAnomalyCharacters,
   generateAnomalyStory,
-  generateAnomalyScenePrompt 
+  generateAnomalyScenePrompt
 } from '../utils/api';
 
 const AnomalyMode = () => {
@@ -18,9 +18,9 @@ const AnomalyMode = () => {
 
   const handleGenerate = async () => {
     setIsLoading(true);
-    setError('');
+    setLoadingMessage("Mempersiapkan mesin anomali...");
     setGeneratedPrompts([]);
-
+    setError('');
     try {
       setLoadingMessage('Menciptakan karakter anomali...');
       const characters = await generateAnomalyCharacters();
@@ -29,8 +29,9 @@ const AnomalyMode = () => {
       const story = await generateAnomalyStory(characters);
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
-        setLoadingMessage(`Menciptakan prompt untuk Adegan ${i + 1}...`);
+        setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
         const prompt = await generateAnomalyScenePrompt(
+
           story,
           characters,
           i + 1,
@@ -40,7 +41,14 @@ const AnomalyMode = () => {
         setGeneratedPrompts(prev => [...prev, prompt]);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+      console.error("Gagal menghasilkan film anomali:", err);
+      if (err instanceof Error) {
+        // Jika error berasal dari API (misal, API key salah atau network error)
+        setError(`Terjadi kesalahan pada API: ${err.message}. Pastikan API key Anda valid dan coba lagi.`);
+      } else {
+        // Untuk error lainnya yang mungkin terjadi
+        setError("Terjadi kesalahan yang tidak diketahui. Silakan cek konsol untuk detail.");
+      }
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
