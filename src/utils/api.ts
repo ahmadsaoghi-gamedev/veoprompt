@@ -189,7 +189,10 @@ The prompt must include these elements:
 4. Lighting: Describe the lighting (e.g., 'dramatic rim lighting', 'soft volumetric light')
 5. Technical Parameters: Include common parameters like '4k, ultra-detailed, photorealistic, --ar 16:9'
 
-Return ONLY the final image prompt text with no additional commentary or formatting.`;
+Return ONLY the final image prompt text with no additional commentary or formatting.
+
+**ATURAN TAMBAHAN YANG SANGAT PENTING:**
+"Hasil akhir dari prompt gambar yang kamu buat HARUS kurang dari 800 karakter. Gunakan bahasa yang padat, deskriptif, dan efisien. Fokus pada kata kunci yang paling berdampak secara visual."`;
 
   return await callGeminiAPI(prompt, undefined, apiSettings);
 }
