@@ -33,6 +33,25 @@
     "allRightsReserved": "All rights reserved.",
     "selectLanguage": "Select Language"
   },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "content1": "The information provided by Shabira Prompt Lab on [Your Website URL] is for general informational purposes only. All information on the Site is provided in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or completeness of any information on the Site.",
+    "content2": "Under no circumstance shall we have any liability to you for any loss or damage of any kind incurred as a result of the use of the site or reliance on any information provided on the site. Your use of the site and your reliance on any information on the site is solely at your own risk.",
+    "content3": "External Links Disclaimer: The Site may contain (or you may be sent through the Site) links to other websites or content belonging to or originating from third parties or links to websites and features in banners or other advertising. Such external links are not investigated, monitored, or checked for accuracy, adequacy, validity, reliability, availability, or completeness by us."
+  },
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "content1": "This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.",
+    "content2": "We use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy.",
+    "content3": "We do not collect any personally identifiable information from you. All API keys and data you input are stored locally on your device and are not transmitted to our servers or any third party. We do not use cookies or any other tracking technologies."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "content1": "If you have any questions about this Disclaimer, Privacy Policy, or anything else, You can contact us:",
+    "content2": "By visiting this page on our website: [Your Website URL]/contact",
+    "content3": "By sending us an email at the address below.",
+    "email": "Email"
+  },
   "apiSettings": {
     "title": "API Settings",
     "geminiApiKey": "Gemini API Key",
