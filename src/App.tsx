@@ -13,7 +13,27 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import Contact from './components/Contact';
 import AnomalyMode from './components/AnomalyMode';
 import ConceptVizMode from './components/ConceptVizMode';
+import { Helmet } from 'react-helmet-async';
 import { initDB } from './utils/database';
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AI Video Creator - Shabira Prompt Lab",
+  "operatingSystem": "WEB",
+  "applicationCategory": "MultimediaApplication",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "88"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "description": "Platform AI untuk menghasilkan prompt video sinematik dari ide, gambar, dan teks. Mendukung gaya surealis 'Anomaly Brainroot' dan alur kerja visual-ke-video.'"
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('assets');
@@ -83,9 +103,19 @@ function App() {
   }
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
-      {renderActiveComponent()}
-    </Layout>
+    <>
+      <Helmet>
+        <title>Shabira Prompt Lab - AI Video Creator</title>
+        <meta name="description" content="Buat video berkualitas tinggi dengan mudah menggunakan AI. Hasilkan video promosi, konten media sosial, dan banyak lagi." />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </Helmet>
+      <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+        {renderActiveComponent()}
+      </Layout>
+    </>
   );
 }
 
