@@ -251,8 +251,8 @@ export async function generateVideoPromptsFromImage(
   userIdea: string,
   keyImage: string,
   apiSettings?: APISettings
-): Promise<{video_prompts: string[]}> {
-  const prompt = `Act as a professional film director. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story.
+): Promise<{video_prompts: {scenePrompt: string; narasi: string;}[]}> {
+  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script for each scene.
 
 IMPORTANT REQUIREMENTS:
 1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
@@ -263,14 +263,20 @@ IMPORTANT REQUIREMENTS:
    - Lighting details
    - Any important visual effects
 3. The scenes should flow logically from one to the next to form a coherent narrative.
+4. Each narrator script should be concise (1-2 sentences) and provide emotional context or bridge the visual action with character feelings, as if telling a story to a friend.
 
 Return ONLY a JSON object in this exact format (with no additional text or markdown):
 {
   "video_prompts": [
-    "Scene 1: [detailed prompt]",
-    "Scene 2: [detailed prompt]",
-    ...
-    "Scene 8: [detailed prompt]"
+    {
+      "scenePrompt": "Scene 1: [detailed visual prompt]",
+      "narasi": "Narrator script for scene 1."
+    },
+    {
+      "scenePrompt": "Scene 2: [detailed visual prompt]",
+      "narasi": "Narrator script for scene 2."
+    },
+    // ... up to 8 scenes
   ]
 }`;
 
