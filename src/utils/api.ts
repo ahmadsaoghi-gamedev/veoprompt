@@ -253,9 +253,10 @@ export async function generateAnomalyScenePrompt(
 export async function generateVideoPromptsFromImage(
   userIdea: string,
   keyImage: string,
+  languageOptions: LanguageOptions, // Added new argument
   apiSettings?: APISettings
-): Promise<{video_prompts: {scenePrompt: string; narasi: string;}[]}> {
-  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script for each scene.
+): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { // Updated return type
+  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script and dialogue for each scene.
 
 IMPORTANT REQUIREMENTS:
 1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
@@ -268,16 +269,25 @@ IMPORTANT REQUIREMENTS:
 3. The scenes should flow logically from one to the next to form a coherent narrative.
 4. Each narrator script should be concise (1-2 sentences) and provide emotional context or bridge the visual action with character feelings, as if telling a story to a friend.
 
+**PROMPT AUDIO & DIALOG:**
+* **Perintah untuk AI:** "Hasilkan DUA versi dialog untuk adegan ini: satu dalam bahasa Inggris, dan satu lagi dalam bahasa Indonesia sesuai dengan gaya yang diminta. Pastikan dialognya terdengar alami dan sesuai dengan kepribadian karakter."
+* **Dialog Versi Inggris (Professional/Natural):** [Minta AI untuk menulis dialog dalam bahasa Inggris yang alami dan sesuai konteks]
+* **Dialog Versi Indonesia (Gaya: ${languageOptions.bahasa}):** [Minta AI untuk menulis dialog yang sama, tetapi dalam bahasa Indonesia yang SANGAT SANTAI, non-formal, gaul, dan tidak kaku. Gunakan kosakata sehari-hari yang akrab.]
+
 Return ONLY a JSON object in this exact format (with no additional text or markdown):
 {
   "video_prompts": [
     {
       "scenePrompt": "Scene 1: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 1."
+      "narasi": "Narrator script for scene 1.",
+      "dialog_en": "English dialogue for scene 1.",
+      "dialog_id": "Indonesian dialogue for scene 1."
     },
     {
       "scenePrompt": "Scene 2: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 2."
+      "narasi": "Narrator script for scene 2.",
+      "dialog_en": "English dialogue for scene 2.",
+      "dialog_id": "Indonesian dialogue for scene 2."
     },
     // ... up to 8 scenes
   ]
