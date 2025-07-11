@@ -1,12 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
 
+interface VideoPrompt {
+  scenePrompt: string;
+  narasi: string;
+}
+
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
-  const [videoPrompts, setVideoPrompts] = useState<string[]>([]);
+  const [videoPrompts, setVideoPrompts] = useState<VideoPrompt[]>([]);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,7 +65,10 @@ const ConceptVizMode: React.FC = () => {
 
     try {
       const result = await generateVideoPromptsFromImage(userIdea, uploadedImage);
-      setVideoPrompts(result.video_prompts);
+      setVideoPrompts(result.video_prompts.map(prompt => ({
+        scenePrompt: prompt,
+        narasi: "" // Will be populated by API response
+      })));
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
       console.error('Error generating video prompts:', err);
@@ -72,7 +80,7 @@ const ConceptVizMode: React.FC = () => {
   return (
     <div className="concept-viz-mode p-6 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mode Visualisasi Konsep</h2>
-      
+
       <div className="mb-6">
         <textarea
           className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -86,8 +94,8 @@ const ConceptVizMode: React.FC = () => {
       <button
         onClick={handleGenerate}
         disabled={isLoading}
-        className={`px-6 py-3 rounded-lg font-medium ${isLoading 
-          ? 'bg-gray-400 cursor-not-allowed' 
+        className={`px-6 py-3 rounded-lg font-medium ${isLoading
+          ? 'bg-gray-400 cursor-not-allowed'
           : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
       >
         {isLoading ? 'Memproses...' : 'Generate Prompt Gambar Kunci'}
@@ -126,7 +134,7 @@ const ConceptVizMode: React.FC = () => {
       {generatedImagePrompt && (
         <div className="mt-8">
           <h3 className="text-xl font-semibold mb-4 text-gray-800">Generate Rangkaian Video Prompt</h3>
-          
+
           <input
             type="file"
             ref={fileInputRef}
@@ -143,9 +151,9 @@ const ConceptVizMode: React.FC = () => {
 
           {uploadedImage && (
             <div className="mb-4">
-              <img 
-                src={uploadedImage} 
-                alt="Uploaded preview" 
+              <img
+                src={uploadedImage}
+                alt="Uploaded preview"
                 className="max-h-40 rounded-lg"
               />
             </div>
@@ -166,8 +174,17 @@ const ConceptVizMode: React.FC = () => {
               <h4 className="text-lg font-semibold mb-2 text-gray-800">Rangkaian Prompt Video:</h4>
               <ol className="list-decimal pl-6 space-y-2">
                 {videoPrompts.map((prompt, index) => (
-                  <li key={index} className="text-gray-700">
-                    {prompt}
+                  <li key={index} className="text-gray-700 mb-4">
+                    <textarea
+                      className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
+                      rows={4}
+                      readOnly
+                      value={prompt.scenePrompt}
+                    />
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <p className="font-medium text-blue-800 mb-1">Naskah Narator:</p>
+                      <p className="text-gray-700">{prompt.narasi || "(Tidak ada narasi)"}</p>
+                    </div>
                   </li>
                 ))}
               </ol>
