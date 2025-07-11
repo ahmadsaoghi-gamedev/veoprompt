@@ -65,10 +65,7 @@ const ConceptVizMode: React.FC = () => {
 
     try {
       const result = await generateVideoPromptsFromImage(userIdea, uploadedImage);
-      setVideoPrompts(result.video_prompts.map(prompt => ({
-        scenePrompt: prompt,
-        narasi: "" // Will be populated by API response
-      })));
+      setVideoPrompts(result.video_prompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
       console.error('Error generating video prompts:', err);
@@ -181,9 +178,9 @@ const ConceptVizMode: React.FC = () => {
                       readOnly
                       value={prompt.scenePrompt}
                     />
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <p className="font-medium text-blue-800 mb-1">Naskah Narator:</p>
-                      <p className="text-gray-700">{prompt.narasi || "(Tidak ada narasi)"}</p>
+                    <div className="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400">
+                      <h4 className="font-bold text-purple-800">Naskah Narator:</h4>
+                      <p className="text-gray-700 italic">{prompt.narasi}</p>
                     </div>
                   </li>
                 ))}
