@@ -4,6 +4,8 @@ import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/
 interface VideoPrompt {
   scenePrompt: string;
   narasi: string;
+  dialog_en: string; // Added
+  dialog_id: string; // Added
 }
 
 const ConceptVizMode: React.FC = () => {
@@ -64,7 +66,8 @@ const ConceptVizMode: React.FC = () => {
     setVideoPrompts([]);
 
     try {
-      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage);
+      const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' }; // Defined languageOptions with aksen
+      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions); // Passed languageOptions
       setVideoPrompts(result.video_prompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
@@ -181,6 +184,14 @@ const ConceptVizMode: React.FC = () => {
                     <div className="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400">
                       <h4 className="font-bold text-purple-800">Naskah Narator:</h4>
                       <p className="text-gray-700 italic">{prompt.narasi}</p>
+                    </div>
+                    <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-400">
+                      <h4 className="font-bold text-green-800">Dialog (English):</h4>
+                      <p className="text-gray-700">{prompt.dialog_en}</p>
+                    </div>
+                    <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                      <h4 className="font-bold text-yellow-800">Dialog (Indonesia Gaul):</h4>
+                      <p className="text-gray-700">{prompt.dialog_id}</p>
                     </div>
                   </li>
                 ))}
