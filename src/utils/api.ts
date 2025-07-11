@@ -226,10 +226,25 @@ export async function generateAnomalyScenePrompt(
 * **Dialog:** [Minta AI untuk menghasilkan 2-3 baris dialog antara karakter yang sesuai dengan tujuan adegan]
 * **Musik & Efek Suara:** [Minta AI untuk menyarankan musik latar dan efek suara yang aneh dan tidak cocok untuk menambah kesan surealis]
 
+**PROMPT NARASI (STORYTELLER):**
+* **Peran AI:** "Anda adalah seorang pendongeng profesional dengan suara yang hangat dan karismatik. Anda bercerita untuk teman, bukan untuk audiens formal."
+* **Gaya Bahasa:** "Gunakan bahasa Indonesia yang mengalir, deskriptif, dan sedikit puitis, tapi tetap terasa seperti obrolan santai. Gunakan jeda dan tempo untuk membangun suasana. HINDARI bahasa baku, kaku, atau seperti buku pelajaran."
+* **Tujuan Narasi:** "Tuliskan naskah narator (sekitar 1-2 kalimat pendek) untuk adegan ini. Narasi ini harus memberikan konteks emosional atau menjelaskan apa yang tidak terlihat di layar, menghubungkan aksi visual dengan perasaan karakter."
+
 **KAITAN KE ADEGAN SELANJUTNYA:**
 * [Minta AI untuk mendeskripsikan satu aksi atau visual di akhir adegan ini yang akan menjadi jembatan ke adegan berikutnya].`;
 
-  return await callGeminiAPI(prompt, undefined, apiSettings);
+  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+  try {
+    const result = JSON.parse(response);
+    if (!result.narasi) {
+      result.narasi = ""; // Ensure narasi field exists
+    }
+    return JSON.stringify(result);
+  } catch {
+    // If response isn't JSON, return as-is (backward compatibility)
+    return response;
+  }
 }
 
 export async function generateVideoPromptsFromImage(
