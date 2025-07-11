@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Wand2, Copy, Save, Download, Loader, Play } from 'lucide-react';
 import { callGeminiAPI, translateText } from '../utils/api';
 import { savePrompt } from '../utils/database';
@@ -52,14 +53,34 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
       const result = await callGeminiAPI(prompt);
       const parsedResult = JSON.parse(result);
       
-      const scenes: Scene[] = parsedResult.scenes.map((scene: any) => ({
-        id: `scene_${Date.now()}_${scene.sceneNumber}`,
-        sceneNumber: scene.sceneNumber,
-        prompt: scene.prompt,
-        duration: scene.duration || 8,
-        characters: scene.characters || [],
-        objects: scene.objects || []
-      }));
+      const scenes: Scene[] = parsedResult.scenes.map((scene: { sceneNumber: number; prompt: string; duration: number; characters: string[]; objects: string[] }) => {
+        // This is a temporary mapping. The 'prompt' field from the API response
+        // will be stored in 'visualDescription' as a workaround.
+        // A more robust solution would be to adjust the type definition or the API response.
+        return {
+          id: `scene_${Date.now()}_${scene.sceneNumber}`,
+          sceneNumber: scene.sceneNumber,
+          visualDescription: scene.prompt, // Mapping 'prompt' to 'visualDescription'
+          location: 'To be defined',
+          time: 'To be defined',
+          season: 'To be defined',
+          weather: 'To be defined',
+          cinematography: {
+            cameraTechniques: [],
+            lighting: 'To be defined',
+            colorPalette: 'To be defined',
+            additionalVisuals: []
+          },
+          audio: {
+            dialogue: [],
+            ambientSounds: [],
+            audioMix: 'To be defined'
+          },
+          duration: scene.duration || 8,
+          characters: scene.characters || [],
+          objects: scene.objects || []
+        };
+      });
 
       const videoPrompt: VideoPrompt = {
         id: `satset_${Date.now()}`,
@@ -70,11 +91,21 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
         characters: [],
         objects: [],
         settings: {
-          style: 'cinematic',
-          cameraMovement: 'dynamic',
-          lighting: 'professional',
-          dialogLanguage,
-          duration: 56 // 7 scenes × 8 seconds
+          resolution: '1080p',
+          frameRate: 24,
+          aspectRatio: '16:9',
+          duration: 56, // 7 scenes × 8 seconds
+          captions: {
+            enabled: false,
+            accuracy: 'high',
+            language: 'match_dialog',
+            font: 'Arial',
+            position: 'bottom'
+          },
+          languages: {
+            dialog: 'indonesian',
+            monolog: 'indonesian'
+          }
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -90,17 +121,18 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
     }
   };
 
-  const copyScenePrompt = async (prompt: string) => {
+  const copyScenePrompt = async (visualDescription: string) => {
     try {
       // Translate if not English
-      let finalPrompt = prompt;
+      let finalPrompt = visualDescription;
       if (dialogLanguage !== 'en') {
-        finalPrompt = await translateText(prompt, dialogLanguage);
+        finalPrompt = await translateText(visualDescription, dialogLanguage);
       }
       
       await navigator.clipboard.writeText(finalPrompt);
       alert('Scene prompt copied to clipboard!');
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to copy prompt:', err);
       alert('Failed to copy prompt');
     }
   };
@@ -112,16 +144,17 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
       allPrompts += `=== SCENES ===\n\n`;
 
       for (const scene of generatedScenes) {
-        let scenePrompt = scene.prompt;
+        let scenePrompt = scene.visualDescription;
         if (dialogLanguage !== 'en') {
-          scenePrompt = await translateText(scene.prompt, dialogLanguage);
+          scenePrompt = await translateText(scene.visualDescription, dialogLanguage);
         }
         allPrompts += `--- SCENE ${scene.sceneNumber} ---\n${scenePrompt}\n\n`;
       }
 
       await navigator.clipboard.writeText(allPrompts);
       alert('All scenes copied to clipboard!');
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to copy all scenes:', err);
       alert('Failed to copy all scenes');
     }
   };
@@ -160,6 +193,10 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Mode Satset (Generator Adegan Otomatis) - Shabira Prompt Lab</title>
+        <meta name="description" content="Hasilkan 7 rangkaian adegan video secara otomatis dari satu ide cerita. Cepat, efisien, dan sempurna untuk konten naratif." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Satset Mode - Auto Scene Generation</h2>
         <p className="text-lg text-gray-600">
@@ -283,7 +320,7 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
                     Scene {scene.sceneNumber} ({scene.duration}s)
                   </h4>
                   <button
-                    onClick={() => copyScenePrompt(scene.prompt)}
+                    onClick={() => copyScenePrompt(scene.visualDescription)}
                     className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg transition-colors"
                   >
                     <Copy className="w-4 h-4" />
@@ -293,7 +330,7 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
                 
                 <div className="p-4">
                   <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed">
-                    {scene.prompt}
+                    {scene.visualDescription}
                   </pre>
                   
                   {(scene.characters.length > 0 || scene.objects.length > 0) && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Target, Megaphone, Palette, Camera, Mic, Save, Copy, Wand2 } from 'lucide-react';
-import { Character, VideoObject } from '../types';
+import { Character, VideoObject, VideoPrompt, Scene } from '../types';
 import { getCharacters, getObjects, savePrompt } from '../utils/database';
 import { callGeminiAPI } from '../utils/api';
 
@@ -180,7 +181,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
     try {
       await navigator.clipboard.writeText(generatedPrompt);
       alert('Marketing prompt copied to clipboard!');
-    } catch (error) {
+    } catch {
       alert('Failed to copy prompt');
     }
   };
@@ -195,27 +196,54 @@ Format as a detailed video production prompt suitable for AI video generation.`;
     if (!title) return;
 
     try {
-      const videoPrompt = {
+      const scene: Scene = {
+        id: `scene_${Date.now()}`,
+        sceneNumber: 1,
+        visualDescription: generatedPrompt,
+        location: formData.location,
+        time: formData.timeOfDay,
+        season: 'N/A',
+        weather: formData.weather,
+        cinematography: {
+          cameraTechniques: [formData.cameraMovement],
+          lighting: formData.visualTone,
+          colorPalette: 'Brand-focused',
+          additionalVisuals: []
+        },
+        audio: {
+          dialogue: [],
+          ambientSounds: [{ name: formData.environmentalSound, volume: '60%' }],
+          audioMix: 'Professional mix with background music'
+        },
+        duration: 8,
+        characters: formData.selectedCharacters,
+        objects: formData.selectedObjects
+      };
+
+      const videoPrompt: VideoPrompt = {
         id: `marketing_${Date.now()}`,
         title,
-        type: 'marketing' as const,
+        type: 'marketing',
         mainDescription: formData.mainDescription,
-        scenes: [{
-          id: `scene_${Date.now()}`,
-          sceneNumber: 1,
-          prompt: generatedPrompt,
-          duration: 8,
-          characters: formData.selectedCharacters,
-          objects: formData.selectedObjects
-        }],
+        scenes: [scene],
         characters: characters.filter(char => formData.selectedCharacters.includes(char.id)),
         objects: objects.filter(obj => formData.selectedObjects.includes(obj.id)),
         settings: {
-          style: formData.marketingStyle,
-          cameraMovement: formData.cameraMovement,
-          lighting: formData.visualTone,
-          dialogLanguage: 'en',
-          duration: 8
+          resolution: '1080p',
+          frameRate: 30,
+          aspectRatio: '16:9',
+          duration: 8,
+          captions: {
+            enabled: true,
+            accuracy: 'high',
+            language: 'match_dialog',
+            font: 'Arial',
+            position: 'bottom'
+          },
+          languages: {
+            dialog: 'indonesian',
+            monolog: 'indonesian'
+          }
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -231,6 +259,10 @@ Format as a detailed video production prompt suitable for AI video generation.`;
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Mode Marketing & Promosi - Shabira Prompt Lab</title>
+        <meta name="description" content="Buat video promosi dan marketing yang profesional. Tentukan target audiens dan tujuan marketing untuk menghasilkan konten yang efektif." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Marketing Mode - Professional Video Creation</h2>
         <p className="text-lg text-gray-600">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Plus, Edit, Trash2, User, Package, Save, X } from 'lucide-react';
 import { Character, VideoObject } from '../types';
 import { saveCharacter, getCharacters, deleteCharacter, saveObject, getObjects, deleteObject } from '../utils/database';
@@ -154,6 +155,10 @@ const AssetManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Manajemen Aset (Karakter & Objek) - Shabira Prompt Lab</title>
+        <meta name="description" content="Kelola semua aset digital Anda. Buat, simpan, dan edit karakter serta objek untuk digunakan dalam pembuatan film pendek AI Anda." />
+      </Helmet>
       {/* Sub-navigation */}
       <div className="flex gap-4">
         <button

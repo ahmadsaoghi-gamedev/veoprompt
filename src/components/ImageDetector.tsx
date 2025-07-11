@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Upload, Image as ImageIcon, Wand2, Copy, Save, Loader } from 'lucide-react';
 import { callGeminiAPI } from '../utils/api';
 import { saveCharacter, saveObject } from '../utils/database';
@@ -132,6 +133,10 @@ Format the response as a detailed, professional video prompt that could be used 
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Detektor Gambar & Analisis AI - Shabira Prompt Lab</title>
+        <meta name="description" content="Unggah gambar apa pun dan biarkan AI menganalisisnya secara detail, mengubah visual menjadi prompt video sinematik yang siap pakai." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Image Detector & Analyzer</h2>
         <p className="text-lg text-gray-600">

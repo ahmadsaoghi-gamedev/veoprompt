@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Database, Search, Filter, Trash2, Copy, Download, Upload, Zap } from 'lucide-react';
 import { VideoPrompt, CaptionSettings, LanguageSettings } from '../types';
 import VideoSettings from './VideoSettings';
@@ -226,6 +227,10 @@ const PromptBank: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Helmet>
+        <title>Bank Prompt & Repositori - Shabira Prompt Lab</title>
+        <meta name="description" content="Simpan, kelola, dan organisir semua prompt video Anda. Cari dan gunakan kembali prompt terbaik Anda dengan mudah." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Prompt Bank - Repository</h2>
         <p className="text-lg text-gray-600">

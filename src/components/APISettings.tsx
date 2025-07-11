@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Zap, Key, Check, X, AlertCircle, Save } from 'lucide-react';
 import { APISettings as APISettingsType } from '../types';
 import { getSettings, saveSettings } from '../utils/database';
@@ -82,10 +83,12 @@ const APISettings: React.FC = () => {
     setValidationResult(null);
   };
 
-  const currentKey = settings.usePrivateKey ? settings.privateKey : DEFAULT_API_KEY;
-
   return (
     <div className="space-y-8">
+      <Helmet>
+        <title>Pengaturan API Gemini - Shabira Prompt Lab</title>
+        <meta name="description" content="Konfigurasikan kunci API Google Gemini Anda. Pilih antara kunci default atau kunci pribadi untuk kontrol penuh." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-4xl font-bold gradient-title mb-4">API Settings</h2>
         <p className="text-xl text-gray-600">

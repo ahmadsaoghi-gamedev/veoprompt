@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Users, Package, Camera, Mic, Palette, Save, Copy, Wand2, Plus, Languages, Clock } from 'lucide-react';
-import { Character, VideoObject } from '../types';
+import { Helmet } from 'react-helmet-async';
+import { Settings, Users, Camera, Mic, Palette, Save, Copy, Wand2, Languages, Clock } from 'lucide-react';
+import { Character, VideoObject, VideoPrompt, Scene } from '../types';
 import { getCharacters, getObjects, savePrompt } from '../utils/database';
 import { callGeminiAPI } from '../utils/api';
 
@@ -14,8 +15,6 @@ const ManualMode: React.FC = () => {
   const [currentScene, setCurrentScene] = useState(1);
   const [totalScenes, setTotalScenes] = useState(1);
   const [scenePrompts, setScenePrompts] = useState<string[]>([]);
-  const [isGeneratingScene, setIsGeneratingScene] = useState(false);
-
   // Input visibility states
   const [inputStates, setInputStates] = useState({
     character: false,
@@ -356,19 +355,6 @@ const ManualMode: React.FC = () => {
     }));
   };
 
-  const addCustomDialog = () => {
-    const character = prompt('Character name:');
-    const dialog = prompt('Dialog text:');
-    const mood = prompt('Mood/tone:') || 'neutral';
-    
-    if (character && dialog) {
-      setFormData(prev => ({
-        ...prev,
-        customDialogs: [...prev.customDialogs, { character, dialog, mood }]
-      }));
-    }
-  };
-
   const generateCleanPrompt = (sceneNumber?: number) => {
     const selectedCharacterDetails = characters
       .filter(char => formData.selectedCharacters.includes(char.id))
@@ -488,9 +474,9 @@ Generate a clean, enhanced version following the exact format shown in the examp
     setCurrentScene(1);
 
     try {
+      const allPrompts = [];
       for (let i = 1; i <= totalScenes; i++) {
         setCurrentScene(i);
-        setIsGeneratingScene(true);
         
         const scenePrompt = generateCleanPrompt(i);
         const enhancementPrompt = `Generate a clean, professional video prompt for scene ${i} of ${totalScenes}. 
@@ -507,22 +493,20 @@ Input: ${scenePrompt}
 Generate a clean, enhanced version following the exact format.`;
 
         const result = await callGeminiAPI(enhancementPrompt);
-        
-        setScenePrompts(prev => [...prev, result]);
+        allPrompts.push(result);
         
         // Small delay between scenes
         if (i < totalScenes) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
-      
-      setGeneratedPrompt(scenePrompts.join('\n\n---SCENE BREAK---\n\n'));
+      setScenePrompts(allPrompts);
+      setGeneratedPrompt(allPrompts.join('\n\n---SCENE BREAK---\n\n'));
     } catch (error) {
       console.error('Failed to generate multi-scene prompts:', error);
       alert('Failed to generate multi-scene prompts. Please check your API settings.');
     } finally {
       setIsGenerating(false);
-      setIsGeneratingScene(false);
     }
   };
 
@@ -530,7 +514,7 @@ Generate a clean, enhanced version following the exact format.`;
     try {
       await navigator.clipboard.writeText(generatedPrompt);
       alert('Prompt copied to clipboard!');
-    } catch (error) {
+    } catch {
       alert('Failed to copy prompt');
     }
   };
@@ -551,34 +535,78 @@ Generate a clean, enhanced version following the exact format.`;
     if (!title) return;
 
     try {
-      const videoPrompt = {
+      const scenes: Scene[] = isMultiScene 
+        ? scenePrompts.map((prompt, index) => ({
+            id: `scene_${Date.now()}_${index}`,
+            sceneNumber: index + 1,
+            visualDescription: prompt,
+            location: formData.location,
+            time: formData.timeOfDay,
+            season: formData.season,
+            weather: formData.weather,
+            cinematography: {
+              cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
+              lighting: formData.lighting,
+              colorPalette: formData.colorGrading,
+              additionalVisuals: [formData.visualEffects, ...formData.customEffects]
+            },
+            audio: {
+              dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
+              ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
+              audioMix: 'Standard mix'
+            },
+            duration: 8,
+            characters: formData.selectedCharacters,
+            objects: formData.selectedObjects
+          }))
+        : [{
+            id: `scene_${Date.now()}`,
+            sceneNumber: 1,
+            visualDescription: generatedPrompt,
+            location: formData.location,
+            time: formData.timeOfDay,
+            season: formData.season,
+            weather: formData.weather,
+            cinematography: {
+              cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
+              lighting: formData.lighting,
+              colorPalette: formData.colorGrading,
+              additionalVisuals: [formData.visualEffects, ...formData.customEffects]
+            },
+            audio: {
+              dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
+              ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
+              audioMix: 'Standard mix'
+            },
+            duration: duration,
+            characters: formData.selectedCharacters,
+            objects: formData.selectedObjects
+          }];
+
+      const videoPrompt: VideoPrompt = {
         id: `manual_${Date.now()}`,
         title,
-        type: 'manual' as const,
+        type: 'manual',
         mainDescription: formData.mainDescription,
-        scenes: isMultiScene ? scenePrompts.map((prompt, index) => ({
-          id: `scene_${Date.now()}_${index}`,
-          sceneNumber: index + 1,
-          prompt,
-          duration: 8,
-          characters: formData.selectedCharacters,
-          objects: formData.selectedObjects
-        })) : [{
-          id: `scene_${Date.now()}`,
-          sceneNumber: 1,
-          prompt: generatedPrompt,
-          duration: duration,
-          characters: formData.selectedCharacters,
-          objects: formData.selectedObjects
-        }],
+        scenes,
         characters: characters.filter(char => formData.selectedCharacters.includes(char.id)),
         objects: objects.filter(obj => formData.selectedObjects.includes(obj.id)),
         settings: {
-          style: formData.videoStyle,
-          cameraMovement: formData.cameraMovement,
-          lighting: formData.lighting,
-          dialogLanguage: 'id',
-          duration: duration
+          resolution: '1080p',
+          frameRate: 24,
+          aspectRatio: '16:9',
+          duration: duration,
+          captions: {
+            enabled: false,
+            accuracy: 'high',
+            language: 'match_dialog',
+            font: 'Arial',
+            position: 'bottom'
+          },
+          languages: {
+            dialog: 'indonesian',
+            monolog: 'indonesian'
+          }
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -594,6 +622,10 @@ Generate a clean, enhanced version following the exact format.`;
 
   return (
     <div className="space-y-8">
+      <Helmet>
+        <title>Mode Manual (Kontrol Penuh) - Shabira Prompt Lab</title>
+        <meta name="description" content="Dapatkan kontrol penuh atas setiap detail film Anda. Atur kamera, pencahayaan, dialog, dan gaya visual secara manual." />
+      </Helmet>
       <div className="text-center">
         <h2 className="text-4xl font-bold gradient-title mb-4">Manual Mode - Advanced Control</h2>
         <p className="text-xl text-gray-600">

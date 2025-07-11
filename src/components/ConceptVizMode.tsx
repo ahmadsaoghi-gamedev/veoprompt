@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
 
 interface VideoPrompt {
   scenePrompt: string;
   narasi: string;
-  dialog_en: string; // Added
-  dialog_id: string; // Added
+  dialog_en: string;
+  dialog_id: string;
 }
 
 const ConceptVizMode: React.FC = () => {
@@ -79,6 +80,10 @@ const ConceptVizMode: React.FC = () => {
 
   return (
     <div className="concept-viz-mode p-6 max-w-4xl mx-auto">
+      <Helmet>
+        <title>Mode Visualisasi Konsep (Image-to-Video) - Shabira Prompt Lab</title>
+        <meta name="description" content="Ubah ide cerita menjadi gambar kunci, lalu gunakan gambar tersebut sebagai fondasi untuk menghasilkan rangkaian prompt video yang konsisten." />
+      </Helmet>
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mode Visualisasi Konsep</h2>
 
       <div className="mb-6">

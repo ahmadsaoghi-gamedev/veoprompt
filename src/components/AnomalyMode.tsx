@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   generateAnomalyCharacters,
   generateAnomalyStory,
@@ -57,6 +58,10 @@ const AnomalyMode = () => {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
+      <Helmet>
+        <title>Anomaly Brainroot Mode - AI Video Creator</title>
+        <meta name="description" content="Hasilkan film pendek surealis dan out-of-the-box dengan mesin AI Anomaly Brainroot. Ciptakan karakter dan cerita yang belum pernah ada." />
+      </Helmet>
       <h2 className="text-2xl font-bold mb-4">Anomaly Brainroot Mode</h2>
       <p className="mb-6">Fitur ini sedang dalam pengembangan.</p>
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { callGeminiAPI } from '../utils/api';
 
@@ -350,6 +351,10 @@ Ultra Sharp 4K Quality
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-6">
+      <Helmet>
+        <title>Analisis Gambar Mendalam - Shabira Prompt Lab</title>
+        <meta name="description" content="Lakukan analisis gambar tingkat lanjut untuk proyek video Anda. Ekstrak DNA karakter, konteks cerita, dan dialog dari sebuah gambar." />
+      </Helmet>
       {/* Toast Notification */}
       {toast && (
         <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 animate-fade-in 
