@@ -212,7 +212,7 @@ export async function generateAnomalyScenePrompt(
   apiSettings?: APISettings
 ): Promise<AnomalyScenePrompt> {
   const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
-"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang berisi semua elemen di bawah ini. Ikuti instruksi bahasa untuk setiap kunci dengan SANGAT TELITI."
+"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang meniru format dan gaya dari **CONTOH EMAS** di bawah ini. Pastikan untuk mengikuti instruksi bahasa di setiap kunci dengan SANGAT TELITI."
 
 **KONTEKS CERITA:**
 - Judul: ${storyContext.judul}
@@ -227,23 +227,32 @@ export async function generateAnomalyScenePrompt(
 
 1.  **\`visual_prompt\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsikan semua elemen visual: gaya seni (Anomaly Brainroot, surealis), sinematografi (pergerakan, sudut, pencahayaan, warna), setting, dan aksi karakter dalam satu paragraf yang mengalir. Gunakan format penulisan skenario profesional.
+    * **Konten:** Deskripsi visual, sinematografi, setting, dan aksi karakter dalam format skenario profesional.
 
 2.  **\`audio_prompt\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsikan musik latar dan efek suara yang diperlukan untuk membangun suasana.
+    * **Konten:** Deskripsi musik latar dan efek suara.
 
 3.  **\`dialog_en\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Hasilkan dialog dalam format skenario, lengkap dengan nama karakter (huruf kapital) dan deskripsi nada (parenthetical).
+    * **Konten:** Dialog dalam format skenario.
 
 4.  **\`dialog_id_gaul\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL dengan aksen ${languageOptions.aksen}.
-    * **Konten:** Terjemahkan atau tulis ulang dialog dari \`dialog_en\` ke dalam bahasa Indonesia yang sangat santai, tidak kaku, dan sesuai dengan kepribadian karakter. Gunakan format skenario yang sama.
+    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL.
+    * **Konten:** Dialog dalam format skenario, dengan bahasa yang santai, tidak kaku, dan sesuai kepribadian karakter.
 
 5.  **\`narasi\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA.
-    * **Konten:** Tulis naskah untuk narator dengan gaya puitis dan santai, seperti seorang pendongeng.
+    * **Konten:** Naskah untuk narator dengan gaya puitis dan santai.
+
+**CONTOH EMAS (TIRU GAYA DAN FORMAT INI):**
+{
+  "visual_prompt": "INT. KITCHEN SINK - NIGHT. A hyperrealistic, grimy kitchen sink. SCRUBBY, a cynical sponge, lies slumped. A single drop of water hangs from the faucet, reflecting the entire kitchen in its tiny surface. The camera is an extreme close-up on this drop.",
+  "audio_prompt": "Sound of a single, rhythmic water drop. A very distant, melancholic saxophone plays a single wrong note.",
+  "dialog_en": "ARISTOTLE (O.S.)\\n(Muffled, from across the room)\\nBut what if the rice dreams of becoming a star?\\n\\nSCRUBBY\\n(Sighs, dripping water)\\nThen it'll be a shooting star straight to the trash can.",
+  "dialog_id_gaul": "ARISTOTLE (O.S.)\\n(Suaranya dari seberang ruangan)\\nCuy, gimana kalo ternyata nasi itu punya cita-cita jadi bintang?\\n\\nSCRUBBY\\n(Ngehela napas, netes)\\nHalah, paling juga jadi bintang jatuh, langsung ke tempat sampah.",
+  "narasi": "Di sudut terkecil dari eksistensi, bahkan spons pun punya pendapat tentang ambisi."
+}
 
 Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid.`;
 
@@ -266,7 +275,7 @@ export async function generateVideoPromptsFromImage(
   video_prompts: AnomalyScenePrompt[];
 }> {
   const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
-"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang berisi array 8 adegan berdasarkan ide '${userIdea}' dan gambar kunci terlampir. Ikuti instruksi bahasa untuk setiap kunci dengan SANGAT TELITI."
+"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang berisi array 8 adegan berdasarkan ide '${userIdea}' dan gambar kunci terlampir. Setiap adegan harus meniru format dan gaya dari **CONTOH EMAS** di bawah ini. Pastikan untuk mengikuti instruksi bahasa di setiap kunci dengan SANGAT TELITI."
 
 **KONTEKS:**
 - Ide Pengguna: ${userIdea}
@@ -279,23 +288,32 @@ Hasilnya harus berupa objek JSON tunggal dengan kunci \`video_prompts\`. Kunci i
 
 1.  **\`visual_prompt\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsikan semua elemen visual: gaya seni (konsisten dengan gambar kunci), sinematografi (pergerakan, sudut, pencahayaan, warna), setting, dan aksi karakter dalam satu paragraf yang mengalir. Gunakan format penulisan skenario profesional.
+    * **Konten:** Deskripsi visual, sinematografi, setting, dan aksi karakter dalam format skenario profesional.
 
 2.  **\`audio_prompt\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsikan musik latar dan efek suara yang diperlukan untuk membangun suasana.
+    * **Konten:** Deskripsi musik latar dan efek suara.
 
 3.  **\`dialog_en\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Hasilkan dialog dalam format skenario, lengkap dengan nama karakter (huruf kapital) dan deskripsi nada (parenthetical).
+    * **Konten:** Dialog dalam format skenario.
 
 4.  **\`dialog_id_gaul\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL dengan aksen ${languageOptions.aksen}.
-    * **Konten:** Terjemahkan atau tulis ulang dialog dari \`dialog_en\` ke dalam bahasa Indonesia yang sangat santai, tidak kaku, dan sesuai dengan kepribadian karakter. Gunakan format skenario yang sama.
+    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL.
+    * **Konten:** Dialog dalam format skenario, dengan bahasa yang santai, tidak kaku, dan sesuai kepribadian karakter.
 
 5.  **\`narasi\` (String):**
     * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA.
-    * **Konten:** Tulis naskah untuk narator dengan gaya puitis dan santai, seperti seorang pendongeng.
+    * **Konten:** Naskah untuk narator dengan gaya puitis dan santai.
+
+**CONTOH EMAS (TIRU GAYA DAN FORMAT INI):**
+{
+  "visual_prompt": "INT. KITCHEN SINK - NIGHT. A hyperrealistic, grimy kitchen sink. SCRUBBY, a cynical sponge, lies slumped. A single drop of water hangs from the faucet, reflecting the entire kitchen in its tiny surface. The camera is an extreme close-up on this drop.",
+  "audio_prompt": "Sound of a single, rhythmic water drop. A very distant, melancholic saxophone plays a single wrong note.",
+  "dialog_en": "ARISTOTLE (O.S.)\\n(Muffled, from across the room)\\nBut what if the rice dreams of becoming a star?\\n\\nSCRUBBY\\n(Sighs, dripping water)\\nThen it'll be a shooting star straight to the trash can.",
+  "dialog_id_gaul": "ARISTOTLE (O.S.)\\n(Suaranya dari seberang ruangan)\\nCuy, gimana kalo ternyata nasi itu punya cita-cita jadi bintang?\\n\\nSCRUBBY\\n(Ngehela napas, netes)\\nHalah, paling juga jadi bintang jatuh, langsung ke tempat sampah.",
+  "narasi": "Di sudut terkecil dari eksistensi, bahkan spons pun punya pendapat tentang ambisi."
+}
 
 Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid dan berisi array dengan tepat 8 adegan.`;
 
