@@ -3,12 +3,16 @@ import { Helmet } from 'react-helmet-async';
 import {
   generateAnomalyCharacters,
   generateAnomalyStory,
-  generateAnomalyScenePrompt
+  generateAnomalyScenePrompt,
+  generateTwistedStoryIdea
 } from '../utils/api';
 import { AnomalyScenePrompt } from '../types';
 
 const AnomalyMode = () => {
   const [userIdea, setUserIdea] = useState('');
+  const [karakterInput, setKarakterInput] = useState('');
+  const [situasiInput, setSituasiInput] = useState('');
+  const [elemenAnehInput, setElemenAnehInput] = useState('');
   const [languageOptions, setLanguageOptions] = useState({
     bahasa: 'Indonesia',
     aksen: 'Jaksel'
@@ -17,6 +21,26 @@ const AnomalyMode = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [generatedPrompts, setGeneratedPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
+
+  const handleGenerateIdea = async () => {
+    setIsLoading(true);
+    setLoadingMessage("Membuat ide cerita...");
+    try {
+      const inputs = {
+        karakter: karakterInput,
+        situasi: situasiInput,
+        elemenAneh: elemenAnehInput
+      };
+      const hasil = await generateTwistedStoryIdea(inputs);
+      setUserIdea(hasil);
+    } catch (err) {
+      console.error("Gagal membuat ide cerita:", err);
+      setError("Gagal membuat ide cerita. Silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -65,6 +89,51 @@ const AnomalyMode = () => {
       </Helmet>
       <h2 className="text-2xl font-bold mb-4">Anomaly Brainroot Mode</h2>
       <p className="mb-6">Fitur ini sedang dalam pengembangan.</p>
+
+      <fieldset className="mb-6 p-4 border rounded">
+        <legend className="px-2 font-bold">Generator Ide Cerita (Opsional)</legend>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block mb-2 font-medium">Karakter / Profesi Utama:</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={karakterInput}
+              onChange={(e) => setKarakterInput(e.target.value)}
+              placeholder="Contoh: Dokter gila, Penari robot"
+            />
+          </div>
+          <div>
+            <label className="block mb-2 font-medium">Situasi / Genre:</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={situasiInput}
+              onChange={(e) => setSituasiInput(e.target.value)}
+              placeholder="Contoh: Di rumah sakit jiwa, Film noir"
+            />
+          </div>
+          <div>
+            <label className="block mb-2 font-medium">Elemen Aneh / 'Twist':</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={elemenAnehInput}
+              onChange={(e) => setElemenAnehInput(e.target.value)}
+              placeholder="Contoh: Semua pasien adalah alien"
+            />
+          </div>
+        </div>
+
+        <button
+          className={`px-4 py-2 rounded text-white ${isLoading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}
+          onClick={handleGenerateIdea}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Memproses...' : 'Generate Ide Cerita'}
+        </button>
+      </fieldset>
 
       <div className="mb-4">
         <label className="block mb-2 font-medium">Ide Dasar Film:</label>
