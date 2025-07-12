@@ -1,18 +1,14 @@
 import { APISettings } from '../types';
 
-const DEFAULT_API_KEY = 'AIzaSyBBQW5vk3boXhE5aief20oVmbLizso_Y6Q';
-
 export async function callGeminiAPI(
   prompt: string, 
   imageBase64?: string, 
   apiSettings?: APISettings
 ): Promise<string> {
-  const apiKey = apiSettings?.usePrivateKey && apiSettings.privateKey 
-    ? apiSettings.privateKey 
-    : DEFAULT_API_KEY;
+  const apiKey = apiSettings?.privateKey;
 
-  if (!apiKey) {
-    throw new Error('API key is not configured');
+  if (!apiKey || !apiKey.trim()) {
+    throw new Error('API key is required. Please configure your Google Generative Language API key in the API Settings.');
   }
 
   const parts: Array<{text: string} | {inlineData: {mimeType: string, data: string}}> = [{ text: prompt }];
@@ -51,11 +47,24 @@ export async function callGeminiAPI(
     const errorData = await response.json();
     const errorMessage = errorData.error?.message || 'API request failed';
     
-    if (errorMessage.includes('blocked') || errorMessage.includes('API key')) {
-      throw new Error('API key is invalid or blocked. Please check your API key settings.');
+    if (response.status === 400 && errorMessage.includes('API_KEY_INVALID')) {
+      throw new Error('Invalid API key. Please check your Google Generative Language API key in the API Settings and ensure it has the correct permissions.');
     }
     
-    throw new Error(errorMessage);
+    if (response.status === 403) {
+      if (errorMessage.includes('quota')) {
+        throw new Error('API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.');
+      }
+      if (errorMessage.includes('API key')) {
+        throw new Error('API key access denied. Please ensure the Generative Language API is enabled in your Google Cloud Console.');
+      }
+    }
+    
+    if (response.status === 429) {
+      throw new Error('Rate limit exceeded. Please wait a moment before making another request.');
+    }
+    
+    throw new Error(`API Error (${response.status}): ${errorMessage}`);
   }
 
   const result = await response.json();
@@ -73,8 +82,17 @@ export async function callGeminiAPI(
   }
 }
 
-export async function validateAPIKey(apiKey: string): Promise<boolean> {
+export async function validateAPIKey(apiKey: string): Promise<{ isValid: boolean; error?: string }> {
   try {
+    if (!apiKey || !apiKey.trim()) {
+      return { isValid: false, error: 'API key cannot be empty' };
+    }
+
+    // Check if API key format is correct (Google API keys typically start with 'AIza')
+    if (!apiKey.startsWith('AIza')) {
+      return { isValid: false, error: 'Invalid API key format. Google API keys should start with "AIza"' };
+    }
+
     const testPrompt = "Say 'API key is valid' in one sentence.";
     await callGeminiAPI(testPrompt, undefined, { 
       usePrivateKey: true, 
@@ -82,21 +100,20 @@ export async function validateAPIKey(apiKey: string): Promise<boolean> {
       isActive: true, 
       lastValidated: null 
     });
-    return true;
-  } catch {
-    return false;
+    return { isValid: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown validation error';
+    return { isValid: false, error: errorMessage };
   }
 }
 
 export async function generateVideo(prompt: string, apiSettings?: APISettings): Promise<string> {
   // This would integrate with Veo 3 API for actual video generation
   // For now, we'll simulate the process
-  const apiKey = apiSettings?.usePrivateKey && apiSettings.privateKey 
-    ? apiSettings.privateKey 
-    : DEFAULT_API_KEY;
+  const apiKey = apiSettings?.privateKey;
 
-  if (!apiKey) {
-    throw new Error('API key is not configured for video generation');
+  if (!apiKey || !apiKey.trim()) {
+    throw new Error('API key is required for video generation. Please configure your API key in the settings.');
   }
 
   // Simulate video generation delay
@@ -217,47 +234,32 @@ export async function generateAnomalyScenePrompt(
   dialog_id_gaul: string;
   narasi: string;
 }> {
-  const prompt = `---
-**PERINTAH SISTEM (ATURAN UTAMA):**
-"Anda adalah seorang penulis naskah skenario untuk film animasi surealis yang 100% orisinal. Ikuti semua aturan di bawah ini tanpa kecuali."
+  const prompt = `You are a creative AI assistant tasked with generating a single JSON object for scene ${sceneNumber} of ${totalScenes} in a surreal story.
 
-**ATURAN 1: ANTI-HAK CIPTA (SANGAT PENTING):**
-"JANGAN gunakan karakter, nama, desain, atau elemen apa pun yang sudah ada dari film, kartun, atau game yang dilindungi hak cipta (Contoh terlarang: Spongebob, Mickey Mouse, Pokemon, dll). Semua karakter, nama, dan desain HARUS orisinal dan unik."
-
-**ATURAN 2: BAHASA AUDIO (SANGAT PENTING):**
-"Untuk bagian DIALOGUE, audio yang dihasilkan HARUS menggunakan teks dari kunci 'dialog_id_gaul'. Abaikan teks 'dialog_en' untuk produksi suara. Audio harus 100% dalam Bahasa Indonesia."
-
-**TUGAS UTAMA:**
-"Berdasarkan **Ide Cerita** dari pengguna, buatlah sebuah objek JSON yang berisi elemen-elemen berikut, sesuai dengan ATURAN UTAMA di atas:"
-
-**KONTEKS CERITA:**
-- Judul: ${storyContext.judul}
-- Karakter:
+Story Context:
+- Title: ${storyContext.judul}
+- Characters:
   - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
   - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-- Adegan ${sceneNumber} dari ${totalScenes}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
+- Scene Purpose: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
-**STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
-1. **'visual_prompt' (String):**
-   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
-   * **Konten:** Deskripsi visual dalam format skenario profesional.
+Instructions:
+Generate ONE JSON object with the following keys:
+- "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
+- "audio_prompt": Description of background music and surreal, mismatched sound effects.
 
-2. **'audio_prompt' (String):**
-   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
-   * **Konten:** Deskripsi musik latar dan efek suara.
+**IMPORTANT DURATION RULE:**
+"Total durasi video per adegan HANYA 8 DETIK. Oleh karena itu, total keseluruhan dialog untuk semua karakter dalam satu adegan HARUS singkat dan padat, idealnya tidak lebih dari 10-15 kata. Sisakan ruang untuk jeda dan aksi visual. Fokus pada percakapan yang cepat dan efisien."
 
-3. **'dialog_en' (String):**
-   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
-   * **Konten:** Dialog dalam format skenario (Hanya untuk referensi teks).
+- "dialog_en": A string containing 2-3 lines of dialogue in English, wrapped with a header indicating language and tone, e.g.:
+  "DIALOGUE (Language: English, Tone: Melancholic, philosophical)
+  Aristotle: (Sighs) Another day, another grain."
+- "dialog_id_gaul": A string containing the same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}, wrapped with a header indicating language and tone, e.g.:
+  "DIALOGUE (Language: Indonesian slang - ${languageOptions.aksen}, Tone: Cynical, bored)
+  Scrubby: (Ngomel) Udah deh, tong, masak aje tuh nasi. Gue lagi mikirin noda kopi nih, ngarti?"
+- "narasi": A 1-2 sentence narrator script in flowing, descriptive, slightly poetic Indonesian, casual like a conversation with a friend, providing emotional context or unseen details linking visuals and character feelings.
 
-4. **'dialog_id_gaul' (String):**
-   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Indonesia Gaul/Non-Formal.
-   * **Konten:** Dialog dalam format skenario. INI ADALAH SUMBER AUDIO UTAMA.
-
-5. **'narasi' (String):**
-   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Indonesia.
-   * **Konten:** Naskah untuk narator.
----`;
+Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   try {
@@ -274,7 +276,7 @@ export async function generateVideoPromptsFromImage(
   keyImage: string,
   languageOptions: LanguageOptions, // Added new argument
   apiSettings?: APISettings
-): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { 
+): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { // Updated return type
   const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script and dialogue for each scene.
 
 IMPORTANT REQUIREMENTS:
