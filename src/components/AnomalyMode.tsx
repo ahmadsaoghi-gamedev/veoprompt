@@ -5,6 +5,7 @@ import {
   generateAnomalyStory,
   generateAnomalyScenePrompt
 } from '../utils/api';
+import { AnomalyScenePrompt } from '../types';
 
 const AnomalyMode = () => {
   const [userIdea, setUserIdea] = useState('');
@@ -14,7 +15,7 @@ const AnomalyMode = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
-  const [generatedPrompts, setGeneratedPrompts] = useState<string[]>([]);
+  const [generatedPrompts, setGeneratedPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
 
   const handleGenerate = async () => {
@@ -31,7 +32,7 @@ const AnomalyMode = () => {
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
         setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
-        const prompt = await generateAnomalyScenePrompt(
+        const prompt: AnomalyScenePrompt = await generateAnomalyScenePrompt(
 
           story,
           characters,
@@ -134,7 +135,7 @@ const AnomalyMode = () => {
             <h3 className="font-bold mb-2">SCENE {index + 1}</h3>
             <textarea
               className="w-full p-2 bg-gray-50 rounded"
-              value={prompt}
+              value={JSON.stringify(prompt, null, 2)}
               readOnly
               rows={8}
             />
