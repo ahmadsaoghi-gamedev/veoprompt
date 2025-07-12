@@ -217,32 +217,54 @@ export async function generateAnomalyScenePrompt(
   dialog_id_gaul: string;
   narasi: string;
 }> {
-  const prompt = `You are a creative AI assistant tasked with generating a single JSON object for scene ${sceneNumber} of ${totalScenes} in a surreal story.
+  const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
+Anda adalah seorang penulis naskah skenario profesional untuk film animasi surealis. Tugas Anda adalah menulis satu adegan penuh dalam format standar industri untuk scene ${sceneNumber} dari ${totalScenes}. Hasilkan satu string tunggal yang berisi semua elemen di bawah ini.
 
-Story Context:
-- Title: ${storyContext.judul}
-- Characters:
+**KONTEKS CERITA:**
+- Judul: ${storyContext.judul}
+- Karakter:
   - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
   - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-- Scene Purpose: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
+- Tujuan Adegan: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
-Instructions:
-Generate ONE JSON object with the following keys:
-- "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
-- "audio_prompt": Description of background music and surreal, mismatched sound effects.
+**STRUKTUR OUTPUT YANG WAJIB DIIKUTI:**
 
-**IMPORTANT DURATION RULE:**
-"Total durasi video per adegan HANYA 8 DETIK. Oleh karena itu, total keseluruhan dialog untuk semua karakter dalam satu adegan HARUS singkat dan padat, idealnya tidak lebih dari 10-15 kata. Sisakan ruang untuk jeda dan aksi visual. Fokus pada percakapan yang cepat dan efisien."
+**1. SCENE HEADING:**
+- Mulai dengan INT. (untuk interior) atau EXT. (untuk eksterior).
+- Diikuti dengan LOKASI.
+- Diakhiri dengan WAKTU (DAY, NIGHT, DUSK, DAWN).
+- Contoh: INT. DAPUR KUMUH - NIGHT.
 
-- "dialog_en": A string containing 2-3 lines of dialogue in English, wrapped with a header indicating language and tone, e.g.:
-  "DIALOGUE (Language: English, Tone: Melancholic, philosophical)
-  Aristotle: (Sighs) Another day, another grain."
-- "dialog_id_gaul": A string containing the same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}, wrapped with a header indicating language and tone, e.g.:
-  "DIALOGUE (Language: Indonesian slang - ${languageOptions.aksen}, Tone: Cynical, bored)
-  Scrubby: (Ngomel) Udah deh, tong, masak aje tuh nasi. Gue lagi mikirin noda kopi nih, ngarti?"
-- "narasi": A 1-2 sentence narrator script in flowing, descriptive, slightly poetic Indonesian, casual like a conversation with a friend, providing emotional context or unseen details linking visuals and character feelings.
+**2. ACTION BLOCK:**
+- Ini adalah paragraf utama setelah Scene Heading.
+- Deskripsikan semua elemen visual dalam satu paragraf yang mengalir: gaya visual (3D Anomaly Brainroot, surealis), sinematografi (pergerakan kamera, sudut, pencahayaan, warna), setting, dan aksi karakter.
+- **PENTING:** Saat menyebutkan nama karakter untuk pertama kali, tulis dalam HURUF KAPITAL.
 
-Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
+**3. BACKGROUND AUDIO BLOCK:**
+- Setelah blok aksi, mulai baris baru.
+- Deskripsikan musik latar dan efek suara yang diperlukan untuk membangun suasana.
+
+**4. DIALOGUE BLOCK:**
+- Ini adalah bagian terakhir. Gunakan format standar dialog skenario:
+- NAMA KARAKTER (DALAM HURUF KAPITAL)
+- (Parenthetical: deskripsi nada atau aksi kecil, seperti 'menghela napas' atau 'berbisik')
+- Teks Dialog.
+
+**ATURAN DURASI PENTING:**
+Total durasi video per adegan HANYA 8 DETIK. Dialog HARUS singkat dan padat, maksimal 10-15 kata total untuk semua karakter.
+
+**FORMAT OUTPUT JSON:**
+Kembalikan HANYA objek JSON dengan kunci berikut:
+- "visual_prompt": Skenario lengkap dalam format standar industri (Scene Heading + Action Block)
+- "audio_prompt": Background Audio Block
+- "dialog_en": Dialogue Block dalam bahasa Inggris
+- "dialog_id_gaul": Dialogue Block dalam bahasa Indonesia gaul dengan aksen ${languageOptions.aksen}
+- "narasi": Narasi deskriptif 1-2 kalimat dalam bahasa Indonesia yang mengalir
+
+**CONTOH FORMAT YANG HARUS DIIKUTI:**
+visual_prompt: "INT. DAPUR REMANG-REMANG - NIGHT. Sebuah adegan surealis di dapur yang remang. Gaya utama: 3D Anomaly Brainroot. ARI, penanak nasi penyok dengan mata googly, duduk di meja. Asap berbentuk tanda tanya keluar dari ventilasinya. SPIKE, spons kuning compang-camping dengan ekspresi sinis, tergeletak di wastafel. Kamera berputar perlahan mengelilingi ARI dari sudut rendah. Pencahayaan hangat dan menyebar dengan bayangan yang pekat."
+
+Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   try {
@@ -260,42 +282,72 @@ export async function generateVideoPromptsFromImage(
   languageOptions: LanguageOptions, // Added new argument
   apiSettings?: APISettings
 ): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { // Updated return type
-  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script and dialogue for each scene.
+  const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
+Anda adalah seorang penulis naskah skenario profesional untuk film animasi surealis. Tugas Anda adalah menulis 8 adegan penuh dalam format standar industri berdasarkan ide "${userIdea}" dan gambar kunci yang diberikan. Hasilkan serangkaian adegan yang mengikuti struktur skenario profesional.
 
-IMPORTANT REQUIREMENTS:
-1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
-2. Each scene prompt should include:
-   - Scene setting/location
-   - Character actions and emotions
-   - Camera angles/movements
-   - Lighting details
-   - Any important visual effects
-3. The scenes should flow logically from one to the next to form a coherent narrative.
-4. Each narrator script should be concise (1-2 sentences) and provide emotional context or bridge the visual action with character feelings, as if telling a story to a friend.
+**KONTEKS:**
+- Ide Pengguna: ${userIdea}
+- Gambar kunci menentukan gaya visual yang HARUS dipertahankan di semua adegan
+- Bahasa Indonesia: ${languageOptions.bahasa}
+- Aksen: ${languageOptions.aksen}
 
-**PROMPT AUDIO & DIALOG:**
-* **Perintah untuk AI:** "Hasilkan DUA versi dialog untuk adegan ini: satu dalam bahasa Inggris, dan satu lagi dalam bahasa Indonesia sesuai dengan gaya yang diminta. Pastikan dialognya terdengar alami dan sesuai dengan kepribadian karakter."
-* **Dialog Versi Inggris (Professional/Natural):** [Minta AI untuk menulis dialog dalam bahasa Inggris yang alami dan sesuai konteks]
-* **Dialog Versi Indonesia (Gaya: ${languageOptions.bahasa}):** [Minta AI untuk menulis dialog yang sama, tetapi dalam bahasa Indonesia yang SANGAT SANTAI, non-formal, gaul, dan tidak kaku. Gunakan kosakata sehari-hari yang akrab.]
+**STRUKTUR OUTPUT YANG WAJIB DIIKUTI UNTUK SETIAP ADEGAN:**
 
-Return ONLY a JSON object in this exact format (with no additional text or markdown):
+**1. SCENE HEADING:**
+- Mulai dengan INT. (untuk interior) atau EXT. (untuk eksterior)
+- Diikuti dengan LOKASI
+- Diakhiri dengan WAKTU (DAY, NIGHT, DUSK, DAWN)
+- Contoh: INT. DAPUR KUMUH - NIGHT
+
+**2. ACTION BLOCK:**
+- Paragraf utama setelah Scene Heading
+- Deskripsikan semua elemen visual dalam satu paragraf yang mengalir: gaya visual (sesuai gambar kunci), sinematografi (pergerakan kamera, sudut, pencahayaan, warna), setting, dan aksi karakter
+- **PENTING:** Saat menyebutkan nama karakter untuk pertama kali, tulis dalam HURUF KAPITAL
+
+**3. BACKGROUND AUDIO BLOCK:**
+- Setelah blok aksi, mulai baris baru
+- Deskripsikan musik latar dan efek suara yang diperlukan untuk membangun suasana
+
+**4. DIALOGUE BLOCK:**
+- Bagian terakhir. Gunakan format standar dialog skenario:
+- NAMA KARAKTER (DALAM HURUF KAPITAL)
+- (Parenthetical: deskripsi nada atau aksi kecil)
+- Teks Dialog
+
+**PERSYARATAN PENTING:**
+1. Desain karakter, gaya visual, dan pencahayaan dari gambar kunci HARUS dipertahankan di semua adegan untuk konsistensi visual
+2. Adegan harus mengalir logis dari satu ke yang berikutnya untuk membentuk narasi yang koheren
+3. Setiap skrip narator harus ringkas (1-2 kalimat) dan memberikan konteks emosional
+4. Dialog HARUS singkat dan padat untuk durasi 8 detik per adegan
+
+**CONTOH FORMAT YANG HARUS DIIKUTI:**
+scenePrompt: "INT. DAPUR REMANG-REMANG - NIGHT. Sebuah adegan surealis di dapur yang remang. Gaya sesuai gambar kunci. ARI, penanak nasi penyok dengan mata googly, duduk di meja. Asap berbentuk tanda tanya keluar dari ventilasinya. SPIKE, spons kuning compang-camping dengan ekspresi sinis, tergeletak di wastafel. Kamera berputar perlahan mengelilingi ARI dari sudut rendah. Pencahayaan hangat dan menyebar dengan bayangan yang pekat.
+
+Musik latar: Melodi piano yang melankolis dan sedikit terdistorsi. Efek suara: Desis uap yang lembut, dengungan kulkas yang pelan.
+
+ARI
+(Menghela napas panjang)
+Beneran deh, nasi tuh, emang... nyata?
+
+SPIKE
+(Meneteskan air)
+Udah ah, masak aja, panci butut."
+
+**FORMAT OUTPUT JSON:**
+Kembalikan HANYA objek JSON dengan format berikut:
 {
   "video_prompts": [
     {
-      "scenePrompt": "Scene 1: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 1.",
-      "dialog_en": "English dialogue for scene 1.",
-      "dialog_id": "Indonesian dialogue for scene 1."
+      "scenePrompt": "Scene 1: [skenario lengkap format standar industri]",
+      "narasi": "Narasi deskriptif 1-2 kalimat dalam bahasa Indonesia",
+      "dialog_en": "Dialog dalam bahasa Inggris",
+      "dialog_id": "Dialog dalam bahasa Indonesia gaul dengan aksen ${languageOptions.aksen}"
     },
-    {
-      "scenePrompt": "Scene 2: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 2.",
-      "dialog_en": "English dialogue for scene 2.",
-      "dialog_id": "Indonesian dialogue for scene 2."
-    },
-    // ... up to 8 scenes
+    // ... hingga 8 adegan
   ]
-}`;
+}
+
+Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid.`;
 
   const response = await callGeminiAPI(prompt, keyImage, apiSettings);
   return JSON.parse(response);
