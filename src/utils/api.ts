@@ -143,13 +143,16 @@ interface AnomalyStoryResponse {
 
 export async function generateAnomalyStory(
   characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  userIdea: string,
   apiSettings?: APISettings
 ): Promise<AnomalyStoryResponse> {
   const prompt = `Given these two surreal characters:
     Character 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
     Character 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
 
-    Create a movie title and an 8-scene synopsis featuring these characters.
+    And this original story idea: "${userIdea}"
+
+    Create a movie title and an 8-scene synopsis that combines these characters with the original idea.
     Return ONLY a JSON object in this exact format, with no additional text:
     {
       "judul": "...",
