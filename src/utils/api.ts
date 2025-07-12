@@ -1,4 +1,4 @@
-import { APISettings, AnomalyScenePrompt } from '../types';
+import { APISettings } from '../types';
 
 const DEFAULT_API_KEY = 'AIzaSyBBQW5vk3boXhE5aief20oVmbLizso_Y6Q';
 
@@ -210,51 +210,54 @@ export async function generateAnomalyScenePrompt(
   totalScenes: number,
   languageOptions: LanguageOptions,
   apiSettings?: APISettings
-): Promise<AnomalyScenePrompt> {
-  const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
-"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang meniru format dan gaya dari **CONTOH EMAS** di bawah ini. Pastikan untuk mengikuti instruksi bahasa di setiap kunci dengan SANGAT TELITI."
+): Promise<{
+  visual_prompt: string;
+  audio_prompt: string;
+  dialog_en: string;
+  dialog_id_gaul: string;
+  narasi: string;
+}> {
+  const prompt = `---
+**PERINTAH SISTEM (ATURAN UTAMA):**
+"Anda adalah seorang penulis naskah skenario untuk film animasi surealis yang 100% orisinal. Ikuti semua aturan di bawah ini tanpa kecuali."
+
+**ATURAN 1: ANTI-HAK CIPTA (SANGAT PENTING):**
+"JANGAN gunakan karakter, nama, desain, atau elemen apa pun yang sudah ada dari film, kartun, atau game yang dilindungi hak cipta (Contoh terlarang: Spongebob, Mickey Mouse, Pokemon, dll). Semua karakter, nama, dan desain HARUS orisinal dan unik."
+
+**ATURAN 2: BAHASA AUDIO (SANGAT PENTING):**
+"Untuk bagian DIALOGUE, audio yang dihasilkan HARUS menggunakan teks dari kunci 'dialog_id_gaul'. Abaikan teks 'dialog_en' untuk produksi suara. Audio harus 100% dalam Bahasa Indonesia."
+
+**TUGAS UTAMA:**
+"Berdasarkan **Ide Cerita** dari pengguna, buatlah sebuah objek JSON yang berisi elemen-elemen berikut, sesuai dengan ATURAN UTAMA di atas:"
 
 **KONTEKS CERITA:**
 - Judul: ${storyContext.judul}
 - Karakter:
   - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
   - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-- Sinopsis Adegan Ini: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
-- Adegan ${sceneNumber} dari ${totalScenes}.
-- Durasi adegan: 8 detik. Dialog harus sangat singkat.
+- Adegan ${sceneNumber} dari ${totalScenes}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
 **STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
+1. **'visual_prompt' (String):**
+   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
+   * **Konten:** Deskripsi visual dalam format skenario profesional.
 
-1.  **\`visual_prompt\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsi visual, sinematografi, setting, dan aksi karakter dalam format skenario profesional.
+2. **'audio_prompt' (String):**
+   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
+   * **Konten:** Deskripsi musik latar dan efek suara.
 
-2.  **\`audio_prompt\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsi musik latar dan efek suara.
+3. **'dialog_en' (String):**
+   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Inggris.
+   * **Konten:** Dialog dalam format skenario (Hanya untuk referensi teks).
 
-3.  **\`dialog_en\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Dialog dalam format skenario.
+4. **'dialog_id_gaul' (String):**
+   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Indonesia Gaul/Non-Formal.
+   * **Konten:** Dialog dalam format skenario. INI ADALAH SUMBER AUDIO UTAMA.
 
-4.  **\`dialog_id_gaul\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL.
-    * **Konten:** Dialog dalam format skenario, dengan bahasa yang santai, tidak kaku, dan sesuai kepribadian karakter.
-
-5.  **\`narasi\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA.
-    * **Konten:** Naskah untuk narator dengan gaya puitis dan santai.
-
-**CONTOH EMAS (TIRU GAYA DAN FORMAT INI):**
-{
-  "visual_prompt": "INT. KITCHEN SINK - NIGHT. A hyperrealistic, grimy kitchen sink. SCRUBBY, a cynical sponge, lies slumped. A single drop of water hangs from the faucet, reflecting the entire kitchen in its tiny surface. The camera is an extreme close-up on this drop.",
-  "audio_prompt": "Sound of a single, rhythmic water drop. A very distant, melancholic saxophone plays a single wrong note.",
-  "dialog_en": "ARISTOTLE (O.S.)\\n(Muffled, from across the room)\\nBut what if the rice dreams of becoming a star?\\n\\nSCRUBBY\\n(Sighs, dripping water)\\nThen it'll be a shooting star straight to the trash can.",
-  "dialog_id_gaul": "ARISTOTLE (O.S.)\\n(Suaranya dari seberang ruangan)\\nCuy, gimana kalo ternyata nasi itu punya cita-cita jadi bintang?\\n\\nSCRUBBY\\n(Ngehela napas, netes)\\nHalah, paling juga jadi bintang jatuh, langsung ke tempat sampah.",
-  "narasi": "Di sudut terkecil dari eksistensi, bahkan spons pun punya pendapat tentang ambisi."
-}
-
-Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid.`;
+5. **'narasi' (String):**
+   * **Instruksi Bahasa:** Tulis bagian ini hanya dalam Bahasa Indonesia.
+   * **Konten:** Naskah untuk narator.
+---`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   try {
@@ -269,53 +272,45 @@ Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid.`;
 export async function generateVideoPromptsFromImage(
   userIdea: string,
   keyImage: string,
-  languageOptions: LanguageOptions,
+  languageOptions: LanguageOptions, // Added new argument
   apiSettings?: APISettings
-): Promise<{
-  video_prompts: AnomalyScenePrompt[];
-}> {
-  const prompt = `**PERINTAH SISTEM (SANGAT PENTING):**
-"Anda adalah seorang penulis naskah skenario profesional. Hasilkan satu objek JSON tunggal yang berisi array 8 adegan berdasarkan ide '${userIdea}' dan gambar kunci terlampir. Setiap adegan harus meniru format dan gaya dari **CONTOH EMAS** di bawah ini. Pastikan untuk mengikuti instruksi bahasa di setiap kunci dengan SANGAT TELITI."
+): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { 
+  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script and dialogue for each scene.
 
-**KONTEKS:**
-- Ide Pengguna: ${userIdea}
-- Gambar kunci menentukan gaya visual yang HARUS dipertahankan di semua 8 adegan.
-- Buat cerita pendek yang koheren yang berlangsung selama 8 adegan.
-- Durasi setiap adegan: 8 detik. Dialog harus sangat singkat.
+IMPORTANT REQUIREMENTS:
+1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
+2. Each scene prompt should include:
+   - Scene setting/location
+   - Character actions and emotions
+   - Camera angles/movements
+   - Lighting details
+   - Any important visual effects
+3. The scenes should flow logically from one to the next to form a coherent narrative.
+4. Each narrator script should be concise (1-2 sentences) and provide emotional context or bridge the visual action with character feelings, as if telling a story to a friend.
 
-**STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
-Hasilnya harus berupa objek JSON tunggal dengan kunci \`video_prompts\`. Kunci ini berisi array dari 8 objek adegan. Setiap objek dalam array HARUS mengikuti struktur ini:
+**PROMPT AUDIO & DIALOG:**
+* **Perintah untuk AI:** "Hasilkan DUA versi dialog untuk adegan ini: satu dalam bahasa Inggris, dan satu lagi dalam bahasa Indonesia sesuai dengan gaya yang diminta. Pastikan dialognya terdengar alami dan sesuai dengan kepribadian karakter."
+* **Dialog Versi Inggris (Professional/Natural):** [Minta AI untuk menulis dialog dalam bahasa Inggris yang alami dan sesuai konteks]
+* **Dialog Versi Indonesia (Gaya: ${languageOptions.bahasa}):** [Minta AI untuk menulis dialog yang sama, tetapi dalam bahasa Indonesia yang SANGAT SANTAI, non-formal, gaul, dan tidak kaku. Gunakan kosakata sehari-hari yang akrab.]
 
-1.  **\`visual_prompt\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsi visual, sinematografi, setting, dan aksi karakter dalam format skenario profesional.
-
-2.  **\`audio_prompt\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Deskripsi musik latar dan efek suara.
-
-3.  **\`dialog_en\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS.
-    * **Konten:** Dialog dalam format skenario.
-
-4.  **\`dialog_id_gaul\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA GAUL/NON-FORMAL.
-    * **Konten:** Dialog dalam format skenario, dengan bahasa yang santai, tidak kaku, dan sesuai kepribadian karakter.
-
-5.  **\`narasi\` (String):**
-    * **Instruksi Bahasa:** TULIS BAGIAN INI HANYA DALAM BAHASA INDONESIA.
-    * **Konten:** Naskah untuk narator dengan gaya puitis dan santai.
-
-**CONTOH EMAS (TIRU GAYA DAN FORMAT INI):**
+Return ONLY a JSON object in this exact format (with no additional text or markdown):
 {
-  "visual_prompt": "INT. KITCHEN SINK - NIGHT. A hyperrealistic, grimy kitchen sink. SCRUBBY, a cynical sponge, lies slumped. A single drop of water hangs from the faucet, reflecting the entire kitchen in its tiny surface. The camera is an extreme close-up on this drop.",
-  "audio_prompt": "Sound of a single, rhythmic water drop. A very distant, melancholic saxophone plays a single wrong note.",
-  "dialog_en": "ARISTOTLE (O.S.)\\n(Muffled, from across the room)\\nBut what if the rice dreams of becoming a star?\\n\\nSCRUBBY\\n(Sighs, dripping water)\\nThen it'll be a shooting star straight to the trash can.",
-  "dialog_id_gaul": "ARISTOTLE (O.S.)\\n(Suaranya dari seberang ruangan)\\nCuy, gimana kalo ternyata nasi itu punya cita-cita jadi bintang?\\n\\nSCRUBBY\\n(Ngehela napas, netes)\\nHalah, paling juga jadi bintang jatuh, langsung ke tempat sampah.",
-  "narasi": "Di sudut terkecil dari eksistensi, bahkan spons pun punya pendapat tentang ambisi."
-}
-
-Kembalikan HANYA objek JSON, tanpa teks tambahan. Pastikan format JSON valid dan berisi array dengan tepat 8 adegan.`;
+  "video_prompts": [
+    {
+      "scenePrompt": "Scene 1: [detailed visual prompt]",
+      "narasi": "Narrator script for scene 1.",
+      "dialog_en": "English dialogue for scene 1.",
+      "dialog_id": "Indonesian dialogue for scene 1."
+    },
+    {
+      "scenePrompt": "Scene 2: [detailed visual prompt]",
+      "narasi": "Narrator script for scene 2.",
+      "dialog_en": "English dialogue for scene 2.",
+      "dialog_id": "Indonesian dialogue for scene 2."
+    },
+    // ... up to 8 scenes
+  ]
+}`;
 
   const response = await callGeminiAPI(prompt, keyImage, apiSettings);
   return JSON.parse(response);
