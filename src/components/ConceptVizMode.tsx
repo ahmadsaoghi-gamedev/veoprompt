@@ -1,22 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
+import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api-fixed';
 import { getSettings } from '../utils/database';
-import { APISettings } from '../types';
-
-interface VideoPrompt {
-  scenePrompt: string;
-  narasi: string;
-  dialog_en: string;
-  dialog_id: string;
-}
+import { APISettings, VideoPromptWithOptimization } from '../types';
 
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
-  const [videoPrompts, setVideoPrompts] = useState<VideoPrompt[]>([]);
+  const [videoPrompts, setVideoPrompts] = useState<VideoPromptWithOptimization[]>([]);
   const [error, setError] = useState('');
   const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -205,25 +198,66 @@ const ConceptVizMode: React.FC = () => {
               <h4 className="text-lg font-semibold mb-2 text-gray-800">Rangkaian Prompt Video:</h4>
               <ol className="list-decimal pl-6 space-y-2">
                 {videoPrompts.map((prompt, index) => (
-                  <li key={index} className="text-gray-700 mb-4">
-                    <textarea
-                      className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
-                      rows={4}
-                      readOnly
-                      value={prompt.scenePrompt}
-                    />
-                    <div className="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400">
-                      <h4 className="font-bold text-purple-800">Naskah Narator:</h4>
-                      <p className="text-gray-700 italic">{prompt.narasi}</p>
+                  <li key={index} className="text-gray-700 mb-6">
+
+                    {/* NEW: Veo3 Optimized Prompt Section - PRIORITIZED */}
+                    <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
+                      <h4 className="font-bold text-green-800 mb-2">🎯 Prompt Veo3 yang Dioptimalkan (GUNAKAN INI!):</h4>
+                      <textarea
+                        className="w-full p-3 border border-gray-300 rounded-lg bg-white"
+                        rows={6}
+                        readOnly
+                        value={prompt.veo3_optimized_prompt}
+                      />
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                          onClick={() => {
+                            navigator.clipboard.writeText(prompt.veo3_optimized_prompt)
+                              .then(() => alert('Prompt Veo3 yang dioptimalkan telah disalin!'))
+                              .catch(() => alert('Gagal menyalin prompt.'));
+                          }}
+                        >
+                          📋 Salin Prompt Veo3 Optimized
+                        </button>
+                        <span className="text-sm text-green-700 self-center">
+                          ← Gunakan prompt ini untuk hasil bahasa Indonesia yang konsisten
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-4 p-4 bg-green-50 border-l-4 border-green-400">
-                      <h4 className="font-bold text-green-800">Dialog (English):</h4>
-                      <p className="text-gray-700">{prompt.dialog_en}</p>
-                    </div>
-                    <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
-                      <h4 className="font-bold text-yellow-800">Dialog (Indonesia Gaul):</h4>
-                      <p className="text-gray-700">{prompt.dialog_id}</p>
-                    </div>
+
+                    {/* Original prompt sections - moved to secondary position */}
+                    <details className="mb-4">
+                      <summary className="cursor-pointer font-medium text-gray-600 hover:text-gray-800">
+                        📋 Lihat Detail Prompt Terpisah (Opsional)
+                      </summary>
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <h5 className="font-medium text-gray-700 mb-2">Prompt Visual:</h5>
+                          <textarea
+                            className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
+                            rows={4}
+                            readOnly
+                            value={prompt.scenePrompt}
+                          />
+                        </div>
+
+                        <div className="p-4 bg-purple-50 border-l-4 border-purple-400">
+                          <h5 className="font-bold text-purple-800">Naskah Narator:</h5>
+                          <p className="text-gray-700 italic">{prompt.narasi}</p>
+                        </div>
+
+                        <div className="p-4 bg-blue-50 border-l-4 border-blue-400">
+                          <h5 className="font-bold text-blue-800">Dialog (English):</h5>
+                          <p className="text-gray-700">{prompt.dialog_en}</p>
+                        </div>
+
+                        <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400">
+                          <h5 className="font-bold text-yellow-800">Dialog (Indonesia Gaul):</h5>
+                          <p className="text-gray-700">{prompt.dialog_id}</p>
+                        </div>
+                      </div>
+                    </details>
                   </li>
                 ))}
               </ol>

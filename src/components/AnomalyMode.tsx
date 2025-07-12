@@ -5,7 +5,7 @@ import {
   generateAnomalyStory,
   generateAnomalyScenePrompt,
   generateTwistedStoryIdea
-} from '../utils/api';
+} from '../utils/api-fixed';
 import { getSettings } from '../utils/database';
 import { AnomalyScenePrompt, APISettings } from '../types';
 
@@ -257,16 +257,43 @@ const AnomalyMode = () => {
                 rows={4}
               />
             </div>
+            {/* NEW: Veo3 Optimized Prompt Section */}
+            <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
+              <strong className="text-green-800">🎯 Prompt Veo3 yang Dioptimalkan (GUNAKAN INI!):</strong>
+              <textarea
+                className="w-full p-2 bg-white border rounded mt-2"
+                value={prompt.veo3_optimized_prompt}
+                readOnly
+                rows={6}
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                  onClick={() => {
+                    navigator.clipboard.writeText(prompt.veo3_optimized_prompt)
+                      .then(() => alert('Prompt Veo3 yang dioptimalkan telah disalin!'))
+                      .catch(() => alert('Gagal menyalin prompt.'));
+                  }}
+                >
+                  📋 Salin Prompt Veo3 Optimized
+                </button>
+                <span className="text-sm text-green-700 self-center">
+                  ← Gunakan prompt ini untuk hasil bahasa Indonesia yang konsisten
+                </span>
+              </div>
+            </div>
+
+            {/* OLD: Legacy prompt copy button */}
             <button
-              className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              className="mt-2 px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
               onClick={() => {
                 const finalPrompt = `${prompt.visual_prompt}\n\n${prompt.audio_prompt}\n\n${prompt.dialog_en}`;
                 navigator.clipboard.writeText(finalPrompt)
-                  .then(() => alert('Prompt telah disalin untuk Veo!'))
+                  .then(() => alert('Prompt lama telah disalin (tidak direkomendasikan)'))
                   .catch(() => alert('Gagal menyalin prompt.'));
               }}
             >
-              Salin Prompt untuk Veo
+              Salin Prompt Lama (Tidak Direkomendasikan)
             </button>
           </div>
         ))}
