@@ -115,14 +115,17 @@ export async function translateText(text: string, targetLanguage: string): Promi
   return `[${targetLanguage.toUpperCase()}] ${text}`;
 }
 
-export async function generateAnomalyCharacters(apiSettings?: APISettings): Promise<{
+export async function generateAnomalyCharacters(userIdea: string, apiSettings?: APISettings): Promise<{
   karakter_1: { nama: string; deskripsi_fisik: string };
   karakter_2: { nama: string; deskripsi_fisik: string };
 }> {
-  const prompt = `Create 2 surreal characters by combining random concepts. 
-    Return ONLY a JSON object in this exact format, with no additional text:
-    {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, 
-     "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}}`;
+  const prompt = `Kamu adalah seorang desainer konsep. Berdasarkan ide cerita spesifik ini: '${userIdea}'
+
+Tugasmu:
+1.  Buat deskripsi fisik yang aneh dan surealis untuk 'Rice Cooker Filsuf'.
+2.  Buat deskripsi fisik yang aneh dan surealis untuk 'Spons Sinis'.
+3.  Berikan nama panggilan untuk keduanya.
+4.  Pastikan output dalam format JSON yang ketat: {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}}.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   return JSON.parse(response);
