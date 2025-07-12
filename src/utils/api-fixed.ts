@@ -64,7 +64,7 @@ export async function generateAnomalyScenePrompt(
 }> {
   const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
   const bahasa_dipilih = languageOptions.bahasa;
-  const genre_tone = "Surreal, absurd, philosophical";
+  const genre_tone = "3D Animated, Pixar-Disney quality, Indonesian cultural elements";
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
@@ -87,15 +87,20 @@ Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal u
    - Gunakan format yang memastikan dialog dalam bahasa yang benar
    - Pisahkan instruksi visual dan dialog dengan jelas
 
+4. **KUALITAS 3D ANIMASI PREMIUM:**
+   - Gunakan referensi visual dari film animasi berkualitas tinggi
+   - Fokus pada detail lighting, texturing, dan character animation
+   - Integrasikan elemen budaya Indonesia dengan estetika modern
+
 **TUGAS UTAMA:**
 Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut:
 
 **STRUKTUR OUTPUT JSON:**
 
 {
-  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting. Gunakan terminologi film profesional.",
+  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang detail dan sinematografis dengan kualitas 3D animasi premium. WAJIB include: 3D animation style (Pixar/Disney quality), detailed character modeling, advanced lighting (volumetric, rim lighting, ambient occlusion), realistic textures, smooth character animation, cinematic camera work, Indonesian cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces, fluid motion, atmospheric effects.",
   
-  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
+  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif dengan kualitas film animasi premium. Include: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction, ambient soundscape, foley effects, dynamic range, emotional musical themes.",
   
   "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
   
@@ -106,12 +111,27 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
   "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt yang dioptimalkan khusus untuk Gemini Veo3 dengan format yang memastikan dialog bahasa Indonesia muncul di video."
 }
 
-**PANDUAN KUALITAS:**
-- Visual: Buat deskripsi yang bisa dibayangkan dengan jelas
-- Audio: Spesifik tentang jenis musik dan sound effects
-- Dialog: Gunakan bahasa sehari-hari yang autentik
-- Narasi: Buat engaging dan mendukung emosi scene
-- Veo3 Prompt: Gunakan format yang terbukti efektif untuk Veo3
+**PANDUAN KUALITAS 3D ANIMASI PREMIUM:**
+
+**VISUAL EXCELLENCE:**
+- **Rendering Quality:** 4K resolution, ray-traced lighting, global illumination, subsurface scattering
+- **Character Design:** Expressive faces, detailed textures, realistic hair/fur simulation, cloth physics
+- **Animation Style:** Fluid motion, squash-and-stretch principles, anticipation and follow-through
+- **Cinematography:** Dynamic camera movements, depth of field, cinematic framing, rule of thirds
+- **Lighting:** Volumetric lighting, rim lighting, ambient occlusion, color temperature variation
+- **Indonesian Elements:** Traditional patterns, architecture, clothing, natural landscapes, cultural symbols
+
+**AUDIO EXCELLENCE:**
+- **Music:** Orchestral arrangements with gamelan, angklung, traditional percussion
+- **Voice Acting:** Clear articulation, emotional range, character-specific vocal qualities
+- **Sound Design:** Spatial audio, realistic foley, environmental ambience
+- **Mix Quality:** Professional dynamic range, clear dialogue, immersive soundscape
+
+**CULTURAL INTEGRATION:**
+- Incorporate Indonesian architectural elements (joglo, rumah adat)
+- Use traditional color palettes (earth tones, batik patterns)
+- Include Indonesian flora and fauna
+- Reference local customs and traditions respectfully
 
 **CONTOH ADAPTASI BAHASA:**
 - Bahasa Indonesia: Natural, tidak formal berlebihan
