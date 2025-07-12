@@ -214,23 +214,24 @@ export async function generateAnomalyScenePrompt(
   dialog_id_gaul: string;
   narasi: string;
 }> {
-  const prompt = `**PROMPT UNTUK ADEGAN ${sceneNumber}/${totalScenes}**
+  const prompt = `You are a creative AI assistant tasked with generating a single JSON object for scene ${sceneNumber} of ${totalScenes} in a surreal story.
 
-**KONTEKS CERITA:**
-* **Judul:** ${storyContext.judul}
-* **Karakter & Deskripsi:**
+Story Context:
+- Title: ${storyContext.judul}
+- Characters:
   - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
   - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-* **Tujuan Adegan Ini:** ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
+- Scene Purpose: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
-Buatlah satu objek JSON tunggal dengan struktur berikut:
-- "visual_prompt": String yang berisi semua deskripsi visual, termasuk gaya utama (3D Anomaly Brainroot, surealis, fotorealistik dengan bentuk karakter yang absurd), sinematografi (camera movement, angle, lighting, color grading), setting (lokasi relevan dengan cerita), dan aksi karakter (gerakan dan ekspresi sesuai tujuan adegan). Deskripsikan secara detail dan spesifik untuk menciptakan nuansa aneh dan tidak terduga.
-- "audio_prompt": String yang berisi deskripsi musik latar dan efek suara yang aneh dan tidak cocok untuk menambah kesan surealis.
-- "dialog_en": String yang berisi dialog versi Bahasa Inggris, 2-3 baris antara karakter sesuai tujuan adegan, menggunakan gaya bicara khas karakter, non-formal.
-- "dialog_id_gaul": String yang berisi dialog versi Bahasa Indonesia Gaul, sama dengan dialog_en tapi diterjemahkan ke bahasa gaul, santai, dengan aksen ${languageOptions.aksen}.
-- "narasi": String yang berisi naskah narator (1-2 kalimat pendek) dalam bahasa Indonesia yang mengalir, deskriptif, sedikit puitis, tapi santai seperti obrolan teman. Berikan konteks emosional atau jelaskan yang tidak terlihat, hubungkan dengan perasaan karakter.
+Instructions:
+Generate ONE JSON object with the following keys:
+- "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
+- "audio_prompt": Description of background music and surreal, mismatched sound effects.
+- "dialog_en": 2-3 lines of dialogue in English, informal style matching character personalities.
+- "dialog_id_gaul": The same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}.
+- "narasi": A 1-2 sentence narrator script in flowing, descriptive, slightly poetic Indonesian, casual like a conversation with a friend, providing emotional context or unseen details linking visuals and character feelings.
 
-Output HANYA objek JSON tersebut, tanpa teks tambahan apa pun. Pastikan JSON valid dan sesuai contoh.`;
+Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   try {
