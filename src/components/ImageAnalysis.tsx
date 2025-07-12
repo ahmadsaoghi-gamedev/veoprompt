@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { callGeminiAPI } from '../utils/api';
+import { getSettings } from '../utils/database';
+import { APISettings } from '../types';
 
 interface UploadedImage {
   id: string;
@@ -37,7 +39,7 @@ const ImageAnalysis: React.FC = () => {
   const [scenes, setScenes] = useState<ScenePrompt[]>([]);
   const [storyMemory, setStoryMemory] = useState<StoryMemory | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [volumeDialog, setVolumeDialog] = useState(80);
   const [volumeMusic, setVolumeMusic] = useState(60);
   const [volumeSoundEffects, setVolumeSoundEffects] = useState(40);
@@ -45,8 +47,22 @@ const ImageAnalysis: React.FC = () => {
   const [captionMode, setCaptionMode] = useState<'no-caption' | 'with-caption'>('no-caption');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('indonesian');
   const [selectedAccent, setSelectedAccent] = useState<string>('standard');
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const additionalFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadApiSettings();
+  }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   const handleCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCaptionMode(e.target.value as 'no-caption' | 'with-caption');
@@ -113,7 +129,7 @@ const ImageAnalysis: React.FC = () => {
     if (!files || files.length === 0) return;
 
     const newImages: UploadedImage[] = [];
-    
+
     Array.from(files).forEach(file => {
       if (!file.type.match('image.*')) {
         showToast('Only image files are allowed', 'error');
@@ -129,12 +145,12 @@ const ImageAnalysis: React.FC = () => {
           isMain
         };
         newImages.push(newImage);
-        
+
         if (newImages.length === files.length) {
           setUploadedImages(prev => {
             // If adding main image, ensure only one main exists
             if (isMain) {
-              const updated = prev.map(img => ({...img, isMain: false}));
+              const updated = prev.map(img => ({ ...img, isMain: false }));
               return [...newImages, ...updated];
             }
             return [...prev, ...newImages];
@@ -152,12 +168,17 @@ const ImageAnalysis: React.FC = () => {
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({message, type});
+    setToast({ message, type });
   };
 
   const generateScene = async (sceneNumber: number) => {
     if (uploadedImages.length === 0 || !userInput.trim()) {
       showToast('Please upload at least one image and provide a story prompt', 'error');
+      return;
+    }
+
+    if (!apiSettings || !apiSettings.isActive) {
+      showToast('Please configure and validate your API key in the API Settings first.', 'error');
       return;
     }
 
@@ -196,10 +217,10 @@ Ambient Sounds:
   Sound 1 (${volumeSoundEffects}%)
   Sound 2 (${volumeSoundEffects}%)
 Audio Mix: [Brief audio mixing description]
-${captionMode === 'with-caption' ? 
-  `Caption Display: Show accurate captions in ${selectedLanguage} with proper timing synchronization` : 
-  `Caption Display: No captions, clean video output without text overlay`
-}
+${captionMode === 'with-caption' ?
+          `Caption Display: Show accurate captions in ${selectedLanguage} with proper timing synchronization` :
+          `Caption Display: No captions, clean video output without text overlay`
+        }
 Cultural Context: ${getLanguageSpecificInstructions(selectedLanguage as LanguageKey, selectedAccent as AccentKey).culturalContext}
 Ultra Sharp 4K Quality
 \`\`\`
@@ -209,9 +230,9 @@ Ultra Sharp 4K Quality
 4. **dialogueHistory**: Array of all dialogue lines
 5. **sceneEndingSummary**: One sentence summarizing scene end state`;
 
-      const response = await callGeminiAPI(prompt, mainImage.preview);
+      const response = await callGeminiAPI(prompt, mainImage.preview, apiSettings);
       const parsedData = JSON.parse(response.replace(/^```json\s*|```\s*$/g, '').trim());
-      
+
       const newScene = {
         id: Date.now().toString(),
         content: parsedData.scenePrompt,
@@ -244,16 +265,21 @@ Ultra Sharp 4K Quality
   };
 
   const toggleScene = (id: string) => {
-    setScenes(prev => 
-      prev.map(scene => 
-        scene.id === id ? {...scene, isExpanded: !scene.isExpanded} : scene
+    setScenes(prev =>
+      prev.map(scene =>
+        scene.id === id ? { ...scene, isExpanded: !scene.isExpanded } : scene
       )
     );
   };
 
   const generateNextScene = async () => {
     if (!storyMemory) return;
-    
+
+    if (!apiSettings || !apiSettings.isActive) {
+      showToast('Please configure and validate your API key in the API Settings first.', 'error');
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const currentSceneNum = scenes.length + 1;
@@ -265,9 +291,9 @@ Ultra Sharp 4K Quality
 - **Last Dialogue:** ${JSON.stringify(storyMemory.dialogueHistory)}
 - **Scene Ending Summary:** ${storyMemory.sceneEndingSummary}`;
 
-      const response = await callGeminiAPI(prompt);
+      const response = await callGeminiAPI(prompt, undefined, apiSettings);
       const newScenePrompt = response.replace(/^```\s*|```\s*$/g, '').trim();
-      
+
       const newScene = {
         id: Date.now().toString(),
         content: newScenePrompt,
@@ -301,12 +327,12 @@ Ultra Sharp 4K Quality
     exportText += `Story Context: ${storyMemory.storyContext}\n\n`;
     exportText += `--- CHARACTER DNA ---\n${storyMemory.characterDNA}\n\n`;
     exportText += `--- SCENE PROMPTS ---\n\n`;
-    
+
     scenes.forEach((scene, index) => {
       exportText += `----------------------------------------\n`;
       exportText += `SCENE ${index + 1}\n${scene.content}\n\n`;
     });
-    
+
     copyToClipboard(exportText, "All scenes copied to clipboard!");
   };
 
@@ -325,7 +351,7 @@ Ultra Sharp 4K Quality
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       if (!e.clipboardData) return;
-      
+
       // Handle files from clipboard
       if (e.clipboardData.files.length > 0) {
         handleFileUpload(e.clipboardData.files, true);
@@ -365,8 +391,8 @@ Ultra Sharp 4K Quality
 
       <div className="max-w-6xl mx-auto">
         <header className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900">{t('layout.title')}</h1>
-              <p className="text-lg text-gray-600 mt-2">{t('layout.subtitle')}</p>
+          <h1 className="text-4xl font-bold text-gray-900">{t('layout.title')}</h1>
+          <p className="text-lg text-gray-600 mt-2">{t('layout.subtitle')}</p>
 
         </header>
 
@@ -376,9 +402,9 @@ Ultra Sharp 4K Quality
             {/* Image Upload */}
             <div className="mb-6">
               <label className="block text-lg font-semibold text-gray-700 mb-2">{t('imageAnalysis.referenceImage')}</label>
-              
+
               {/* Main Image Upload */}
-              <div 
+              <div
                 className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer transition-all hover:border-blue-500 hover:bg-blue-50"
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
@@ -386,12 +412,12 @@ Ultra Sharp 4K Quality
               >
                 {uploadedImages.some(img => img.isMain) ? (
                   <div className="relative">
-                    <img 
-                      src={uploadedImages.find(img => img.isMain)?.preview} 
-                      alt="Main preview" 
+                    <img
+                      src={uploadedImages.find(img => img.isMain)?.preview}
+                      alt="Main preview"
                       className="max-h-64 mx-auto rounded-lg"
                     />
-                    <button 
+                    <button
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -406,14 +432,14 @@ Ultra Sharp 4K Quality
                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                <p className="mt-2 font-semibold text-blue-600">{t('imageAnalysis.dragDropMainImage')}</p>
-                <p className="text-sm text-gray-500">{t('imageAnalysis.clickToBrowse')}</p>
+                    <p className="mt-2 font-semibold text-blue-600">{t('imageAnalysis.dragDropMainImage')}</p>
+                    <p className="text-sm text-gray-500">{t('imageAnalysis.clickToBrowse')}</p>
 
                     <p className="text-xs text-gray-500 mt-1">or press <kbd className="font-mono bg-gray-200 p-1 rounded">Ctrl+V</kbd> to paste</p>
                   </>
                 )}
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
                   className="hidden"
                   accept="image/*"
@@ -425,12 +451,12 @@ Ultra Sharp 4K Quality
               <div className="grid grid-cols-4 gap-2 mt-4">
                 {uploadedImages.filter(img => !img.isMain).map(img => (
                   <div key={img.id} className="relative">
-                    <img 
-                      src={img.preview} 
-                      alt="Thumbnail" 
+                    <img
+                      src={img.preview}
+                      alt="Thumbnail"
                       className="w-full h-20 object-cover rounded-lg"
                     />
-                    <button 
+                    <button
                       className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
                       onClick={() => removeImage(img.id)}
                     >
@@ -440,14 +466,14 @@ Ultra Sharp 4K Quality
                 ))}
               </div>
 
-              <button 
+              <button
                 className="w-full mt-2 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
                 onClick={() => additionalFileInputRef.current?.click()}
               >
                 + Add Reference Images
               </button>
-              <input 
-                type="file" 
+              <input
+                type="file"
                 ref={additionalFileInputRef}
                 className="hidden"
                 accept="image/*"
@@ -516,7 +542,7 @@ Ultra Sharp 4K Quality
                       <option value="madurese">Bahasa Madura</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label htmlFor="accentType" className="block text-sm font-medium text-gray-700 mb-1">
                       Accent Type:
@@ -600,9 +626,9 @@ Ultra Sharp 4K Quality
               <button
                 className={`flex-1 py-3 px-4 rounded-lg text-white font-bold flex items-center justify-center
                   ${isGenerating ? 'bg-blue-400' : 'bg-gradient-to-r from-[#6A6EDC] to-[#7452B3] hover:opacity-90'}
-                  ${(!uploadedImages.length || !userInput.trim()) && 'opacity-50 cursor-not-allowed'}`}
+                  ${(!uploadedImages.length || !userInput.trim() || !apiSettings?.isActive) && 'opacity-50 cursor-not-allowed'}`}
                 onClick={() => generateScene(scenes.length + 1)}
-                disabled={isGenerating || !uploadedImages.length || !userInput.trim()}
+                disabled={isGenerating || !uploadedImages.length || !userInput.trim() || !apiSettings?.isActive}
               >
                 {isGenerating ? (
                   <>
@@ -619,9 +645,9 @@ Ultra Sharp 4K Quality
                 <button
                   className={`flex-1 py-3 px-4 rounded-lg text-white font-bold flex items-center justify-center
                     ${isGenerating ? 'bg-blue-400' : 'bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] hover:opacity-90'}
-                    ${!storyMemory && 'opacity-50 cursor-not-allowed'}`}
+                    ${(!storyMemory || !apiSettings?.isActive) && 'opacity-50 cursor-not-allowed'}`}
                   onClick={generateNextScene}
-                  disabled={isGenerating || !storyMemory}
+                  disabled={isGenerating || !storyMemory || !apiSettings?.isActive}
                 >
                   {isGenerating ? (
                     <>
@@ -649,21 +675,21 @@ Ultra Sharp 4K Quality
           {/* Right Column - Results */}
           <div className="bg-white/80 backdrop-blur-sm p-6 rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Generated Video Prompts</h2>
-            
+
             {scenes.length === 0 ? (
               <p className="text-gray-500">Your generated scenes will appear here...</p>
             ) : (
               <div className="space-y-4">
                 {scenes.map((scene, index) => (
                   <div key={scene.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div 
+                    <div
                       className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer"
                       onClick={() => toggleScene(scene.id)}
                     >
                       <h3 className="font-bold">Scene {index + 1}</h3>
                       <div className="flex items-center gap-2">
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             className="text-sm bg-gray-200 text-gray-700 py-1 px-2 rounded"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -682,10 +708,10 @@ Ultra Sharp 4K Quality
                             Translate
                           </button>
                         </div>
-                        <svg 
+                        <svg
                           className={`w-5 h-5 text-gray-500 transform transition-transform ${scene.isExpanded ? 'rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />

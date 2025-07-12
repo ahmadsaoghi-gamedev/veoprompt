@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Target, Megaphone, Palette, Camera, Mic, Save, Copy, Wand2 } from 'lucide-react';
-import { Character, VideoObject, VideoPrompt, Scene } from '../types';
-import { getCharacters, getObjects, savePrompt } from '../utils/database';
+import { Character, VideoObject, VideoPrompt, Scene, APISettings } from '../types';
+import { getCharacters, getObjects, savePrompt, getSettings } from '../utils/database';
 import { callGeminiAPI } from '../utils/api';
 
 const MarketingMode: React.FC = () => {
@@ -10,6 +10,7 @@ const MarketingMode: React.FC = () => {
   const [objects, setObjects] = useState<VideoObject[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
 
   const [formData, setFormData] = useState({
     // Marketing Specific
@@ -17,13 +18,13 @@ const MarketingMode: React.FC = () => {
     productName: '',
     targetAudience: 'general',
     callToAction: '',
-    
+
     // Visual & Audio
     marketingStyle: 'professional',
     visualTone: 'professional',
     backgroundMusic: 'upbeat',
     brandColors: '',
-    
+
     // Same as Manual Mode
     mainDescription: '',
     selectedCharacters: [] as string[],
@@ -39,7 +40,17 @@ const MarketingMode: React.FC = () => {
 
   useEffect(() => {
     loadAssets();
+    loadApiSettings();
   }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   const loadAssets = async () => {
     try {
@@ -114,6 +125,11 @@ const MarketingMode: React.FC = () => {
   ];
 
   const generateMarketingPrompt = async () => {
+    if (!apiSettings || !apiSettings.isActive) {
+      alert('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const selectedCharacterDetails = characters
@@ -167,7 +183,7 @@ Generate a comprehensive marketing video prompt that:
 
 Format as a detailed video production prompt suitable for AI video generation.`;
 
-      const result = await callGeminiAPI(promptTemplate);
+      const result = await callGeminiAPI(promptTemplate, undefined, apiSettings);
       setGeneratedPrompt(result);
     } catch (error) {
       console.error('Failed to generate marketing prompt:', error);
@@ -279,7 +295,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
               <Target className="w-6 h-6" />
               Marketing Strategy
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Marketing Goal</label>
@@ -352,7 +368,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
           {/* Characters & Products */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Characters & Products</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Characters (Spokespersons)</label>
@@ -426,7 +442,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
               <Palette className="w-6 h-6" />
               Visual & Brand Settings
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Marketing Style</label>
@@ -492,7 +508,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
               <Camera className="w-6 h-6" />
               Camera & Production
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Camera Movement</label>
@@ -555,7 +571,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
               <Mic className="w-6 h-6" />
               Audio & Narration
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="flex items-center gap-2">
@@ -607,7 +623,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
               <h3 className="text-xl font-bold text-gray-800">Marketing Prompt</h3>
               <button
                 onClick={generateMarketingPrompt}
-                disabled={isGenerating || !formData.mainDescription.trim() || !formData.productName.trim()}
+                disabled={isGenerating || !formData.mainDescription.trim() || !formData.productName.trim() || !apiSettings?.isActive}
                 className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
@@ -632,7 +648,7 @@ Format as a detailed video production prompt suitable for AI video generation.`;
                   className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
                   placeholder="Generated marketing prompt will appear here..."
                 />
-                
+
                 <div className="flex gap-3">
                   <button
                     onClick={copyPrompt}

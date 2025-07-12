@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
   generateAnomalyCharacters,
@@ -6,7 +6,8 @@ import {
   generateAnomalyScenePrompt,
   generateTwistedStoryIdea
 } from '../utils/api';
-import { AnomalyScenePrompt } from '../types';
+import { getSettings } from '../utils/database';
+import { AnomalyScenePrompt, APISettings } from '../types';
 
 const AnomalyMode = () => {
   const [userIdea, setUserIdea] = useState('');
@@ -21,9 +22,27 @@ const AnomalyMode = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [generatedPrompts, setGeneratedPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState<'indonesia' | 'english'>('english');
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
+
+  useEffect(() => {
+    loadApiSettings();
+  }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   const handleGenerateIdea = async () => {
+    if (!apiSettings || !apiSettings.isActive) {
+      setError('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsLoading(true);
     setLoadingMessage("Membuat ide cerita...");
     try {
@@ -44,26 +63,31 @@ const AnomalyMode = () => {
   };
 
   const handleGenerate = async () => {
+    if (!apiSettings || !apiSettings.isActive) {
+      setError('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsLoading(true);
     setLoadingMessage("Mempersiapkan mesin anomali...");
     setGeneratedPrompts([]);
     setError('');
     try {
       setLoadingMessage('Menciptakan karakter anomali...');
-      const characters = await generateAnomalyCharacters(userIdea);
+      const characters = await generateAnomalyCharacters(userIdea, apiSettings);
 
       setLoadingMessage('Merancang alur cerita & judul...');
-      const story = await generateAnomalyStory(characters, userIdea);
+      const story = await generateAnomalyStory(characters, userIdea, apiSettings);
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
         setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
         const prompt: AnomalyScenePrompt = await generateAnomalyScenePrompt(
-
           story,
           characters,
           i + 1,
           story.sinopsis_per_adegan.length,
-          languageOptions
+          languageOptions,
+          apiSettings
         );
         setGeneratedPrompts(prev => [...prev, prompt]);
       }
@@ -80,27 +104,6 @@ const AnomalyMode = () => {
       setIsLoading(false);
       setLoadingMessage('');
     }
-  };
-
-  const handleCopyForVeo = (sceneData: AnomalyScenePrompt, selectedLanguage: 'indonesia' | 'english') => {
-    let dialogToCopy;
-    if (selectedLanguage === 'indonesia') {
-      dialogToCopy = sceneData.dialog_id_gaul;
-    } else {
-      dialogToCopy = sceneData.dialog_en;
-    }
-
-    const finalPrompt = `
-${sceneData.visual_prompt}
-
-${sceneData.audio_prompt}
-
-${dialogToCopy}
-    `;
-
-    navigator.clipboard.writeText(finalPrompt.trim())
-      .then(() => alert(`Prompt dengan dialog ${selectedLanguage === 'indonesia' ? 'Indonesia' : 'Inggris'} berhasil disalin!`))
-      .catch(() => alert('Gagal menyalin prompt.'));
   };
 
   return (
@@ -149,9 +152,9 @@ ${dialogToCopy}
         </div>
 
         <button
-          className={`px-4 py-2 rounded text-white ${isLoading ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}
+          className={`px-4 py-2 rounded text-white ${isLoading || !apiSettings?.isActive ? 'bg-gray-400' : 'bg-purple-600 hover:bg-purple-700'}`}
           onClick={handleGenerateIdea}
-          disabled={isLoading}
+          disabled={isLoading || !apiSettings?.isActive}
         >
           {isLoading ? 'Memproses...' : 'Generate Ide Cerita'}
         </button>
@@ -201,9 +204,9 @@ ${dialogToCopy}
       </div>
 
       <button
-        className={`px-4 py-2 rounded text-white ${isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+        className={`px-4 py-2 rounded text-white ${isLoading || !apiSettings?.isActive ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
         onClick={handleGenerate}
-        disabled={isLoading}
+        disabled={isLoading || !apiSettings?.isActive}
       >
         {isLoading ? 'Memproses...' : 'Generate Anomaly Film'}
       </button>
@@ -254,25 +257,17 @@ ${dialogToCopy}
                 rows={4}
               />
             </div>
-            <div className="mt-4 flex items-center gap-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium">Pilih Bahasa Dialog:</label>
-                <select
-                  className="p-2 border rounded"
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value as 'indonesia' | 'english')}
-                >
-                  <option value="english">Salin Dialog Bahasa Inggris</option>
-                  <option value="indonesia">Salin Dialog Bahasa Indonesia</option>
-                </select>
-              </div>
-              <button
-                className="mt-6 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                onClick={() => handleCopyForVeo(prompt, selectedLanguage)}
-              >
-                Salin Prompt untuk Veo
-              </button>
-            </div>
+            <button
+              className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => {
+                const finalPrompt = `${prompt.visual_prompt}\n\n${prompt.audio_prompt}\n\n${prompt.dialog_en}`;
+                navigator.clipboard.writeText(finalPrompt)
+                  .then(() => alert('Prompt telah disalin untuk Veo!'))
+                  .catch(() => alert('Gagal menyalin prompt.'));
+              }}
+            >
+              Salin Prompt untuk Veo
+            </button>
           </div>
         ))}
       </div>

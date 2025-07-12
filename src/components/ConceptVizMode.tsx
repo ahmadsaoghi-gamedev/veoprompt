@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
-import { AnomalyScenePrompt } from '../types';
+import { getSettings } from '../utils/database';
+import { APISettings } from '../types';
 
-// Define the expected structure of the video prompts from the API
-interface ApiVideoPrompt {
+interface VideoPrompt {
   scenePrompt: string;
   narasi: string;
   dialog_en: string;
@@ -16,14 +16,32 @@ const ConceptVizMode: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
-  const [videoPrompts, setVideoPrompts] = useState<AnomalyScenePrompt[]>([]);
+  const [videoPrompts, setVideoPrompts] = useState<VideoPrompt[]>([]);
   const [error, setError] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState<'indonesia' | 'english'>('english');
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadApiSettings();
+  }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!userIdea.trim()) {
       setError('Silakan masukkan ide terlebih dahulu');
+      return;
+    }
+
+    if (!apiSettings || !apiSettings.isActive) {
+      setError('Please configure and validate your API key in the API Settings first.');
       return;
     }
 
@@ -32,7 +50,7 @@ const ConceptVizMode: React.FC = () => {
     setGeneratedImagePrompt('');
 
     try {
-      const prompt = await generateKeyImagePrompt(userIdea);
+      const prompt = await generateKeyImagePrompt(userIdea, apiSettings);
       setGeneratedImagePrompt(prompt);
     } catch (err) {
       setError('Gagal menghasilkan prompt. Silakan coba lagi.');
@@ -65,48 +83,25 @@ const ConceptVizMode: React.FC = () => {
       return;
     }
 
+    if (!apiSettings || !apiSettings.isActive) {
+      setError('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setVideoPrompts([]);
 
     try {
       const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' }; // Defined languageOptions with aksen
-      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions); // Passed languageOptions
-      const transformedPrompts = result.video_prompts.map((prompt: ApiVideoPrompt) => ({
-        visual_prompt: prompt.scenePrompt,
-        narasi: prompt.narasi,
-        dialog_en: prompt.dialog_en,
-        dialog_id_gaul: prompt.dialog_id, // Assuming dialog_id from API maps to dialog_id_gaul
-        audio_prompt: '' // Assuming audio_prompt is not provided by the API
-      }));
-      setVideoPrompts(transformedPrompts);
+      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions, apiSettings); // Passed languageOptions
+      setVideoPrompts(result.video_prompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
       console.error('Error generating video prompts:', err);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleCopyForVeo = (sceneData: AnomalyScenePrompt, selectedLanguage: 'indonesia' | 'english') => {
-    let dialogToCopy;
-    if (selectedLanguage === 'indonesia') {
-      dialogToCopy = sceneData.dialog_id_gaul;
-    } else {
-      dialogToCopy = sceneData.dialog_en;
-    }
-
-    const finalPrompt = `
-${sceneData.visual_prompt}
-
-${sceneData.audio_prompt}
-
-${dialogToCopy}
-    `;
-
-    navigator.clipboard.writeText(finalPrompt.trim())
-      .then(() => alert(`Prompt dengan dialog ${selectedLanguage === 'indonesia' ? 'Indonesia' : 'Inggris'} berhasil disalin!`))
-      .catch(() => alert('Gagal menyalin prompt.'));
   };
 
   return (
@@ -129,8 +124,8 @@ ${dialogToCopy}
 
       <button
         onClick={handleGenerate}
-        disabled={isLoading}
-        className={`px-6 py-3 rounded-lg font-medium ${isLoading
+        disabled={isLoading || !apiSettings?.isActive}
+        className={`px-6 py-3 rounded-lg font-medium ${isLoading || !apiSettings?.isActive
           ? 'bg-gray-400 cursor-not-allowed'
           : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
       >
@@ -197,8 +192,8 @@ ${dialogToCopy}
 
           <button
             onClick={handleGenerateVideoPrompts}
-            disabled={isLoading || !uploadedImage}
-            className={`px-6 py-3 rounded-lg font-medium ${isLoading || !uploadedImage
+            disabled={isLoading || !uploadedImage || !apiSettings?.isActive}
+            className={`px-6 py-3 rounded-lg font-medium ${isLoading || !uploadedImage || !apiSettings?.isActive
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
           >
@@ -211,24 +206,12 @@ ${dialogToCopy}
               <ol className="list-decimal pl-6 space-y-2">
                 {videoPrompts.map((prompt, index) => (
                   <li key={index} className="text-gray-700 mb-4">
-                    <div className="mb-2">
-                      <strong>Prompt Visual:</strong>
-                      <textarea
-                        className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
-                        rows={4}
-                        readOnly
-                        value={prompt.visual_prompt}
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <strong>Prompt Audio:</strong>
-                      <textarea
-                        className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
-                        rows={2}
-                        readOnly
-                        value={prompt.audio_prompt}
-                      />
-                    </div>
+                    <textarea
+                      className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
+                      rows={4}
+                      readOnly
+                      value={prompt.scenePrompt}
+                    />
                     <div className="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400">
                       <h4 className="font-bold text-purple-800">Naskah Narator:</h4>
                       <p className="text-gray-700 italic">{prompt.narasi}</p>
@@ -239,26 +222,7 @@ ${dialogToCopy}
                     </div>
                     <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
                       <h4 className="font-bold text-yellow-800">Dialog (Indonesia Gaul):</h4>
-                      <p className="text-gray-700">{prompt.dialog_id_gaul}</p>
-                    </div>
-                    <div className="mt-4 flex items-center gap-4">
-                      <div>
-                        <label className="block mb-1 text-sm font-medium">Pilih Bahasa Dialog:</label>
-                        <select
-                          className="p-2 border rounded"
-                          value={selectedLanguage}
-                          onChange={(e) => setSelectedLanguage(e.target.value as 'indonesia' | 'english')}
-                        >
-                          <option value="english">Salin Dialog Bahasa Inggris</option>
-                          <option value="indonesia">Salin Dialog Bahasa Indonesia</option>
-                        </select>
-                      </div>
-                      <button
-                        className="mt-6 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                        onClick={() => handleCopyForVeo(prompt, selectedLanguage)}
-                      >
-                        Salin Prompt untuk Veo
-                      </button>
+                      <p className="text-gray-700">{prompt.dialog_id}</p>
                     </div>
                   </li>
                 ))}

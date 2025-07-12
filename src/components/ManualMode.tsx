@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Settings, Users, Camera, Mic, Palette, Save, Copy, Wand2, Languages, Clock } from 'lucide-react';
-import { Character, VideoObject, VideoPrompt, Scene } from '../types';
-import { getCharacters, getObjects, savePrompt } from '../utils/database';
+import { Character, VideoObject, VideoPrompt, Scene, APISettings } from '../types';
+import { getCharacters, getObjects, savePrompt, getSettings } from '../utils/database';
 import { callGeminiAPI } from '../utils/api';
 
 const ManualMode: React.FC = () => {
@@ -15,6 +15,7 @@ const ManualMode: React.FC = () => {
   const [currentScene, setCurrentScene] = useState(1);
   const [totalScenes, setTotalScenes] = useState(1);
   const [scenePrompts, setScenePrompts] = useState<string[]>([]);
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   // Input visibility states
   const [inputStates, setInputStates] = useState({
     character: false,
@@ -47,22 +48,22 @@ const ManualMode: React.FC = () => {
   const [formData, setFormData] = useState({
     // Main Description
     mainDescription: '',
-    
+
     // Characters & Objects
     selectedCharacters: [] as string[],
     selectedObjects: [] as string[],
     customCharacters: [] as string[],
     customObjects: [] as string[],
-    
+
     // Action & Emotion
     mainAction: '',
     characterEmotion: '',
     customActions: [] as string[],
-    
+
     // Video Style
     videoStyle: 'realistic',
     customStyles: [] as string[],
-    
+
     // Camera & Visual
     cameraMovement: 'static',
     cameraAngle: 'medium-shot',
@@ -72,14 +73,14 @@ const ManualMode: React.FC = () => {
     customCameraMovements: [] as string[],
     customAngles: [] as string[],
     customEffects: [] as string[],
-    
+
     // Dialog & Narration
     dialogType: 'natural-dialogue',
     hasNarrator: false,
     narratorMood: 'professional',
     environmentalSounds: [] as { name: string; intensity: number }[],
     customDialogs: [] as { character: string; dialog: string; mood: string }[],
-    
+
     // Scene Settings
     location: '',
     timeOfDay: 'day',
@@ -166,7 +167,17 @@ const ManualMode: React.FC = () => {
 
   useEffect(() => {
     loadAssets();
+    loadApiSettings();
   }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   useEffect(() => {
     const scenes = Math.ceil(duration / 8);
@@ -316,9 +327,9 @@ const ManualMode: React.FC = () => {
 
   const hideCustomDialogInput = () => {
     setInputStates(prev => ({ ...prev, customDialog: false }));
-    setInputValues(prev => ({ 
-      ...prev, 
-      customDialog: '', 
+    setInputValues(prev => ({
+      ...prev,
+      customDialog: '',
       newDialogCharacter: '',
       dialogMood: ''
     }));
@@ -336,9 +347,9 @@ const ManualMode: React.FC = () => {
     if (e.key === 'Enter' && inputValues.customDialog.trim() && inputValues.newDialogCharacter) {
       setFormData(prev => ({
         ...prev,
-        customDialogs: [...prev.customDialogs, { 
-          character: inputValues.newDialogCharacter, 
-          dialog: inputValues.customDialog.trim(), 
+        customDialogs: [...prev.customDialogs, {
+          character: inputValues.newDialogCharacter,
+          dialog: inputValues.customDialog.trim(),
           mood: inputValues.dialogMood || 'neutral'
         }]
       }));
@@ -400,8 +411,8 @@ const ManualMode: React.FC = () => {
     }
 
     const scenePrefix = sceneNumber ? `SCENE ${sceneNumber}\n` : '';
-    const referenceText = sceneNumber && sceneNumber > 1 && scenePrompts.length > 0 
-      ? `\n\nREFERENCE PREVIOUS SCENE FOR CHARACTER CONSISTENCY:\n${scenePrompts[0]}\n\n` 
+    const referenceText = sceneNumber && sceneNumber > 1 && scenePrompts.length > 0
+      ? `\n\nREFERENCE PREVIOUS SCENE FOR CHARACTER CONSISTENCY:\n${scenePrompts[0]}\n\n`
       : '';
 
     return `${scenePrefix}Create a ${allStyles || 'cinematic'} video:
@@ -440,11 +451,16 @@ Ultra Sharp 4K Quality`;
   };
 
   const generateSinglePrompt = async () => {
+    if (!apiSettings || !apiSettings.isActive) {
+      alert('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const cleanPrompt = generateCleanPrompt();
-      
-    const enhancementPrompt = `Generate a clean, professional video prompt based on this input. 
+
+      const enhancementPrompt = `Generate a clean, professional video prompt based on this input. 
       
 CRITICAL RULES:
 1. Output ONLY in English (except keep dialog in Indonesian)
@@ -458,7 +474,7 @@ Input: ${cleanPrompt}
 
 Generate a clean, enhanced version following the exact format shown in the example.`;
 
-      const result = await callGeminiAPI(enhancementPrompt);
+      const result = await callGeminiAPI(enhancementPrompt, undefined, apiSettings);
       setGeneratedPrompt(result);
     } catch (error) {
       console.error('Failed to generate prompt:', error);
@@ -469,6 +485,11 @@ Generate a clean, enhanced version following the exact format shown in the examp
   };
 
   const generateMultiScenePrompts = async () => {
+    if (!apiSettings || !apiSettings.isActive) {
+      alert('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsGenerating(true);
     setScenePrompts([]);
     setCurrentScene(1);
@@ -477,7 +498,7 @@ Generate a clean, enhanced version following the exact format shown in the examp
       const allPrompts = [];
       for (let i = 1; i <= totalScenes; i++) {
         setCurrentScene(i);
-        
+
         const scenePrompt = generateCleanPrompt(i);
         const enhancementPrompt = `Generate a clean, professional video prompt for scene ${i} of ${totalScenes}. 
         
@@ -492,9 +513,9 @@ Input: ${scenePrompt}
 
 Generate a clean, enhanced version following the exact format.`;
 
-        const result = await callGeminiAPI(enhancementPrompt);
+        const result = await callGeminiAPI(enhancementPrompt, undefined, apiSettings);
         allPrompts.push(result);
-        
+
         // Small delay between scenes
         if (i < totalScenes) {
           await new Promise(resolve => setTimeout(resolve, 1000));
@@ -535,53 +556,53 @@ Generate a clean, enhanced version following the exact format.`;
     if (!title) return;
 
     try {
-      const scenes: Scene[] = isMultiScene 
+      const scenes: Scene[] = isMultiScene
         ? scenePrompts.map((prompt, index) => ({
-            id: `scene_${Date.now()}_${index}`,
-            sceneNumber: index + 1,
-            visualDescription: prompt,
-            location: formData.location,
-            time: formData.timeOfDay,
-            season: formData.season,
-            weather: formData.weather,
-            cinematography: {
-              cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
-              lighting: formData.lighting,
-              colorPalette: formData.colorGrading,
-              additionalVisuals: [formData.visualEffects, ...formData.customEffects]
-            },
-            audio: {
-              dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
-              ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
-              audioMix: 'Standard mix'
-            },
-            duration: 8,
-            characters: formData.selectedCharacters,
-            objects: formData.selectedObjects
-          }))
+          id: `scene_${Date.now()}_${index}`,
+          sceneNumber: index + 1,
+          visualDescription: prompt,
+          location: formData.location,
+          time: formData.timeOfDay,
+          season: formData.season,
+          weather: formData.weather,
+          cinematography: {
+            cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
+            lighting: formData.lighting,
+            colorPalette: formData.colorGrading,
+            additionalVisuals: [formData.visualEffects, ...formData.customEffects]
+          },
+          audio: {
+            dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
+            ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
+            audioMix: 'Standard mix'
+          },
+          duration: 8,
+          characters: formData.selectedCharacters,
+          objects: formData.selectedObjects
+        }))
         : [{
-            id: `scene_${Date.now()}`,
-            sceneNumber: 1,
-            visualDescription: generatedPrompt,
-            location: formData.location,
-            time: formData.timeOfDay,
-            season: formData.season,
-            weather: formData.weather,
-            cinematography: {
-              cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
-              lighting: formData.lighting,
-              colorPalette: formData.colorGrading,
-              additionalVisuals: [formData.visualEffects, ...formData.customEffects]
-            },
-            audio: {
-              dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
-              ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
-              audioMix: 'Standard mix'
-            },
-            duration: duration,
-            characters: formData.selectedCharacters,
-            objects: formData.selectedObjects
-          }];
+          id: `scene_${Date.now()}`,
+          sceneNumber: 1,
+          visualDescription: generatedPrompt,
+          location: formData.location,
+          time: formData.timeOfDay,
+          season: formData.season,
+          weather: formData.weather,
+          cinematography: {
+            cameraTechniques: [formData.cameraMovement, ...formData.customCameraMovements],
+            lighting: formData.lighting,
+            colorPalette: formData.colorGrading,
+            additionalVisuals: [formData.visualEffects, ...formData.customEffects]
+          },
+          audio: {
+            dialogue: formData.customDialogs.map(d => ({ character: d.character, description: d.mood, text: d.dialog })),
+            ambientSounds: formData.environmentalSounds.map(s => ({ name: s.name, volume: `${s.intensity}%` })),
+            audioMix: 'Standard mix'
+          },
+          duration: duration,
+          characters: formData.selectedCharacters,
+          objects: formData.selectedObjects
+        }];
 
       const videoPrompt: VideoPrompt = {
         id: `manual_${Date.now()}`,
@@ -667,7 +688,7 @@ Generate a clean, enhanced version following the exact format.`;
                       Generating Scene {currentScene} of {totalScenes}
                     </div>
                     <div className="bg-white rounded-full h-3 overflow-hidden">
-                      <div 
+                      <div
                         className="progress-bar h-3 rounded-full transition-all duration-500"
                         style={{ width: `${(currentScene / totalScenes) * 100}%` }}
                       />
@@ -698,30 +719,30 @@ Generate a clean, enhanced version following the exact format.`;
               <Users className="w-7 h-7 icon-prompt-en" />
               Characters & Objects
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <label className="block text-lg font-semibold text-gray-700">Characters</label>
-              <button
-                onClick={() => showInput('character')}
-                className="plus-btn"
-                title="Add custom character"
-              >
-                +
-              </button>
-              {inputStates.character && (
-                <input
-                  type="text"
-                  autoFocus
-                  value={inputValues.character}
-                  onChange={(e) => handleInputChange('character', e.target.value)}
-                  onKeyDown={(e) => handleInputKeyDown(e, 'character')}
-                  onBlur={() => hideInput('character')}
-                  placeholder="Enter character name"
-                  className="custom-input mt-2"
-                />
-              )}
+                  <button
+                    onClick={() => showInput('character')}
+                    className="plus-btn"
+                    title="Add custom character"
+                  >
+                    +
+                  </button>
+                  {inputStates.character && (
+                    <input
+                      type="text"
+                      autoFocus
+                      value={inputValues.character}
+                      onChange={(e) => handleInputChange('character', e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, 'character')}
+                      onBlur={() => hideInput('character')}
+                      placeholder="Enter character name"
+                      className="custom-input mt-2"
+                    />
+                  )}
                 </div>
                 <div className="space-y-3 max-h-40 overflow-y-auto border-2 border-purple-200 rounded-xl p-4 bg-white/50">
                   {characters.map((character) => (
@@ -768,25 +789,25 @@ Generate a clean, enhanced version following the exact format.`;
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <label className="block text-lg font-semibold text-gray-700">Objects</label>
-              <button
-                onClick={() => showInput('object')}
-                className="plus-btn"
-                title="Add custom object"
-              >
-                +
-              </button>
-              {inputStates.object && (
-                <input
-                  type="text"
-                  autoFocus
-                  value={inputValues.object}
-                  onChange={(e) => handleInputChange('object', e.target.value)}
-                  onKeyDown={(e) => handleInputKeyDown(e, 'object')}
-                  onBlur={() => hideInput('object')}
-                  placeholder="Enter object name"
-                  className="custom-input mt-2"
-                />
-              )}
+                  <button
+                    onClick={() => showInput('object')}
+                    className="plus-btn"
+                    title="Add custom object"
+                  >
+                    +
+                  </button>
+                  {inputStates.object && (
+                    <input
+                      type="text"
+                      autoFocus
+                      value={inputValues.object}
+                      onChange={(e) => handleInputChange('object', e.target.value)}
+                      onKeyDown={(e) => handleInputKeyDown(e, 'object')}
+                      onBlur={() => hideInput('object')}
+                      placeholder="Enter object name"
+                      className="custom-input mt-2"
+                    />
+                  )}
                 </div>
                 <div className="space-y-3 max-h-40 overflow-y-auto border-2 border-purple-200 rounded-xl p-4 bg-white/50">
                   {objects.map((object) => (
@@ -838,7 +859,7 @@ Generate a clean, enhanced version following the exact format.`;
               <Palette className="w-7 h-7 icon-idea-bulb" />
               Action & Emotion
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -872,22 +893,22 @@ Generate a clean, enhanced version following the exact format.`;
                 />
                 {formData.customActions.length > 0 && (
                   <div className="mt-3 space-y-2">
-                  {formData.customActions.map((action, index) => (
-                    <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
-                      <span>{action}</span>
-                      <button
-                        onClick={() => removeCustomItem('action', index)}
-                        className="text-red-500 hover:text-red-700"
-                        title="Remove action"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                    {formData.customActions.map((action, index) => (
+                      <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
+                        <span>{action}</span>
+                        <button
+                          onClick={() => removeCustomItem('action', index)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove action"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
-              
+
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-4">Character Emotion</label>
                 <input
@@ -928,30 +949,30 @@ Generate a clean, enhanced version following the exact format.`;
             </div>
             {formData.customStyles.length > 0 && (
               <div className="mt-4 space-y-2">
-              {inputStates.style && (
-                <input
-                  type="text"
-                  autoFocus
-                  value={inputValues.style}
-                  onChange={(e) => handleInputChange('style', e.target.value)}
-                  onKeyDown={(e) => handleInputKeyDown(e, 'style')}
-                  onBlur={() => hideInput('style')}
-                  placeholder="Enter custom style"
-                  className="custom-input mt-2"
-                />
-              )}
-              {formData.customStyles.map((style, index) => (
-                <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
-                  <span>{style}</span>
-                  <button
-                    onClick={() => removeCustomItem('style', index)}
-                    className="text-red-500 hover:text-red-700"
-                    title="Remove style"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+                {inputStates.style && (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={inputValues.style}
+                    onChange={(e) => handleInputChange('style', e.target.value)}
+                    onKeyDown={(e) => handleInputKeyDown(e, 'style')}
+                    onBlur={() => hideInput('style')}
+                    placeholder="Enter custom style"
+                    className="custom-input mt-2"
+                  />
+                )}
+                {formData.customStyles.map((style, index) => (
+                  <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
+                    <span>{style}</span>
+                    <button
+                      onClick={() => removeCustomItem('style', index)}
+                      className="text-red-500 hover:text-red-700"
+                      title="Remove style"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -962,7 +983,7 @@ Generate a clean, enhanced version following the exact format.`;
               <Camera className="w-7 h-7 icon-prompt-en" />
               Camera & Visual Settings
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -1000,18 +1021,18 @@ Generate a clean, enhanced version following the exact format.`;
                 </select>
                 {formData.customCameraMovements.length > 0 && (
                   <div className="mt-3 space-y-2">
-                {formData.customCameraMovements.map((movement, index) => (
-                  <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
-                    <span>{movement}</span>
-                    <button
-                      onClick={() => removeCustomItem('cameraMovement', index)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Remove camera movement"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                    {formData.customCameraMovements.map((movement, index) => (
+                      <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
+                        <span>{movement}</span>
+                        <button
+                          onClick={() => removeCustomItem('cameraMovement', index)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove camera movement"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1052,18 +1073,18 @@ Generate a clean, enhanced version following the exact format.`;
                 </select>
                 {formData.customAngles.length > 0 && (
                   <div className="mt-3 space-y-2">
-                {formData.customAngles.map((angle, index) => (
-                  <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
-                    <span>{angle}</span>
-                    <button
-                      onClick={() => removeCustomItem('angle', index)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Remove camera angle"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                    {formData.customAngles.map((angle, index) => (
+                      <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
+                        <span>{angle}</span>
+                        <button
+                          onClick={() => removeCustomItem('angle', index)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove camera angle"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1131,18 +1152,18 @@ Generate a clean, enhanced version following the exact format.`;
                 />
                 {formData.customEffects.length > 0 && (
                   <div className="mt-3 space-y-2">
-                {formData.customEffects.map((effect, index) => (
-                  <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
-                    <span>{effect}</span>
-                    <button
-                      onClick={() => removeCustomItem('effect', index)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Remove visual effect"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                    {formData.customEffects.map((effect, index) => (
+                      <div key={index} className="text-sm text-purple-700 bg-purple-100 p-3 rounded-lg font-medium flex justify-between items-center">
+                        <span>{effect}</span>
+                        <button
+                          onClick={() => removeCustomItem('effect', index)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove visual effect"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1155,7 +1176,7 @@ Generate a clean, enhanced version following the exact format.`;
               <Mic className="w-7 h-7 icon-prompt-id" />
               Dialog & Narration
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-4">Dialog Type</label>
@@ -1282,7 +1303,7 @@ Generate a clean, enhanced version following the exact format.`;
                               const newIntensity = parseInt(e.target.value);
                               setFormData(prev => ({
                                 ...prev,
-                                environmentalSounds: prev.environmentalSounds.map((s, i) => 
+                                environmentalSounds: prev.environmentalSounds.map((s, i) =>
                                   i === index ? { ...s, intensity: newIntensity } : s
                                 )
                               }));
@@ -1308,7 +1329,7 @@ Generate a clean, enhanced version following the exact format.`;
                     +
                   </button>
                 </div>
-                
+
                 {inputStates.customDialog && (
                   <div ref={dialogInputRef} className="space-y-4 mt-2">
                     <div className="flex gap-2">
@@ -1377,7 +1398,7 @@ Generate a clean, enhanced version following the exact format.`;
                   />
                   <span className="text-lg font-semibold text-gray-700">Include Narrator</span>
                 </label>
-                
+
                 {formData.hasNarrator && (
                   <div className="mt-4">
                     <label className="block text-lg font-semibold text-gray-700 mb-4">Narrator Mood</label>
@@ -1401,7 +1422,7 @@ Generate a clean, enhanced version following the exact format.`;
           {/* Scene Settings */}
           <div className="glass-card p-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Scene Settings</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-lg font-semibold text-gray-700 mb-4">Location</label>
@@ -1471,7 +1492,7 @@ Generate a clean, enhanced version following the exact format.`;
               <h3 className="text-2xl font-bold text-gray-800">Generated Prompt</h3>
               <button
                 onClick={generatePrompt}
-                disabled={isGenerating || !formData.mainDescription.trim()}
+                disabled={isGenerating || !formData.mainDescription.trim() || !apiSettings?.isActive}
                 className="btn-highlight px-6 py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center gap-2"
               >
                 {isGenerating ? (
@@ -1496,7 +1517,7 @@ Generate a clean, enhanced version following the exact format.`;
                   className="custom-textarea w-full h-96 text-sm"
                   placeholder="Generated prompt will appear here..."
                 />
-                
+
                 <div className="flex gap-3 flex-wrap">
                   <button
                     onClick={copyPrompt}

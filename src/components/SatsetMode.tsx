@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Wand2, Copy, Save, Download, Loader, Play } from 'lucide-react';
 import { callGeminiAPI, translateText } from '../utils/api';
-import { savePrompt } from '../utils/database';
-import { VideoPrompt, Scene } from '../types';
+import { savePrompt, getSettings } from '../utils/database';
+import { VideoPrompt, Scene, APISettings } from '../types';
 
 const SatsetMode: React.FC = () => {
   const [mainIdea, setMainIdea] = useState('');
@@ -11,6 +11,7 @@ const SatsetMode: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedScenes, setGeneratedScenes] = useState<Scene[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState<VideoPrompt | null>(null);
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
 
   const languages = [
     { code: 'id', name: 'Indonesian' },
@@ -20,9 +21,27 @@ const SatsetMode: React.FC = () => {
     { code: 'en', name: 'English' }
   ];
 
+  useEffect(() => {
+    loadApiSettings();
+  }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
+
   const generateScenes = async () => {
     if (!mainIdea.trim()) {
       alert('Please enter your main video idea');
+      return;
+    }
+
+    if (!apiSettings || !apiSettings.isActive) {
+      alert('Please configure and validate your API key in the API Settings first.');
       return;
     }
 
@@ -50,9 +69,9 @@ Return a JSON object with this structure:
 
 Make each scene prompt detailed and cinematic, suitable for professional video generation. Include specific camera movements, lighting descriptions, and environmental details.`;
 
-      const result = await callGeminiAPI(prompt);
+      const result = await callGeminiAPI(prompt, undefined, apiSettings);
       const parsedResult = JSON.parse(result);
-      
+
       const scenes: Scene[] = parsedResult.scenes.map((scene: { sceneNumber: number; prompt: string; duration: number; characters: string[]; objects: string[] }) => {
         // This is a temporary mapping. The 'prompt' field from the API response
         // will be stored in 'visualDescription' as a workaround.
@@ -125,10 +144,10 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
     try {
       // Translate if not English
       let finalPrompt = visualDescription;
-      if (dialogLanguage !== 'en') {
+      if (dialogLanguage !== 'en' && apiSettings) {
         finalPrompt = await translateText(visualDescription, dialogLanguage);
       }
-      
+
       await navigator.clipboard.writeText(finalPrompt);
       alert('Scene prompt copied to clipboard!');
     } catch (err) {
@@ -145,7 +164,7 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
 
       for (const scene of generatedScenes) {
         let scenePrompt = scene.visualDescription;
-        if (dialogLanguage !== 'en') {
+        if (dialogLanguage !== 'en' && apiSettings) {
           scenePrompt = await translateText(scene.visualDescription, dialogLanguage);
         }
         allPrompts += `--- SCENE ${scene.sceneNumber} ---\n${scenePrompt}\n\n`;
@@ -245,7 +264,7 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
             <div className="flex items-end">
               <button
                 onClick={generateScenes}
-                disabled={!mainIdea.trim() || isGenerating}
+                disabled={!mainIdea.trim() || isGenerating || !apiSettings?.isActive}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all duration-200"
               >
                 {isGenerating ? (
@@ -273,7 +292,7 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
               <Play className="w-6 h-6" />
               Generated Scenes
             </h3>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={copyAllScenes}
@@ -327,12 +346,12 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
                     Copy Scene
                   </button>
                 </div>
-                
+
                 <div className="p-4">
                   <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed">
                     {scene.visualDescription}
                   </pre>
-                  
+
                   {(scene.characters.length > 0 || scene.objects.length > 0) && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="flex gap-6 text-xs text-gray-600">

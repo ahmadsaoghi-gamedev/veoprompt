@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Upload, Image as ImageIcon, Wand2, Copy, Save, Loader } from 'lucide-react';
 import { callGeminiAPI } from '../utils/api';
-import { saveCharacter, saveObject } from '../utils/database';
-import { Character, VideoObject } from '../types';
+import { saveCharacter, saveObject, getSettings } from '../utils/database';
+import { Character, VideoObject, APISettings } from '../types';
 
 const ImageDetector: React.FC = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -11,7 +11,21 @@ const ImageDetector: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<string>('');
   const [editedPrompt, setEditedPrompt] = useState<string>('');
   const [showSaveOptions, setShowSaveOptions] = useState(false);
+  const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadApiSettings();
+  }, []);
+
+  const loadApiSettings = async () => {
+    try {
+      const settings = await getSettings();
+      setApiSettings(settings);
+    } catch (error) {
+      console.error('Failed to load API settings:', error);
+    }
+  };
 
   const handleImageUpload = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -43,6 +57,11 @@ const ImageDetector: React.FC = () => {
   const analyzeImage = async () => {
     if (!uploadedImage) return;
 
+    if (!apiSettings || !apiSettings.isActive) {
+      alert('Please configure and validate your API key in the API Settings first.');
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
       // Save character logic
@@ -58,7 +77,7 @@ const ImageDetector: React.FC = () => {
 
 Format the response as a detailed, professional video prompt that could be used for AI video generation. Be specific about visual elements, positioning, and atmosphere.`;
 
-      const result = await callGeminiAPI(prompt, uploadedImage);
+      const result = await callGeminiAPI(prompt, uploadedImage, apiSettings);
       setAnalysisResult(result);
       setEditedPrompt(result);
       setShowSaveOptions(true);
@@ -153,20 +172,19 @@ Format the response as a detailed, professional video prompt that could be used 
           </h3>
 
           <div
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
-              uploadedImage 
-                ? 'border-green-300 bg-green-50' 
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${uploadedImage
+                ? 'border-green-300 bg-green-50'
                 : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
-            }`}
+              }`}
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
             onClick={() => !uploadedImage && fileInputRef.current?.click()}
           >
             {uploadedImage ? (
               <div className="space-y-4">
-                <img 
-                  src={uploadedImage} 
-                  alt="Uploaded" 
+                <img
+                  src={uploadedImage}
+                  alt="Uploaded"
                   className="max-h-64 mx-auto rounded-lg shadow-md"
                 />
                 <div className="flex gap-4 justify-center">
@@ -187,7 +205,7 @@ Format the response as a detailed, professional video prompt that could be used 
                       e.stopPropagation();
                       analyzeImage();
                     }}
-                    disabled={isAnalyzing}
+                    disabled={isAnalyzing || !apiSettings?.isActive}
                     className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                   >
                     {isAnalyzing ? (
