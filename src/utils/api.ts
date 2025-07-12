@@ -297,3 +297,17 @@ Return ONLY a JSON object in this exact format (with no additional text or markd
   const response = await callGeminiAPI(prompt, keyImage, apiSettings);
   return JSON.parse(response);
 }
+
+export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }): Promise<string> {
+  const prompt = `Kamu adalah seorang penulis ide film yang sangat kreatif. Ambil tiga elemen ini:
+1. Karakter: ${inputs.karakter}
+2. Situasi: ${inputs.situasi}
+3. Elemen Aneh: ${inputs.elemenAneh}
+
+Gabungkan ketiganya menjadi sebuah premis cerita film pendek yang modern dan surealis dalam satu paragraf singkat. Contoh: 'Versi modern dari dongeng Kancil dan Buaya. Si Kancil adalah CEO startup, sementara para Buaya adalah debt collector.'
+
+Hanya kembalikan satu string premis cerita yang sudah jadi, tanpa teks tambahan.`;
+
+  const response = await callGeminiAPI(prompt);
+  return response.trim();
+}
