@@ -227,8 +227,12 @@ Instructions:
 Generate ONE JSON object with the following keys:
 - "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
 - "audio_prompt": Description of background music and surreal, mismatched sound effects.
-- "dialog_en": 2-3 lines of dialogue in English, informal style matching character personalities.
-- "dialog_id_gaul": The same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}.
+- "dialog_en": A string containing 2-3 lines of dialogue in English, wrapped with a header indicating language and tone, e.g.:
+  "DIALOGUE (Language: English, Tone: Melancholic, philosophical)
+  Aristotle: (Sighs) Another day, another grain."
+- "dialog_id_gaul": A string containing the same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}, wrapped with a header indicating language and tone, e.g.:
+  "DIALOGUE (Language: Indonesian slang - ${languageOptions.aksen}, Tone: Cynical, bored)
+  Scrubby: (Ngomel) Udah deh, tong, masak aje tuh nasi. Gue lagi mikirin noda kopi nih, ngarti?"
 - "narasi": A 1-2 sentence narrator script in flowing, descriptive, slightly poetic Indonesian, casual like a conversation with a friend, providing emotional context or unseen details linking visuals and character feelings.
 
 Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
