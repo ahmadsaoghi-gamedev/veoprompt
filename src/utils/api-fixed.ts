@@ -20,23 +20,73 @@ interface LanguageOptions {
   aksen: string;
 }
 
-// NEW FUNCTION: Generate Veo3 Optimized Prompt - IMPROVED VERSION
+
+// Animation Style Definitions
+const ANIMATION_STYLES = {
+  'hyper-realistic-cgi': {
+    name: 'Hyper-Realistic CGI (Avatar Style)',
+    description: 'Photorealistic CGI with hyper-detailed skin textures, water simulation, environmental realism approaching live-action quality',
+    technicalSpecs: 'subsurface scattering, advanced water physics, photogrammetry textures, volumetric lighting, realistic hair/fur simulation, micro-detail surface imperfections'
+  },
+  'stylized-comic-cel': {
+    name: 'Stylized Comic-Cel Shading (Spider-Verse Style)', 
+    description: '3D cel-shading combined with 2D frame-by-frame effects, comic book aesthetic with dynamic visual storytelling',
+    technicalSpecs: 'cel-shading, halftone patterns, comic book line art, dynamic camera angles, mixed frame rates, stylized motion blur, pop-art color palette'
+  },
+  'pixar-stylized-realism': {
+    name: 'Pixar Stylized Realism (Toy Story Style)',
+    description: 'Cartoon characters with exaggerated proportions but realistic materials and textures',
+    technicalSpecs: 'stylized character design, realistic fabric simulation, advanced material shaders, soft lighting, exaggerated facial expressions, detailed texture work'
+  },
+  'dreamworks-cartoonish-realism': {
+    name: 'DreamWorks Cartoonish Realism (HTTYD Style)',
+    description: 'Fluid dynamic animation with vibrant colors and semi-realistic anatomy, especially for creatures and action sequences',
+    technicalSpecs: 'dynamic fluid simulation, vibrant color grading, semi-realistic anatomy, advanced particle effects, dynamic lighting, expressive character animation'
+  },
+  'photorealistic-cgi': {
+    name: 'Photorealistic CGI Animation (Lion King Style)',
+    description: 'Documentary-level realism for animals and landscapes while maintaining dramatic storytelling direction',
+    technicalSpecs: 'photorealistic animal fur, natural lighting, realistic animal behavior, environmental accuracy, documentary cinematography, natural color palette'
+  },
+  'abstract-mixed-media': {
+    name: 'Abstract Mixed-Media (Soul Style)',
+    description: '3D realistic elements combined with 2D abstract artistic elements for spiritual/emotional sequences',
+    technicalSpecs: 'mixed 2D/3D rendering, abstract particle effects, stylized lighting transitions, artistic color palettes, non-photorealistic rendering techniques'
+  },
+  'textured-stylization': {
+    name: 'Textured Stylization (Coco Style)',
+    description: '3D animation with cultural folk art inspiration and rich textural details',
+    technicalSpecs: 'cultural pattern integration, rich textile simulation, traditional art-inspired textures, warm color palettes, detailed environmental storytelling'
+  }
+};
+
+// NEW FUNCTION: Get Animation Style Technical Specs
+function getAnimationStyleSpecs(styleKey: keyof typeof ANIMATION_STYLES): string {
+  const style = ANIMATION_STYLES[styleKey];
+  return `${style.name}: ${style.description}. Technical specifications: ${style.technicalSpecs}`;
+}
+
+// NEW FUNCTION: Generate Veo3 Optimized Prompt - IMPROVED VERSION with Animation Styles
 function generateVeo3OptimizedPrompt(
   visualPrompt: string,
   audioPrompt: string,
   indonesianDialog: string,
-  language: string
+  language: string,
+  animationStyle?: keyof typeof ANIMATION_STYLES
 ): string {
   // Remove language tags from prompts
   const cleanVisual = visualPrompt.replace(/\[BAHASA:.*?\]/g, '').trim();
   const cleanAudio = audioPrompt.replace(/\[BAHASA:.*?\]/g, '').trim();
   const cleanDialog = indonesianDialog.replace(/\[BAHASA:.*?\]/g, '').trim();
   
+  // Add animation style specifications if provided
+  const styleSpecs = animationStyle ? `\n\nANIMATION STYLE: ${getAnimationStyleSpecs(animationStyle)}` : '';
+  
   // Enhanced format with better structure and emphasis
   return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog. All character speech must be in ${language} language.
 
 VISUAL SCENE:
-${cleanVisual}
+${cleanVisual}${styleSpecs}
 
 DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${language.toUpperCase()} LANGUAGE:
 ${cleanDialog}
@@ -45,6 +95,237 @@ AUDIO DESIGN:
 ${cleanAudio}
 
 CRITICAL INSTRUCTION: Ensure ALL spoken words in the generated video are in ${language} language, NOT English. The characters must speak exactly as written in the dialog section above.`;
+}
+
+// NEW FUNCTION: Generate Animation Style Prompt Enhancement
+export function generateAnimationStylePrompt(
+  basePrompt: string,
+  animationStyle: keyof typeof ANIMATION_STYLES,
+  culturalTheme?: string
+): string {
+  const style = ANIMATION_STYLES[animationStyle];
+  const culturalIntegration = culturalTheme ? ` with ${culturalTheme} cultural elements` : '';
+  
+  return `${basePrompt}
+
+**ANIMATION STYLE SPECIFICATION:**
+Style: ${style.name}${culturalIntegration}
+Description: ${style.description}
+Technical Requirements: ${style.technicalSpecs}
+
+**STYLE-SPECIFIC VISUAL ENHANCEMENTS:**
+${getStyleSpecificEnhancements(animationStyle, culturalTheme)}`;
+}
+
+// Helper function for style-specific enhancements with international cultural support
+function getStyleSpecificEnhancements(
+  styleKey: keyof typeof ANIMATION_STYLES,
+  culturalTheme?: string
+): string {
+  const enhancements: Record<keyof typeof ANIMATION_STYLES, string> = {
+    'hyper-realistic-cgi': `
+- Photorealistic skin textures with subsurface scattering
+- Advanced water and fluid simulation
+- Micro-detail environmental elements
+- Realistic lighting with global illumination
+- High-fidelity material properties`,
+    
+    'stylized-comic-cel': `
+- Bold cel-shading with comic book line art
+- Dynamic halftone patterns and pop-art colors
+- Mixed frame rates for stylistic effect
+- Exaggerated perspective and camera angles
+- Comic book panel-inspired compositions`,
+    
+    'pixar-stylized-realism': `
+- Exaggerated character proportions with realistic materials
+- Advanced fabric and hair simulation
+- Soft, warm lighting with emotional depth
+- Detailed texture work on surfaces
+- Expressive facial animation with squash-and-stretch`,
+    
+    'dreamworks-cartoonish-realism': `
+- Vibrant, saturated color palette
+- Fluid dynamic animation for action sequences
+- Semi-realistic anatomy with cartoon expressiveness
+- Advanced particle effects and atmospheric elements
+- Dynamic lighting that supports storytelling`,
+    
+    'photorealistic-cgi': `
+- Documentary-level animal and environmental realism
+- Natural lighting and color grading
+- Realistic animal behavior and movement
+- Environmental accuracy and detail
+- Cinematic composition with natural camera work`,
+    
+    'abstract-mixed-media': `
+- Seamless blend of 2D and 3D elements
+- Abstract particle effects and artistic transitions
+- Non-photorealistic rendering techniques
+- Stylized color palettes for emotional impact
+- Mixed media textures and artistic overlays`,
+    
+    'textured-stylization': `
+- Rich cultural pattern integration
+- Detailed textile and fabric simulation
+- Traditional art-inspired textures and materials
+- Warm, culturally-appropriate color palettes
+- Environmental storytelling through cultural details`
+  };
+  
+  let enhancement = enhancements[styleKey];
+  
+  if (culturalTheme) {
+    enhancement += `\n\n**CULTURAL INTEGRATION (${culturalTheme.toUpperCase()}):**
+${getCulturalIntegrationSpecs(culturalTheme)}`;
+  }
+  
+  return enhancement;
+}
+
+// NEW FUNCTION: International Cultural Integration Support
+function getCulturalIntegrationSpecs(culturalTheme: string): string {
+  const culturalSpecs: Record<string, string> = {
+    // ASIA
+    'indonesian': `
+- Traditional architecture: joglo, rumah adat, candi elements
+- Cultural patterns: batik, songket, ikat textiles
+- Musical instruments: gamelan, angklung, sasando
+- Flora/fauna: komodo, orangutan, rafflesia, tropical landscapes
+- Color palette: earth tones, traditional batik colors`,
+    
+    'japanese': `
+- Traditional architecture: pagoda, torii gates, shoji screens
+- Cultural patterns: sakura, wave motifs, geometric designs
+- Musical instruments: shamisen, taiko drums, koto
+- Flora/fauna: cherry blossoms, koi fish, bamboo forests
+- Color palette: red, white, gold, natural wood tones`,
+    
+    'chinese': `
+- Traditional architecture: pagoda, courtyard houses, feng shui elements
+- Cultural patterns: dragon motifs, cloud patterns, calligraphy
+- Musical instruments: erhu, guzheng, traditional drums
+- Flora/fauna: pandas, lotus flowers, pine trees
+- Color palette: red, gold, jade green, imperial colors`,
+    
+    'korean': `
+- Traditional architecture: hanok, dancheong colors, curved rooflines
+- Cultural patterns: hanji paper art, traditional pottery designs
+- Musical instruments: gayageum, janggu, traditional flutes
+- Flora/fauna: tigers, cranes, pine trees, cherry blossoms
+- Color palette: dancheong colors (red, blue, yellow, green)`,
+    
+    'indian': `
+- Traditional architecture: temples, mandala patterns, intricate carvings
+- Cultural patterns: paisley, lotus motifs, geometric designs
+- Musical instruments: sitar, tabla, flute
+- Flora/fauna: elephants, peacocks, lotus flowers, banyan trees
+- Color palette: vibrant saffron, deep blues, rich reds, gold`,
+    
+    // MIDDLE EAST
+    'arabic': `
+- Traditional architecture: domes, minarets, geometric patterns
+- Cultural patterns: arabesque, calligraphy, tile work
+- Musical instruments: oud, qanun, traditional drums
+- Flora/fauna: palm trees, desert landscapes, Arabian horses
+- Color palette: deep blues, gold, turquoise, desert tones`,
+    
+    'persian': `
+- Traditional architecture: Isfahan tiles, garden courtyards, arches
+- Cultural patterns: Persian carpets, miniature art, poetry motifs
+- Musical instruments: santur, tar, ney flute
+- Flora/fauna: roses, cypress trees, Persian cats
+- Color palette: Persian blue, rose, gold, turquoise`,
+    
+    // EUROPE
+    'european': `
+- Traditional architecture: Gothic, Renaissance, Baroque elements
+- Cultural patterns: Celtic knots, medieval heraldry, classical motifs
+- Musical instruments: violin, piano, organ, traditional folk instruments
+- Flora/fauna: oak trees, roses, European wildlife
+- Color palette: royal blues, deep reds, gold, stone grays`,
+    
+    'scandinavian': `
+- Traditional architecture: wooden stave churches, minimalist design
+- Cultural patterns: Nordic runes, folk art, geometric designs
+- Musical instruments: hardanger fiddle, nyckelharpa
+- Flora/fauna: pine forests, reindeer, northern lights
+- Color palette: cool blues, whites, natural wood tones`,
+    
+    // AFRICA
+    'african': `
+- Traditional architecture: mud brick, thatched roofs, tribal designs
+- Cultural patterns: tribal masks, geometric patterns, textile designs
+- Musical instruments: djembe, kora, mbira
+- Flora/fauna: baobab trees, savanna animals, acacia trees
+- Color palette: earth tones, vibrant oranges, deep browns`,
+    
+    // AMERICAS
+    'latin-american': `
+- Traditional architecture: colonial, indigenous, colorful facades
+- Cultural patterns: Aztec/Mayan motifs, Day of the Dead art
+- Musical instruments: guitar, maracas, pan flute
+- Flora/fauna: tropical birds, jaguars, rainforest vegetation
+- Color palette: vibrant colors, tropical hues, festive tones`,
+    
+    'native-american': `
+- Traditional architecture: pueblos, longhouses, teepees
+- Cultural patterns: dreamcatchers, tribal symbols, nature motifs
+- Musical instruments: drums, flutes, rattles
+- Flora/fauna: eagles, wolves, buffalo, sacred plants
+- Color palette: earth tones, turquoise, red ochre, natural pigments`,
+    
+    // OCEANIA
+    'polynesian': `
+- Traditional architecture: thatched huts, carved totems
+- Cultural patterns: tribal tattoos, ocean wave motifs
+- Musical instruments: ukulele, drums, conch shells
+- Flora/fauna: palm trees, tropical fish, ocean life
+- Color palette: ocean blues, tropical greens, sunset colors`,
+    
+    // UNIVERSAL/MODERN
+    'modern-international': `
+- Contemporary architecture: glass, steel, minimalist design
+- Cultural patterns: global fusion, digital art influences
+- Musical instruments: electronic, world music fusion
+- Flora/fauna: urban environments, global diversity
+- Color palette: modern neutrals, tech-inspired colors`,
+    
+    'fantasy': `
+- Fantastical architecture: magical castles, floating cities
+- Cultural patterns: mystical symbols, magical runes
+- Musical instruments: ethereal, otherworldly sounds
+- Flora/fauna: mythical creatures, magical forests
+- Color palette: mystical purples, ethereal blues, magical golds`
+  };
+  
+  // Return specific cultural specs or generic international support
+  return culturalSpecs[culturalTheme.toLowerCase()] || `
+- Traditional architectural elements and patterns from ${culturalTheme} culture
+- Culturally-appropriate color schemes and materials
+- Local flora, fauna, and environmental details
+- Respectful representation of cultural symbols
+- Integration of traditional art styles and motifs from ${culturalTheme} heritage`;
+}
+
+// NEW FUNCTION: Get Available Cultural Themes
+export function getAvailableCulturalThemes(): string[] {
+  return [
+    // Asia
+    'Indonesian', 'Japanese', 'Chinese', 'Korean', 'Indian',
+    // Middle East
+    'Arabic', 'Persian',
+    // Europe
+    'European', 'Scandinavian',
+    // Africa
+    'African',
+    // Americas
+    'Latin-American', 'Native-American',
+    // Oceania
+    'Polynesian',
+    // Universal
+    'Modern-International', 'Fantasy'
+  ];
 }
 
 export async function generateAnomalyScenePrompt(
@@ -75,7 +356,7 @@ Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal u
 1. **ANTI-HAK CIPTA (MUTLAK):**
    - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
    - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
-   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
+   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru dan unik
 
 2. **KONSISTENSI BAHASA (MUTLAK):**
    - Setiap field JSON menggunakan bahasa yang telah ditentukan
@@ -122,7 +403,7 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
 - **Indonesian Elements:** Traditional patterns, architecture, clothing, natural landscapes, cultural symbols
 
 **AUDIO EXCELLENCE:**
-- **Music:** Orchestral arrangements with gamelan, angklung, traditional percussion
+- **Music:** Orchestral arrangements with gamelan, angklung, traditional percussion, naruto percussion
 - **Voice Acting:** Clear articulation, emotional range, character-specific vocal qualities
 - **Sound Design:** Spatial audio, realistic foley, environmental ambience
 - **Mix Quality:** Professional dynamic range, clear dialogue, immersive soundscape
