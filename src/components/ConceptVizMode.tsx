@@ -3,6 +3,14 @@ import { Helmet } from 'react-helmet-async';
 import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
 import { AnomalyScenePrompt } from '../types';
 
+// Define the expected structure of the video prompts from the API
+interface ApiVideoPrompt {
+  scenePrompt: string;
+  narasi: string;
+  dialog_en: string;
+  dialog_id: string;
+}
+
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +72,14 @@ const ConceptVizMode: React.FC = () => {
     try {
       const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' }; // Defined languageOptions with aksen
       const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions); // Passed languageOptions
-      setVideoPrompts(result.video_prompts);
+      const transformedPrompts = result.video_prompts.map((prompt: ApiVideoPrompt) => ({
+        visual_prompt: prompt.scenePrompt,
+        narasi: prompt.narasi,
+        dialog_en: prompt.dialog_en,
+        dialog_id_gaul: prompt.dialog_id, // Assuming dialog_id from API maps to dialog_id_gaul
+        audio_prompt: '' // Assuming audio_prompt is not provided by the API
+      }));
+      setVideoPrompts(transformedPrompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
       console.error('Error generating video prompts:', err);
