@@ -108,4 +108,13 @@ export interface AnomalyScenePrompt {
   dialog_en: string;
   dialog_id_gaul: string;
   narasi: string;
+  veo3_optimized_prompt: string; // NEW: Optimized prompt for Veo3
+}
+
+export interface VideoPromptWithOptimization {
+  scenePrompt: string;
+  narasi: string;
+  dialog_en: string;
+  dialog_id: string;
+  veo3_optimized_prompt: string; // NEW: Optimized prompt for Veo3
 }
