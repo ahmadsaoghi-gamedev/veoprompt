@@ -21,6 +21,7 @@ const AnomalyMode = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [generatedPrompts, setGeneratedPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<'indonesia' | 'english'>('english');
 
   const handleGenerateIdea = async () => {
     setIsLoading(true);
@@ -81,6 +82,27 @@ const AnomalyMode = () => {
     }
   };
 
+  const handleCopyForVeo = (sceneData: AnomalyScenePrompt, selectedLanguage: 'indonesia' | 'english') => {
+    let dialogToCopy;
+    if (selectedLanguage === 'indonesia') {
+      dialogToCopy = sceneData.dialog_id_gaul;
+    } else {
+      dialogToCopy = sceneData.dialog_en;
+    }
+
+    const finalPrompt = `
+${sceneData.visual_prompt}
+
+${sceneData.audio_prompt}
+
+${dialogToCopy}
+    `;
+
+    navigator.clipboard.writeText(finalPrompt.trim())
+      .then(() => alert(`Prompt dengan dialog ${selectedLanguage === 'indonesia' ? 'Indonesia' : 'Inggris'} berhasil disalin!`))
+      .catch(() => alert('Gagal menyalin prompt.'));
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <Helmet>
@@ -92,7 +114,7 @@ const AnomalyMode = () => {
 
       <fieldset className="mb-6 p-4 border rounded">
         <legend className="px-2 font-bold">Generator Ide Cerita (Opsional)</legend>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block mb-2 font-medium">Karakter / Profesi Utama:</label>
@@ -232,17 +254,25 @@ const AnomalyMode = () => {
                 rows={4}
               />
             </div>
-            <button
-              className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => {
-                const finalPrompt = `${prompt.visual_prompt}\n\n${prompt.audio_prompt}\n\n${prompt.dialog_en}`;
-                navigator.clipboard.writeText(finalPrompt)
-                  .then(() => alert('Prompt telah disalin untuk Veo!'))
-                  .catch(() => alert('Gagal menyalin prompt.'));
-              }}
-            >
-              Salin Prompt untuk Veo
-            </button>
+            <div className="mt-4 flex items-center gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium">Pilih Bahasa Dialog:</label>
+                <select
+                  className="p-2 border rounded"
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value as 'indonesia' | 'english')}
+                >
+                  <option value="english">Salin Dialog Bahasa Inggris</option>
+                  <option value="indonesia">Salin Dialog Bahasa Indonesia</option>
+                </select>
+              </div>
+              <button
+                className="mt-6 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => handleCopyForVeo(prompt, selectedLanguage)}
+              >
+                Salin Prompt untuk Veo
+              </button>
+            </div>
           </div>
         ))}
       </div>

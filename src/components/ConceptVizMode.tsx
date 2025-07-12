@@ -1,21 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api';
-
-interface VideoPrompt {
-  scenePrompt: string;
-  narasi: string;
-  dialog_en: string;
-  dialog_id: string;
-}
+import { AnomalyScenePrompt } from '../types';
 
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
-  const [videoPrompts, setVideoPrompts] = useState<VideoPrompt[]>([]);
+  const [videoPrompts, setVideoPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<'indonesia' | 'english'>('english');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleGenerate = async () => {
@@ -76,6 +71,27 @@ const ConceptVizMode: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCopyForVeo = (sceneData: AnomalyScenePrompt, selectedLanguage: 'indonesia' | 'english') => {
+    let dialogToCopy;
+    if (selectedLanguage === 'indonesia') {
+      dialogToCopy = sceneData.dialog_id_gaul;
+    } else {
+      dialogToCopy = sceneData.dialog_en;
+    }
+
+    const finalPrompt = `
+${sceneData.visual_prompt}
+
+${sceneData.audio_prompt}
+
+${dialogToCopy}
+    `;
+
+    navigator.clipboard.writeText(finalPrompt.trim())
+      .then(() => alert(`Prompt dengan dialog ${selectedLanguage === 'indonesia' ? 'Indonesia' : 'Inggris'} berhasil disalin!`))
+      .catch(() => alert('Gagal menyalin prompt.'));
   };
 
   return (
@@ -180,12 +196,24 @@ const ConceptVizMode: React.FC = () => {
               <ol className="list-decimal pl-6 space-y-2">
                 {videoPrompts.map((prompt, index) => (
                   <li key={index} className="text-gray-700 mb-4">
-                    <textarea
-                      className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
-                      rows={4}
-                      readOnly
-                      value={prompt.scenePrompt}
-                    />
+                    <div className="mb-2">
+                      <strong>Prompt Visual:</strong>
+                      <textarea
+                        className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
+                        rows={4}
+                        readOnly
+                        value={prompt.visual_prompt}
+                      />
+                    </div>
+                    <div className="mb-2">
+                      <strong>Prompt Audio:</strong>
+                      <textarea
+                        className="w-full p-3 border border-gray-300 rounded-lg mb-2 bg-gray-50"
+                        rows={2}
+                        readOnly
+                        value={prompt.audio_prompt}
+                      />
+                    </div>
                     <div className="mt-4 p-4 bg-purple-50 border-l-4 border-purple-400">
                       <h4 className="font-bold text-purple-800">Naskah Narator:</h4>
                       <p className="text-gray-700 italic">{prompt.narasi}</p>
@@ -196,7 +224,26 @@ const ConceptVizMode: React.FC = () => {
                     </div>
                     <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400">
                       <h4 className="font-bold text-yellow-800">Dialog (Indonesia Gaul):</h4>
-                      <p className="text-gray-700">{prompt.dialog_id}</p>
+                      <p className="text-gray-700">{prompt.dialog_id_gaul}</p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-4">
+                      <div>
+                        <label className="block mb-1 text-sm font-medium">Pilih Bahasa Dialog:</label>
+                        <select
+                          className="p-2 border rounded"
+                          value={selectedLanguage}
+                          onChange={(e) => setSelectedLanguage(e.target.value as 'indonesia' | 'english')}
+                        >
+                          <option value="english">Salin Dialog Bahasa Inggris</option>
+                          <option value="indonesia">Salin Dialog Bahasa Indonesia</option>
+                        </select>
+                      </div>
+                      <button
+                        className="mt-6 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                        onClick={() => handleCopyForVeo(prompt, selectedLanguage)}
+                      >
+                        Salin Prompt untuk Veo
+                      </button>
                     </div>
                   </li>
                 ))}
