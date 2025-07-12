@@ -234,34 +234,74 @@ export async function generateAnomalyScenePrompt(
   dialog_id_gaul: string;
   narasi: string;
 }> {
-  const prompt = `You are a creative AI assistant tasked with generating a single JSON object for scene ${sceneNumber} of ${totalScenes} in a surreal story.
+  const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
+  const bahasa_dipilih = languageOptions.bahasa;
+  const genre_tone = "Surreal, absurd, philosophical";
 
-Story Context:
-- Title: ${storyContext.judul}
-- Characters:
-  - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
-  - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-- Scene Purpose: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
+  const dynamicPrompt = `
+**SISTEM INSTRUKSI UTAMA:**
+Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal. Patuhi semua aturan berikut tanpa pengecualian.
 
-Instructions:
-Generate ONE JSON object with the following keys:
-- "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
-- "audio_prompt": Description of background music and surreal, mismatched sound effects.
+**ATURAN KRITIS:**
 
-**IMPORTANT DURATION RULE:**
-"Total durasi video per adegan HANYA 8 DETIK. Oleh karena itu, total keseluruhan dialog untuk semua karakter dalam satu adegan HARUS singkat dan padat, idealnya tidak lebih dari 10-15 kata. Sisakan ruang untuk jeda dan aksi visual. Fokus pada percakapan yang cepat dan efisien."
+1. **ANTI-HAK CIPTA (MUTLAK):**
+   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
+   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
+   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
 
-- "dialog_en": A string containing 2-3 lines of dialogue in English, wrapped with a header indicating language and tone, e.g.:
-  "DIALOGUE (Language: English, Tone: Melancholic, philosophical)
-  Aristotle: (Sighs) Another day, another grain."
-- "dialog_id_gaul": A string containing the same dialogue translated into informal, slang Indonesian with accent ${languageOptions.aksen}, wrapped with a header indicating language and tone, e.g.:
-  "DIALOGUE (Language: Indonesian slang - ${languageOptions.aksen}, Tone: Cynical, bored)
-  Scrubby: (Ngomel) Udah deh, tong, masak aje tuh nasi. Gue lagi mikirin noda kopi nih, ngarti?"
-- "narasi": A 1-2 sentence narrator script in flowing, descriptive, slightly poetic Indonesian, casual like a conversation with a friend, providing emotional context or unseen details linking visuals and character feelings.
+2. **KONSISTENSI BAHASA (MUTLAK):**
+   - Setiap field JSON menggunakan bahasa yang telah ditentukan
+   - JANGAN mencampur bahasa dalam satu field
+   - Gunakan bahasa yang natural dan sesuai konteks
 
-Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
+3. **ADAPTASI DINAMIS:**
+   - Sesuaikan tone dan gaya dengan genre yang diminta
+   - Pertimbangkan target audience dari cerita
+   - Buat dialog yang terasa hidup dan autentik
 
-  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+**TUGAS UTAMA:**
+Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut:
+
+**STRUKTUR OUTPUT JSON:**
+
+{
+  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting. Gunakan terminologi film profesional.",
+  
+  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
+  
+  "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  
+  "dialog_id_gaul": "[BAHASA: ${bahasa_dipilih}] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  
+  "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita."
+}
+
+**PANDUAN KUALITAS:**
+- Visual: Buat deskripsi yang bisa dibayangkan dengan jelas
+- Audio: Spesifik tentang jenis musik dan sound effects
+- Dialog: Gunakan bahasa sehari-hari yang autentik
+- Narasi: Buat engaging dan mendukung emosi scene
+
+**CONTOH ADAPTASI BAHASA:**
+- Bahasa Indonesia: Natural, tidak formal berlebihan
+- Bahasa Sunda: Gunakan "nya", "teh", "mah" secara natural
+- Bahasa Jawa: Sesuaikan dengan tingkat kesopanan (ngoko/krama)
+- Bahasa Gaul Jakarta: Gunakan "sih", "dong", "kan", "banget"
+
+**IDE CERITA YANG DIBERIKAN:**
+${idecerita}
+
+**BAHASA YANG DIMINTA UNTUK DIALOG:**
+${bahasa_dipilih}
+
+**GENRE/TONE YANG DIMINTA:**
+${genre_tone}
+
+**DURASI VIDEO: 8 DETIK - Dialog harus singkat dan padat (maksimal 10-15 kata total)**
+
+Hasilkan JSON yang mengikuti struktur di atas dengan kualitas profesional.`;
+
+  const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
     const result = JSON.parse(response);
     return result;
@@ -274,60 +314,105 @@ Return ONLY the JSON object, no extra text. Ensure valid JSON format.`;
 export async function generateVideoPromptsFromImage(
   userIdea: string,
   keyImage: string,
-  languageOptions: LanguageOptions, // Added new argument
+  languageOptions: LanguageOptions,
   apiSettings?: APISettings
-): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> { // Updated return type
-  const prompt = `Act as a professional film director and a compelling narrator. Based on the user's idea "${userIdea}" and the provided key image (which establishes the visual style), create a series of 8 detailed video scene prompts that tell a complete story, along with a short narrator script and dialogue for each scene.
+): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> {
+  const bahasa_dipilih = languageOptions.bahasa;
+  const genre_tone = "Cinematic, narrative-driven";
 
-IMPORTANT REQUIREMENTS:
-1. The character designs, visual style, and lighting from the key image MUST be maintained across all scenes for visual consistency.
-2. Each scene prompt should include:
-   - Scene setting/location
-   - Character actions and emotions
-   - Camera angles/movements
-   - Lighting details
-   - Any important visual effects
-3. The scenes should flow logically from one to the next to form a coherent narrative.
-4. Each narrator script should be concise (1-2 sentences) and provide emotional context or bridge the visual action with character feelings, as if telling a story to a friend.
+  const dynamicPrompt = `
+**SISTEM INSTRUKSI UTAMA:**
+Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal. Patuhi semua aturan berikut tanpa pengecualian.
 
-**PROMPT AUDIO & DIALOG:**
-* **Perintah untuk AI:** "Hasilkan DUA versi dialog untuk adegan ini: satu dalam bahasa Inggris, dan satu lagi dalam bahasa Indonesia sesuai dengan gaya yang diminta. Pastikan dialognya terdengar alami dan sesuai dengan kepribadian karakter."
-* **Dialog Versi Inggris (Professional/Natural):** [Minta AI untuk menulis dialog dalam bahasa Inggris yang alami dan sesuai konteks]
-* **Dialog Versi Indonesia (Gaya: ${languageOptions.bahasa}):** [Minta AI untuk menulis dialog yang sama, tetapi dalam bahasa Indonesia yang SANGAT SANTAI, non-formal, gaul, dan tidak kaku. Gunakan kosakata sehari-hari yang akrab.]
+**ATURAN KRITIS:**
 
-Return ONLY a JSON object in this exact format (with no additional text or markdown):
+1. **ANTI-HAK CIPTA (MUTLAK):**
+   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
+   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
+   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
+
+2. **KONSISTENSI BAHASA (MUTLAK):**
+   - Setiap field JSON menggunakan bahasa yang telah ditentukan
+   - JANGAN mencampur bahasa dalam satu field
+   - Gunakan bahasa yang natural dan sesuai konteks
+
+3. **ADAPTASI DINAMIS:**
+   - Sesuaikan tone dan gaya dengan genre yang diminta
+   - Pertimbangkan target audience dari cerita
+   - Buat dialog yang terasa hidup dan autentik
+
+**TUGAS UTAMA:**
+Berdasarkan **IDE CERITA** dan **GAMBAR KUNCI** yang diberikan, generate JSON dengan 8 scene prompts:
+
+**STRUKTUR OUTPUT JSON:**
+
 {
   "video_prompts": [
     {
-      "scenePrompt": "Scene 1: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 1.",
-      "dialog_en": "English dialogue for scene 1.",
-      "dialog_id": "Indonesian dialogue for scene 1."
-    },
-    {
-      "scenePrompt": "Scene 2: [detailed visual prompt]",
-      "narasi": "Narrator script for scene 2.",
-      "dialog_en": "English dialogue for scene 2.",
-      "dialog_id": "Indonesian dialogue for scene 2."
-    },
-    // ... up to 8 scenes
+      "scenePrompt": "[BAHASA: INGGRIS] Deskripsi visual scene yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting.",
+      "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging dan mendukung atmosfer cerita.",
+      "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario.",
+      "dialog_id": "[BAHASA: ${bahasa_dipilih}] Dialog natural yang sama dalam bahasa lokal yang autentik."
+    }
+    // ... 8 scenes total
   ]
-}`;
+}
 
-  const response = await callGeminiAPI(prompt, keyImage, apiSettings);
+**PANDUAN KUALITAS:**
+- Visual: Konsisten dengan gaya gambar kunci
+- Dialog: Natural dan sesuai karakter
+- Narasi: Engaging dan mendukung emosi
+- Alur: 8 scene yang mengalir logis
+
+**IDE CERITA YANG DIBERIKAN:**
+${userIdea}
+
+**BAHASA YANG DIMINTA UNTUK DIALOG:**
+${bahasa_dipilih}
+
+**GENRE/TONE YANG DIMINTA:**
+${genre_tone}
+
+Hasilkan JSON dengan 8 scene prompts yang mengikuti struktur di atas dengan kualitas profesional.`;
+
+  const response = await callGeminiAPI(dynamicPrompt, keyImage, apiSettings);
   return JSON.parse(response);
 }
 
-export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }): Promise<string> {
-  const prompt = `Kamu adalah seorang penulis ide film yang sangat kreatif. Ambil tiga elemen ini:
-1. Karakter: ${inputs.karakter}
-2. Situasi: ${inputs.situasi}
-3. Elemen Aneh: ${inputs.elemenAneh}
+export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }, apiSettings?: APISettings): Promise<string> {
+  const idecerita = `Karakter: ${inputs.karakter}, Situasi: ${inputs.situasi}, Elemen Aneh: ${inputs.elemenAneh}`;
+  const genre_tone = "Modern, surreal, creative";
 
-Gabungkan ketiganya menjadi sebuah premis cerita film pendek yang modern dan surealis dalam satu paragraf singkat. Contoh: 'Versi modern dari dongeng Kancil dan Buaya. Si Kancil adalah CEO startup, sementara para Buaya adalah debt collector.'
+  const dynamicPrompt = `
+**SISTEM INSTRUKSI UTAMA:**
+Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal. Patuhi semua aturan berikut tanpa pengecualian.
 
-Hanya kembalikan satu string premis cerita yang sudah jadi, tanpa teks tambahan.`;
+**ATURAN KRITIS:**
 
-  const response = await callGeminiAPI(prompt);
+1. **ANTI-HAK CIPTA (MUTLAK):**
+   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
+   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
+   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
+
+2. **KONSISTENSI BAHASA (MUTLAK):**
+   - Output dalam bahasa Indonesia yang natural
+   - Gunakan bahasa yang tidak formal berlebihan
+
+3. **ADAPTASI DINAMIS:**
+   - Sesuaikan tone dan gaya dengan genre yang diminta
+   - Buat premis yang unik dan menarik
+
+**TUGAS UTAMA:**
+Berdasarkan **ELEMEN CERITA** yang diberikan, buat premis cerita film pendek yang modern dan surealis dalam satu paragraf singkat.
+
+**ELEMEN CERITA YANG DIBERIKAN:**
+${idecerita}
+
+**GENRE/TONE YANG DIMINTA:**
+${genre_tone}
+
+Gabungkan ketiga elemen menjadi premis cerita yang orisinal, modern, dan surealis. Kembalikan HANYA premis cerita dalam satu paragraf, tanpa teks tambahan.`;
+
+  const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   return response.trim();
 }
