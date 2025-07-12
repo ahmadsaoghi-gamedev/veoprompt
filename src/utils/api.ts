@@ -227,6 +227,10 @@ Instructions:
 Generate ONE JSON object with the following keys:
 - "visual_prompt": A detailed description of all visual elements including main style (3D Anomaly Brainroot, surreal, photorealistic with absurd character shapes), cinematography (camera movement, angle, lighting, color grading), setting (relevant location), and character actions (movements and expressions matching scene purpose).
 - "audio_prompt": Description of background music and surreal, mismatched sound effects.
+
+**IMPORTANT DURATION RULE:**
+"Total durasi video per adegan HANYA 8 DETIK. Oleh karena itu, total keseluruhan dialog untuk semua karakter dalam satu adegan HARUS singkat dan padat, idealnya tidak lebih dari 10-15 kata. Sisakan ruang untuk jeda dan aksi visual. Fokus pada percakapan yang cepat dan efisien."
+
 - "dialog_en": A string containing 2-3 lines of dialogue in English, wrapped with a header indicating language and tone, e.g.:
   "DIALOGUE (Language: English, Tone: Melancholic, philosophical)
   Aristotle: (Sighs) Another day, another grain."
