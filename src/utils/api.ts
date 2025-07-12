@@ -207,7 +207,13 @@ export async function generateAnomalyScenePrompt(
   totalScenes: number,
   languageOptions: LanguageOptions,
   apiSettings?: APISettings
-): Promise<string> {
+): Promise<{
+  visual_prompt: string;
+  audio_prompt: string;
+  dialog_en: string;
+  dialog_id_gaul: string;
+  narasi: string;
+}> {
   const prompt = `**PROMPT UNTUK ADEGAN ${sceneNumber}/${totalScenes}**
 
 **KONTEKS CERITA:**
@@ -217,39 +223,22 @@ export async function generateAnomalyScenePrompt(
   - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
 * **Tujuan Adegan Ini:** ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
-**PROMPT VISUAL (SANGAT DETAIL):**
-* **Gaya Utama:** 3D Anomaly Brainroot, surealis, fotorealistik dengan bentuk karakter yang absurd.
-* **Perintah untuk AI Sutradara:** "Berdasarkan tujuan adegan, tentukan dan deskripsikan secara spesifik pilihan sinematografi berikut untuk menciptakan nuansa yang aneh dan tidak terduga:"
-    * **Camera Movement:** (Contoh: 'slow, creeping dolly-in', 'handheld-style camera shake')
-    * **Camera Angle:** (Contoh: 'extreme low-angle shot', 'Dutch angle (kamera miring)')
-    * **Lighting:** (Contoh: 'Pencahayaan dari lampu neon yang berkedip', 'cahaya remang dari kulkas yang terbuka')
-    * **Color Grading:** (Contoh: 'Warna hijau dan magenta yang oversaturated', 'palet warna monokrom dengan satu warna cerah yang menonjol')
-* **Setting:** [Deskripsikan lokasi yang relevan dengan cerita]
-* **Aksi Karakter:** [Deskripsikan gerakan dan ekspresi karakter sesuai tujuan adegan].
+Buatlah satu objek JSON tunggal dengan struktur berikut:
+- "visual_prompt": String yang berisi semua deskripsi visual, termasuk gaya utama (3D Anomaly Brainroot, surealis, fotorealistik dengan bentuk karakter yang absurd), sinematografi (camera movement, angle, lighting, color grading), setting (lokasi relevan dengan cerita), dan aksi karakter (gerakan dan ekspresi sesuai tujuan adegan). Deskripsikan secara detail dan spesifik untuk menciptakan nuansa aneh dan tidak terduga.
+- "audio_prompt": String yang berisi deskripsi musik latar dan efek suara yang aneh dan tidak cocok untuk menambah kesan surealis.
+- "dialog_en": String yang berisi dialog versi Bahasa Inggris, 2-3 baris antara karakter sesuai tujuan adegan, menggunakan gaya bicara khas karakter, non-formal.
+- "dialog_id_gaul": String yang berisi dialog versi Bahasa Indonesia Gaul, sama dengan dialog_en tapi diterjemahkan ke bahasa gaul, santai, dengan aksen ${languageOptions.aksen}.
+- "narasi": String yang berisi naskah narator (1-2 kalimat pendek) dalam bahasa Indonesia yang mengalir, deskriptif, sedikit puitis, tapi santai seperti obrolan teman. Berikan konteks emosional atau jelaskan yang tidak terlihat, hubungkan dengan perasaan karakter.
 
-**PROMPT AUDIO & DIALOG:**
-* **Perintah Dialog:** "Dialog HARUS menggunakan Bahasa ${languageOptions.bahasa} dengan aksen ${languageOptions.aksen}. WAJIB gunakan gaya bicara dan kosakata khas karakter yang sudah ditentukan. JANGAN GUNAKAN BAHASA FORMAL."
-* **Dialog:** [Minta AI untuk menghasilkan 2-3 baris dialog antara karakter yang sesuai dengan tujuan adegan]
-* **Musik & Efek Suara:** [Minta AI untuk menyarankan musik latar dan efek suara yang aneh dan tidak cocok untuk menambah kesan surealis]
-
-**PROMPT NARASI (STORYTELLER):**
-* **Peran AI:** "Anda adalah seorang pendongeng profesional dengan suara yang hangat dan karismatik. Anda bercerita untuk teman, bukan untuk audiens formal."
-* **Gaya Bahasa:** "Gunakan bahasa Indonesia yang mengalir, deskriptif, dan sedikit puitis, tapi tetap terasa seperti obrolan santai. Gunakan jeda dan tempo untuk membangun suasana. HINDARI bahasa baku, kaku, atau seperti buku pelajaran."
-* **Tujuan Narasi:** "Tuliskan naskah narator (sekitar 1-2 kalimat pendek) untuk adegan ini. Narasi ini harus memberikan konteks emosional atau menjelaskan apa yang tidak terlihat di layar, menghubungkan aksi visual dengan perasaan karakter."
-
-**KAITAN KE ADEGAN SELANJUTNYA:**
-* [Minta AI untuk mendeskripsikan satu aksi atau visual di akhir adegan ini yang akan menjadi jembatan ke adegan berikutnya].`;
+Output HANYA objek JSON tersebut, tanpa teks tambahan apa pun. Pastikan JSON valid dan sesuai contoh.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   try {
     const result = JSON.parse(response);
-    if (!result.narasi) {
-      result.narasi = ""; // Ensure narasi field exists
-    }
-    return JSON.stringify(result);
-  } catch {
-    // If response isn't JSON, return as-is (backward compatibility)
-    return response;
+    return result;
+  } catch (error) {
+    console.error('Failed to parse JSON response:', error);
+    throw new Error('Invalid JSON response from API');
   }
 }
 
