@@ -133,12 +133,47 @@ const AnomalyMode = () => {
         {generatedPrompts.map((prompt, index) => (
           <div key={index} className="border rounded p-4">
             <h3 className="font-bold mb-2">SCENE {index + 1}</h3>
-            <textarea
-              className="w-full p-2 bg-gray-50 rounded"
-              value={JSON.stringify(prompt, null, 2)}
-              readOnly
-              rows={8}
-            />
+            <div className="mb-2">
+              <strong>Naskah Narator:</strong>
+              <p>{prompt.narasi}</p>
+            </div>
+            <div className="mb-2">
+              <strong>Dialog Bahasa Indonesia (Gaul):</strong>
+              <p>{prompt.dialog_id_gaul}</p>
+            </div>
+            <div className="mb-2">
+              <strong>Dialog Bahasa Inggris:</strong>
+              <p>{prompt.dialog_en}</p>
+            </div>
+            <div className="mb-2">
+              <strong>Prompt Visual:</strong>
+              <textarea
+                className="w-full p-2 bg-gray-50 rounded"
+                value={prompt.visual_prompt}
+                readOnly
+                rows={4}
+              />
+            </div>
+            <div className="mb-2">
+              <strong>Prompt Audio:</strong>
+              <textarea
+                className="w-full p-2 bg-gray-50 rounded"
+                value={prompt.audio_prompt}
+                readOnly
+                rows={4}
+              />
+            </div>
+            <button
+              className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => {
+                const finalPrompt = `${prompt.visual_prompt}\n\n${prompt.audio_prompt}\n\n${prompt.dialog_en}`;
+                navigator.clipboard.writeText(finalPrompt)
+                  .then(() => alert('Prompt telah disalin untuk Veo!'))
+                  .catch(() => alert('Gagal menyalin prompt.'));
+              }}
+            >
+              Salin Prompt untuk Veo
+            </button>
           </div>
         ))}
       </div>
