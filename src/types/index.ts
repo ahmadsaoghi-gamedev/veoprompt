@@ -101,3 +101,11 @@ export interface GeneratedVideo {
   error?: string;
   createdAt: Date;
 }
+
+export interface AnomalyScenePrompt {
+  visual_prompt: string;
+  audio_prompt: string;
+  dialog_en: string;
+  dialog_id_gaul: string;
+  narasi: string;
+}
