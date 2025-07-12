@@ -24,7 +24,7 @@ const AnomalyMode = () => {
     setError('');
     try {
       setLoadingMessage('Menciptakan karakter anomali...');
-      const characters = await generateAnomalyCharacters();
+      const characters = await generateAnomalyCharacters(userIdea);
 
       setLoadingMessage('Merancang alur cerita & judul...');
       const story = await generateAnomalyStory(characters);
