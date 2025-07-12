@@ -399,11 +399,24 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
 }> {
   const prompt = `Kamu adalah seorang desainer konsep. Berdasarkan ide cerita spesifik ini: '${userIdea}'
 
-Tugasmu:
-1.  Buat deskripsi fisik yang aneh dan surealis untuk 'Rice Cooker Filsuf'.
-2.  Buat deskripsi fisik yang aneh dan surealis untuk 'Spons Sinis'.
-3.  Berikan nama panggilan untuk keduanya.
-4.  Pastikan output dalam format JSON yang ketat: {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}}.`;
+**INSTRUKSI PENTING:**
+- JANGAN gunakan karakter generik seperti "Rice Cooker" atau "Spons"
+- HARUS menggunakan karakter yang sesuai dengan cerita yang diberikan
+- Ekstrak karakter utama dari cerita dan buat deskripsi fisik yang surealis
+
+**TUGAS:**
+1. Identifikasi 2 karakter utama dari cerita yang diberikan
+2. Buat deskripsi fisik yang aneh dan surealis untuk masing-masing karakter
+3. Berikan nama panggilan yang sesuai dengan karakter dalam cerita
+4. Pastikan output dalam format JSON yang ketat
+
+**FORMAT OUTPUT:**
+{"karakter_1": {"nama": "[Nama karakter pertama dari cerita]", "deskripsi_fisik": "[Deskripsi surealis]"}, "karakter_2": {"nama": "[Nama karakter kedua dari cerita]", "deskripsi_fisik": "[Deskripsi surealis]"}}
+
+**CONTOH:**
+Jika cerita tentang "Kentongan tua yang bijaksana dan Tiang Listrik yang pendiam", maka output harus menggunakan "Kentongan" dan "Tiang Listrik", BUKAN "Rice Cooker" atau "Spons".
+
+Analisis cerita dan buat karakter yang sesuai:`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   return JSON.parse(response);
