@@ -52,7 +52,7 @@ const AnomalyMode = () => {
       const characters = await generateAnomalyCharacters(userIdea);
 
       setLoadingMessage('Merancang alur cerita & judul...');
-      const story = await generateAnomalyStory(characters);
+      const story = await generateAnomalyStory(characters, userIdea);
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
         setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
