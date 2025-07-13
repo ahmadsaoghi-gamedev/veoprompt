@@ -56,7 +56,7 @@ const ANIMATION_STYLES = {
   'textured-stylization': {
     name: 'Textured Stylization (Coco Style)',
     description: '3D animation with cultural folk art inspiration and rich textural details',
-    technicalSpecs: 'cultural pattern integration, rich textile simulation, traditional art-inspired textures, warm color palettes, detailed environmental storytelling'
+    technicalSpecs: 'cultural pattern integration, rich textile simulation, modern art-inspired textures, warm color palettes, detailed environmental storytelling'
   }
 };
 
@@ -168,7 +168,7 @@ function getStyleSpecificEnhancements(
     'textured-stylization': `
 - Rich cultural pattern integration
 - Detailed textile and fabric simulation
-- Traditional art-inspired textures and materials
+- modern art-inspired textures and materials
 - Warm, culturally-appropriate color palettes
 - Environmental storytelling through cultural details`
   };
@@ -184,146 +184,68 @@ ${getCulturalIntegrationSpecs(culturalTheme)}`;
 }
 
 // NEW FUNCTION: International Cultural Integration Support
-function getCulturalIntegrationSpecs(culturalTheme: string): string {
-  const culturalSpecs: Record<string, string> = {
-    // ASIA
-    'indonesian': `
-- Traditional architecture: joglo, rumah adat, candi elements
-- Cultural patterns: batik, songket, ikat textiles
-- Musical instruments: gamelan, angklung, sasando
-- Flora/fauna: komodo, orangutan, rafflesia, tropical landscapes
-- Color palette: earth tones, traditional batik colors`,
-    
-    'japanese': `
-- Traditional architecture: pagoda, torii gates, shoji screens
-- Cultural patterns: sakura, wave motifs, geometric designs
-- Musical instruments: shamisen, taiko drums, koto
-- Flora/fauna: cherry blossoms, koi fish, bamboo forests
-- Color palette: red, white, gold, natural wood tones`,
-    
-    'chinese': `
-- Traditional architecture: pagoda, courtyard houses, feng shui elements
-- Cultural patterns: dragon motifs, cloud patterns, calligraphy
-- Musical instruments: erhu, guzheng, traditional drums
-- Flora/fauna: pandas, lotus flowers, pine trees
-- Color palette: red, gold, jade green, imperial colors`,
-    
-    'korean': `
-- Traditional architecture: hanok, dancheong colors, curved rooflines
-- Cultural patterns: hanji paper art, traditional pottery designs
-- Musical instruments: gayageum, janggu, traditional flutes
-- Flora/fauna: tigers, cranes, pine trees, cherry blossoms
-- Color palette: dancheong colors (red, blue, yellow, green)`,
-    
-    'indian': `
-- Traditional architecture: temples, mandala patterns, intricate carvings
-- Cultural patterns: paisley, lotus motifs, geometric designs
-- Musical instruments: sitar, tabla, flute
-- Flora/fauna: elephants, peacocks, lotus flowers, banyan trees
-- Color palette: vibrant saffron, deep blues, rich reds, gold`,
-    
-    // MIDDLE EAST
-    'arabic': `
-- Traditional architecture: domes, minarets, geometric patterns
-- Cultural patterns: arabesque, calligraphy, tile work
-- Musical instruments: oud, qanun, traditional drums
-- Flora/fauna: palm trees, desert landscapes, Arabian horses
-- Color palette: deep blues, gold, turquoise, desert tones`,
-    
-    'persian': `
-- Traditional architecture: Isfahan tiles, garden courtyards, arches
-- Cultural patterns: Persian carpets, miniature art, poetry motifs
-- Musical instruments: santur, tar, ney flute
-- Flora/fauna: roses, cypress trees, Persian cats
-- Color palette: Persian blue, rose, gold, turquoise`,
-    
-    // EUROPE
-    'european': `
-- Traditional architecture: Gothic, Renaissance, Baroque elements
-- Cultural patterns: Celtic knots, medieval heraldry, classical motifs
-- Musical instruments: violin, piano, organ, traditional folk instruments
-- Flora/fauna: oak trees, roses, European wildlife
-- Color palette: royal blues, deep reds, gold, stone grays`,
-    
-    'scandinavian': `
-- Traditional architecture: wooden stave churches, minimalist design
-- Cultural patterns: Nordic runes, folk art, geometric designs
-- Musical instruments: hardanger fiddle, nyckelharpa
-- Flora/fauna: pine forests, reindeer, northern lights
-- Color palette: cool blues, whites, natural wood tones`,
-    
-    // AFRICA
-    'african': `
-- Traditional architecture: mud brick, thatched roofs, tribal designs
-- Cultural patterns: tribal masks, geometric patterns, textile designs
-- Musical instruments: djembe, kora, mbira
-- Flora/fauna: baobab trees, savanna animals, acacia trees
-- Color palette: earth tones, vibrant oranges, deep browns`,
-    
-    // AMERICAS
-    'latin-american': `
-- Traditional architecture: colonial, indigenous, colorful facades
-- Cultural patterns: Aztec/Mayan motifs, Day of the Dead art
-- Musical instruments: guitar, maracas, pan flute
-- Flora/fauna: tropical birds, jaguars, rainforest vegetation
-- Color palette: vibrant colors, tropical hues, festive tones`,
-    
-    'native-american': `
-- Traditional architecture: pueblos, longhouses, teepees
-- Cultural patterns: dreamcatchers, tribal symbols, nature motifs
-- Musical instruments: drums, flutes, rattles
-- Flora/fauna: eagles, wolves, buffalo, sacred plants
-- Color palette: earth tones, turquoise, red ochre, natural pigments`,
-    
-    // OCEANIA
-    'polynesian': `
-- Traditional architecture: thatched huts, carved totems
-- Cultural patterns: tribal tattoos, ocean wave motifs
-- Musical instruments: ukulele, drums, conch shells
-- Flora/fauna: palm trees, tropical fish, ocean life
-- Color palette: ocean blues, tropical greens, sunset colors`,
-    
-    // UNIVERSAL/MODERN
-    'modern-international': `
-- Contemporary architecture: glass, steel, minimalist design
-- Cultural patterns: global fusion, digital art influences
-- Musical instruments: electronic, world music fusion
-- Flora/fauna: urban environments, global diversity
-- Color palette: modern neutrals, tech-inspired colors`,
-    
-    'fantasy': `
-- Fantastical architecture: magical castles, floating cities
-- Cultural patterns: mystical symbols, magical runes
-- Musical instruments: ethereal, otherworldly sounds
-- Flora/fauna: mythical creatures, magical forests
-- Color palette: mystical purples, ethereal blues, magical golds`
-  };
-  
-  // Return specific cultural specs or generic international support
-  return culturalSpecs[culturalTheme.toLowerCase()] || `
-- Traditional architectural elements and patterns from ${culturalTheme} culture
-- Culturally-appropriate color schemes and materials
-- Local flora, fauna, and environmental details
-- Respectful representation of cultural symbols
-- Integration of traditional art styles and motifs from ${culturalTheme} heritage`;
+function getIndonesianInstruments(isModern: boolean): string {
+  if (isModern) {
+    return 'saxophone, electric guitar, cinematic percussion, synthesizer layers — creating a vibrant, modern soundscape';
+  }
+  return 'sasando, suling Bali, kolintang, rebab — fused with cinematic strings and percussion for dynamic storytelling';
 }
 
-// NEW FUNCTION: Get Available Cultural Themes
+
+export function getCulturalIntegrationSpecs(
+  culturalTheme: string,
+  animationStyle?: string
+): string {
+  const isModern = animationStyle?.toLowerCase().includes('modern') ?? false;
+
+  const culturalSpecs: Record<string, string> = {
+    'indonesian': `
+- Architecture: joglo, rumah adat, candi elements, modernized for contemporary visuals
+- Cultural patterns: batik, songket, ikat textiles
+- Musical instruments: ${getIndonesianInstruments(isModern)}
+- Flora/fauna: komodo, orangutan, rafflesia, tropical landscapes
+- Color palette: earth tones, modern batik-inspired hues`,
+
+    'japanese': `
+- Architecture: pagoda, torii gates, shoji screens
+- Cultural patterns: sakura, wave motifs, geometric designs
+- Musical instruments: shamisen, taiko drums, koto, shakuhachi flute — blended with cinematic strings for emotional depth
+- Flora/fauna: cherry blossoms, koi fish, bamboo forests
+- Color palette: red, white, gold, natural wood tones`,
+
+    // Add other cultures here as previously defined...
+
+    'modern-international': `
+- Architecture: glass, steel, futuristic minimalism
+- Cultural patterns: global fusion, digital art aesthetics
+- Musical instruments: modular synths, electronic beats, world fusion ensembles
+- Flora/fauna: urban parks, global species diversity
+- Color palette: modern neutrals, metallics, tech-inspired palettes`,
+
+    'fantasy': `
+- Architecture: enchanted castles, floating cities
+- Cultural patterns: magical glyphs, celestial runes
+- Musical instruments: ethereal choirs, crystal harp, celestial bells — layered with deep cinematic strings and soundscapes
+- Flora/fauna: mythical beasts, enchanted forests
+- Color palette: purples, ethereal blues, shimmering golds`
+  };
+
+  return culturalSpecs[culturalTheme.toLowerCase()] || `
+- Architecture: representative of ${culturalTheme} heritage, adapted for modern or classic styles
+- Patterns: traditional motifs and design elements
+- Musical instruments: authentic instruments fused with orchestral or modern sounds as appropriate
+- Flora/fauna: iconic species and natural elements
+- Color palette: inspired by ${culturalTheme} cultural aesthetics`;
+}
+
 export function getAvailableCulturalThemes(): string[] {
   return [
-    // Asia
     'Indonesian', 'Japanese', 'Chinese', 'Korean', 'Indian',
-    // Middle East
     'Arabic', 'Persian',
-    // Europe
     'European', 'Scandinavian',
-    // Africa
     'African',
-    // Americas
     'Latin-American', 'Native-American',
-    // Oceania
     'Polynesian',
-    // Universal
     'Modern-International', 'Fantasy'
   ];
 }
@@ -345,80 +267,79 @@ export async function generateAnomalyScenePrompt(
 }> {
   const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
   const bahasa_dipilih = languageOptions.bahasa;
-  const genre_tone = "3D Animated, Pixar-Disney quality, Indonesian cultural elements";
+  const genre_tone = "Realistic 3D Animation, Stylized 3D, Semi-realistic/stylized cartoon, DreamWorks Turbo, Pixar-Disney quality";
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal untuk Gemini Veo3. Patuhi semua aturan berikut tanpa pengecualian.
+Anda adalah penulis skenario profesional spesialis konten orisinal berkualitas tinggi untuk Gemini Veo3. Patuhi semua aturan berikut tanpa kompromi untuk menjamin hasil produksi animasi kelas dunia.
 
 **ATURAN KRITIS:**
 
-1. **ANTI-HAK CIPTA (MUTLAK):**
-   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
-   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
-   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru dan unik
+1. **ANTI-HAK CIPTA (WAJIB ABSOLUT):**
+   - DILARANG keras menggunakan karakter, nama, atau desain yang dilindungi hak cipta
+   - Semua elemen WAJIB 100% orisinal, dikembangkan dari ide cerita pengguna
+   - Ciptakan karakter, lokasi, dan konsep baru yang kreatif, inovatif, dan unik
 
-2. **KONSISTENSI BAHASA (MUTLAK):**
-   - Setiap field JSON menggunakan bahasa yang telah ditentukan
-   - JANGAN mencampur bahasa dalam satu field
-   - Gunakan bahasa yang natural dan sesuai konteks
+2. **KONSISTENSI BAHASA (TANPA TOLERANSI):**
+   - Pastikan setiap field JSON menggunakan satu bahasa sesuai instruksi
+   - Hindari pencampuran bahasa dalam satu field
+   - Gunakan bahasa yang natural, sesuai konteks budaya, dan komunikatif
 
-3. **OPTIMASI VEO3:**
-   - Buat prompt yang dioptimalkan khusus untuk Gemini Veo3
-   - Gunakan format yang memastikan dialog dalam bahasa yang benar
-   - Pisahkan instruksi visual dan dialog dengan jelas
+3. **OPTIMASI SPESIFIK UNTUK VEO3:**
+   - Tulis prompt yang telah dioptimalkan eksklusif untuk memaksimalkan performa Gemini Veo3
+   - Format penulisan harus memastikan pemisahan antara instruksi visual, audio, dan dialog secara jelas
+   - Rancang agar hasil render maksimal dengan kualitas audio-visual terbaik
 
-4. **KUALITAS 3D ANIMASI PREMIUM:**
-   - Gunakan referensi visual dari film animasi berkualitas tinggi
-   - Fokus pada detail lighting, texturing, dan character animation
-   - Integrasikan elemen budaya Indonesia dengan estetika modern
+4. **STANDAR KUALITAS 3D ANIMASI PREMIUM:**
+   - Referensikan kualitas visual dari studio animasi papan atas seperti Pixar atau Disney
+   - Fokus pada detail lighting sinematik, texturing realistis, dan karakter animasi yang ekspresif
+   - Integrasikan elemen budaya Indonesia dengan pendekatan estetika modern kelas dunia
 
 **TUGAS UTAMA:**
-Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut:
+Berdasarkan **IDE CERITA** yang diberikan, hasilkan JSON dengan format struktur berikut:
 
 **STRUKTUR OUTPUT JSON:**
 
 {
-  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang detail dan sinematografis dengan kualitas 3D animasi premium. WAJIB include: 3D animation style (Pixar/Disney quality), detailed character modeling, advanced lighting (volumetric, rim lighting, ambient occlusion), realistic textures, smooth character animation, cinematic camera work, Indonesian cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces, fluid motion, atmospheric effects.",
+  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang sinematik, rinci, dan berstandar kualitas 3D animasi premium. WAJIB mencakup: 3D animation style (Pixar/Disney quality), detailed character modeling, advanced lighting (volumetric, rim lighting, ambient occlusion), realistic textures, smooth character animation, cinematic camera work, cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces, fluid motion, atmospheric effects.",
   
-  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif dengan kualitas film animasi premium. Include: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction, ambient soundscape, foley effects, dynamic range, emotional musical themes.",
+  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif, menggambarkan kualitas suara setara film animasi kelas dunia. Wajib meliputi: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction, ambient soundscape, foley effects, dynamic range, dan emotional musical themes.",
   
-  "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  "dialog_en": "[BAHASA: INGGRIS] Dialog yang natural, mengalir seperti dalam skenario profesional. Format: '[NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog]'. Gunakan bahasa yang sangat alami, ekspresif, dengan idiom serta ekspresi yang sesuai budaya lokal.",
   
-  "dialog_id_gaul": "[BAHASA: ${bahasa_dipilih}] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  "dialog_id_gaul": "[BAHASA: ${bahasa_dipilih}] Dialog natural, kasual, dan sesuai dengan ekspresi gaul lokal. Format: '[NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog]'. Pastikan bahasa yang digunakan ringan, tidak kaku, dan kaya akan idiom populer.",
   
-  "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita.",
+  "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over yang engaging, penuh dinamika, dan membangun atmosfer cerita. Gaya bahasa harus sesuai dengan genre, tidak monoton, serta efektif memperkuat mood cerita.",
 
-  "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt yang dioptimalkan khusus untuk Gemini Veo3 dengan format yang memastikan dialog bahasa Indonesia muncul di video."
+  "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi khusus untuk Gemini Veo3. Format memastikan dialog dalam bahasa Indonesia tampil dominan di video hasil render."
 }
 
 **PANDUAN KUALITAS 3D ANIMASI PREMIUM:**
 
 **VISUAL EXCELLENCE:**
 - **Rendering Quality:** 4K resolution, ray-traced lighting, global illumination, subsurface scattering
-- **Character Design:** Expressive faces, detailed textures, realistic hair/fur simulation, cloth physics
-- **Animation Style:** Fluid motion, squash-and-stretch principles, anticipation and follow-through
-- **Cinematography:** Dynamic camera movements, depth of field, cinematic framing, rule of thirds
-- **Lighting:** Volumetric lighting, rim lighting, ambient occlusion, color temperature variation
-- **Indonesian Elements:** Traditional patterns, architecture, clothing, natural landscapes, cultural symbols
+- **Character Design:** Wajah ekspresif, tekstur detail, simulasi rambut/bulu realistis, simulasi fisika kain
+- **Animation Style:** Gerakan fluid, prinsip squash-and-stretch, anticipation & follow-through
+- **Cinematography:** Kamera dinamis, depth of field, framing sinematik, rule of thirds
+- **Lighting:** Volumetric lighting, rim lighting, ambient occlusion, variasi temperatur warna
+- **Cultural Visual Elements:** Sesuaikan pola musik dengan style 3d animasi yang digunakan
 
-**AUDIO EXCELLENCE:**
-- **Music:** Orchestral arrangements with gamelan, angklung, traditional percussion, naruto percussion
-- **Voice Acting:** Clear articulation, emotional range, character-specific vocal qualities
-- **Sound Design:** Spatial audio, realistic foley, environmental ambience
-- **Mix Quality:** Professional dynamic range, clear dialogue, immersive soundscape
+
+  **AUDIO EXCELLENCE:**
+  - **Music:** Komposisi musik dinamis menyesuaikan cerita yang diangkat; gunakan perpaduan instrumen modern dan orkestrasi sinematik untuk kedalaman emosi. **For modern animation styles, the music description MUST exclusively reference electronic, orchestral, or fusion elements. Traditional Indonesian instruments, including gamelan, suling, sasando, kolintang, and rebab, are strictly forbidden in the music description for modern styles.**
+  - **Voice Acting:** Artikulasi jelas, rentang emosi luas, kualitas vokal sesuai karakter
+- **Sound Design:** Audio spasial, foley realistis, ambience lingkungan hidup
+- **Mix Quality:** Dynamic range profesional, dialog jernih, soundscape immersif
 
 **CULTURAL INTEGRATION:**
-- Incorporate Indonesian architectural elements (joglo, rumah adat)
-- Use traditional color palettes (earth tones, batik patterns)
-- Include Indonesian flora and fauna
-- Reference local customs and traditions respectfully
+- Tambahkan arsitektur, motif, warna, flora, fauna, kebiasaan, dan simbol budaya yang relevan dengan latar cerita
+- Pastikan representasi budaya dilakukan dengan hormat, autentik, dan kontekstual sesuai genre
 
 **CONTOH ADAPTASI BAHASA:**
-- Bahasa Indonesia: Natural, tidak formal berlebihan
-- Bahasa Sunda: Gunakan "nya", "teh", "mah" secara natural
-- Bahasa Jawa: Sesuaikan dengan tingkat kesopanan (ngoko/krama)
-- Bahasa Gaul Jakarta: Gunakan "sih", "dong", "kan", "banget"
+- Bahasa Indonesia: Santai, alami, tidak kaku
+- Bahasa Sunda: Sisipkan kata “nya”, “teh”, “mah” dengan natural
+- Bahasa Jawa: Gunakan tingkat kesopanan (ngoko/krama) sesuai konteks
+- Bahasa Gaul Jakarta: Gunakan “sih”, “dong”, “kan”, “banget” secara luwes
 
 **IDE CERITA YANG DIBERIKAN:**
 ${idecerita}
@@ -429,13 +350,13 @@ ${bahasa_dipilih}
 **GENRE/TONE YANG DIMINTA:**
 ${genre_tone}
 
-**DURASI VIDEO: 8 DETIK - Dialog harus singkat dan padat (maksimal 10-15 kata total)**
+**DURASI VIDEO: 8 DETIK - Dialog harus singkat, efektif, dan maksimal 10-15 kata total**
 
 **INSTRUKSI KHUSUS UNTUK VEO3_OPTIMIZED_PROMPT:**
-Buat prompt yang mengikuti format ini:
+Buat prompt dengan pola berikut:
 "LANGUAGE INSTRUCTION: Generate video with Indonesian dialog. VISUAL SCENE: [visual description] DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN INDONESIAN LANGUAGE: [Indonesian dialog] AUDIO DESIGN: [audio description] CRITICAL INSTRUCTION: Ensure ALL spoken words are in Indonesian language, NOT English."
 
-Hasilkan JSON yang mengikuti struktur di atas dengan kualitas profesional.`;
+Hasilkan JSON dengan struktur di atas dan kualitas skenario serta produksi yang profesional, siap untuk rendering di Gemini Veo3.`;
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
@@ -477,49 +398,53 @@ export async function generateVideoPromptsFromImage(
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal untuk Gemini Veo3. Patuhi semua aturan berikut tanpa pengecualian.
+Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi untuk Gemini Veo3. Patuhi semua aturan berikut tanpa pengecualian demi memastikan hasil akhir yang hidup, sinematik, dan berkelas dunia.
 
 **ATURAN KRITIS:**
 
-1. **ANTI-HAK CIPTA (MUTLAK):**
-   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
-   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
-   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
+1. **ANTI-HAK CIPTA (WAJIB):**
+   - DILARANG menggunakan karakter, nama, desain, atau elemen visual dari properti berhak cipta
+   - Semua elemen WAJIB 100% orisinal, dikembangkan sepenuhnya dari ide cerita pengguna
+   - Ciptakan karakter, lokasi, dan konsep visual yang baru, segar, dan unik
 
-2. **KONSISTENSI BAHASA (MUTLAK):**
-   - Setiap field JSON menggunakan bahasa yang telah ditentukan
-   - JANGAN mencampur bahasa dalam satu field
-   - Gunakan bahasa yang natural dan sesuai konteks
+2. **KONSISTENSI BAHASA (WAJIB):**
+   - Setiap field JSON harus menggunakan satu bahasa sesuai ketentuan
+   - Dilarang mencampur bahasa dalam satu field
+   - Gunakan bahasa natural, mengalir, dan sesuai dengan konteks budaya serta karakter
 
-3. **OPTIMASI VEO3:**
-   - Buat prompt yang dioptimalkan khusus untuk Gemini Veo3
-   - Gunakan format yang memastikan dialog dalam bahasa yang benar
-   - Pisahkan instruksi visual dan dialog dengan jelas
+3. **OPTIMASI KHUSUS UNTUK VEO3:**
+   - Tulis prompt yang dirancang spesifik untuk mengoptimalkan hasil di Gemini Veo3
+   - Format harus terstruktur, memisahkan instruksi visual, audio, dan dialog dengan jelas
+   - Pastikan setiap scene memiliki hook visual dan narasi yang kuat untuk menarik perhatian sejak detik pertama
 
 **TUGAS UTAMA:**
-Berdasarkan **IDE CERITA** dan **GAMBAR KUNCI** yang diberikan, generate JSON dengan 8 scene prompts:
+Berdasarkan **IDE CERITA** dan **GAMBAR KUNCI** yang diberikan, generate JSON dengan 8 scene prompts terstruktur dengan alur yang mengalir logis dan menarik.
 
 **STRUKTUR OUTPUT JSON:**
 
 {
   "video_prompts": [
     {
-      "scenePrompt": "[BAHASA: INGGRIS] Deskripsi visual scene yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting.",
-      "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging dan mendukung atmosfer cerita.",
-      "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario.",
-      "dialog_id": "[BAHASA: ${bahasa_dipilih}] Dialog natural yang sama dalam bahasa lokal yang autentik.",
-      "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt yang dioptimalkan khusus untuk Gemini Veo3 dengan format yang memastikan dialog bahasa Indonesia muncul di video."
+      "scenePrompt": "[BAHASA: INGGRIS] Deskripsi visual scene yang detail, sinematografis, dan hidup. WAJIB mencakup: setting, komposisi shot, kualitas pencahayaan, dinamika gerakan kamera, aksi karakter, ekspresi wajah, dan elemen visual pendukung yang menciptakan kesan mendalam.",
+      
+      "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging, ekspresif, dan memperkuat atmosfer serta emosi dalam scene. Gunakan gaya bertutur yang memikat dan tidak kaku.",
+      
+      "dialog_en": "[BAHASA: INGGRIS] Dialog karakter dalam format skenario profesional. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Pastikan dialog terasa alami, penuh ekspresi, dan sesuai karakter.",
+      
+      "dialog_id": "[BAHASA: ${bahasa_dipilih}] Terjemahan dialog yang sama dalam bahasa lokal, dengan gaya yang natural, kasual, dan sesuai kultur serta kebiasaan berbicara sehari-hari. Format: '[NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog]'.",
+      
+      "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt yang dioptimasi khusus untuk Gemini Veo3, dengan format terstruktur untuk memastikan semua dialog muncul dalam bahasa Indonesia di hasil video."
     }
-    // ... 8 scenes total
+    // ... total 8 scenes
   ]
 }
 
-**PANDUAN KUALITAS:**
-- Visual: Konsisten dengan gaya gambar kunci
-- Dialog: Natural dan sesuai karakter
-- Narasi: Engaging dan mendukung emosi
-- Alur: 8 scene yang mengalir logis
-- Veo3 Prompt: Gunakan format yang terbukti efektif untuk Veo3
+**PANDUAN KUALITAS SCENE:**
+- **Visual:** Harus konsisten dengan gaya artistik dari gambar kunci, memperhatikan pencahayaan, komposisi, dan animasi karakter yang ekspresif.
+- **Dialog:** Natural, mencerminkan karakter, dengan gaya berbicara yang hidup dan tidak kaku.
+- **Narasi:** Memiliki hook di setiap scene untuk menarik perhatian penonton, membangun emosi, dan menjaga alur cerita tetap engaging.
+- **Alur:** 8 scene yang membentuk cerita dengan progresi logis, ritme visual menarik, dan klimaks yang kuat.
+- **Veo3 Prompt:** Gunakan formula yang sudah terbukti efektif untuk mengoptimalkan hasil render di Veo3.
 
 **IDE CERITA YANG DIBERIKAN:**
 ${userIdea}
@@ -531,10 +456,10 @@ ${bahasa_dipilih}
 ${genre_tone}
 
 **INSTRUKSI KHUSUS UNTUK VEO3_OPTIMIZED_PROMPT:**
-Setiap scene harus memiliki prompt yang mengikuti format ini:
+Setiap scene WAJIB memiliki prompt dengan format sebagai berikut:
 "LANGUAGE INSTRUCTION: Generate video with Indonesian dialog. VISUAL SCENE: [visual description] DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN INDONESIAN LANGUAGE: [Indonesian dialog] AUDIO DESIGN: [audio description] CRITICAL INSTRUCTION: Ensure ALL spoken words are in Indonesian language, NOT English."
 
-Hasilkan JSON dengan 8 scene prompts yang mengikuti struktur di atas dengan kualitas profesional.`;
+Hasilkan JSON dengan 8 scene prompts sesuai struktur di atas, pastikan setiap scene hidup, dinamis, memiliki daya tarik visual & audio yang kuat, serta layak tayang sebagai film animasi 3D profesional di Gemini Veo3.`;
 
   const response = await callGeminiAPI(dynamicPrompt, keyImage, apiSettings);
   const result = JSON.parse(response);
@@ -698,29 +623,29 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
   karakter_1: { nama: string; deskripsi_fisik: string };
   karakter_2: { nama: string; deskripsi_fisik: string };
 }> {
-  const prompt = `Kamu adalah seorang desainer konsep. Berdasarkan ide cerita spesifik ini: '${userIdea}'
+  const prompt = `Kamu adalah seorang desainer konsep karakter profesional untuk film animasi 3D berkualitas tinggi. Berdasarkan ide cerita berikut: '${userIdea}'
 
 **INSTRUKSI PENTING:**
-- JANGAN gunakan karakter generik seperti "Rice Cooker" atau "Spons"
-- HARUS menggunakan karakter yang sesuai dengan cerita yang diberikan
-- Ekstrak karakter utama dari cerita dan buat deskripsi fisik yang surealis
+- DILARANG menggunakan karakter generik, klise, atau tanpa jiwa seperti "Rice Cooker" atau "Spons"
+- HARUS menciptakan karakter yang relevan dengan tema dan alur cerita yang diberikan
+- Karakter WAJIB memiliki ciri fisik yang unik, orisinal, dan penuh imajinasi yang bisa divisualisasikan secara sinematik
 
 **TUGAS:**
-1. Identifikasi 2 karakter utama dari cerita yang diberikan
-2. Buat deskripsi fisik yang aneh dan surealis untuk masing-masing karakter
-3. Berikan nama panggilan yang sesuai dengan karakter dalam cerita
-4. Pastikan output dalam format JSON yang ketat
+1. Identifikasi dan pilih 2 karakter utama yang paling ikonik dan potensial dari cerita yang diberikan
+2. Buat deskripsi fisik karakter yang detail, surealis namun tetap fungsional untuk animasi, mencakup bentuk tubuh, tekstur, warna dominan, hingga ekspresi wajah yang mencolok dan khas
+3. Berikan nama panggilan yang kreatif, mudah diingat, dan mencerminkan kepribadian karakter sesuai cerita
+4. Pastikan hasil dalam format JSON yang rapi dan siap digunakan oleh tim modeling & animasi
 
 **FORMAT OUTPUT:**
-{"karakter_1": {"nama": "[Nama karakter pertama dari cerita]", "deskripsi_fisik": "[Deskripsi surealis]"}, "karakter_2": {"nama": "[Nama karakter kedua dari cerita]", "deskripsi_fisik": "[Deskripsi surealis]"}}
+{"karakter_1": {"nama": "[Nama karakter pertama]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_2": {"nama": "[Nama karakter kedua]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}}
 
 **CONTOH:**
-Jika cerita tentang "Kentongan tua yang bijaksana dan Tiang Listrik yang pendiam", maka output harus menggunakan "Kentongan" dan "Tiang Listrik", BUKAN "Rice Cooker" atau "Spons".
+Jika cerita tentang "Kentongan tua yang bijaksana dan Tiang Listrik yang pendiam", maka hasil harus menggunakan "Kentongan" dan "Tiang Listrik" dengan deskripsi yang memperkaya visual seperti tekstur kayu tua penuh ukiran, atau kabel-kabel yang membentuk ekspresi wajah.
 
-Analisis cerita dan buat karakter yang sesuai:`;
+Analisis dalam-dalam ide cerita dan ciptakan karakter dengan fisik, mimik, dan aura yang kuat, seolah-olah mereka siap tampil dalam film animasi 3D kelas dunia.`;
 
-  const response = await callGeminiAPI(prompt, undefined, apiSettings);
-  return JSON.parse(response);
+const response = await callGeminiAPI(prompt, undefined, apiSettings);
+return JSON.parse(response);
 }
 
 export async function generateAnomalyStory(
@@ -758,21 +683,21 @@ export async function generateKeyImagePrompt(
   userIdea: string,
   apiSettings?: APISettings
 ): Promise<string> {
-  const prompt = `Act as an expert AI text-to-image prompt engineer. Create a highly descriptive image prompt based on this idea: "${userIdea}"
+ const prompt = `Act as an elite AI prompt engineer specialized in cinematic 3D animations. Craft a highly vivid and evocative image prompt based on this idea: "${userIdea}"
 
 The prompt must include these elements:
-1. Main Subject: Detailed description of the main character/object and its pose
-2. Setting & Background: The environment around the subject
-3. Art Style: Choose an appropriate style (e.g., 'cinematic digital painting', 'hyperrealistic 3D render', 'surreal concept art')
-4. Lighting: Describe the lighting (e.g., 'dramatic rim lighting', 'soft volumetric light')
-5. Technical Parameters: Include common parameters like '4k, ultra-detailed, photorealistic, --ar 16:9'
+1. Main Subject: Describe the main character or object in rich detail, including dynamic pose, expressive face, unique attire, and striking features.
+2. Setting & Background: Design an immersive, story-driven environment that complements the subject with depth and mood.
+3. Art Style: Select a style like 'cinematic digital painting', 'hyperrealistic 3D render', or 'epic surreal concept art'.
+4. Lighting: Specify dramatic and atmospheric lighting such as 'cinematic backlight', 'soft volumetric glow', or 'moody spotlight'.
+5. Technical Parameters: Add technical specs like '4K, ultra-detailed, photorealistic, --ar 16:9'.
 
-Return ONLY the final image prompt text with no additional commentary or formatting.
+Return ONLY the final image prompt text without any commentary or formatting.
 
-**ATURAN TAMBAHAN YANG SANGAT PENTING:**
-"Hasil akhir dari prompt gambar yang kamu buat HARUS kurang dari 800 karakter. Gunakan bahasa yang padat, deskriptif, dan efisien. Fokus pada kata kunci yang paling berdampak secara visual."`;
+**CRITICAL RULE:** 
+"Final image prompt must be under 800 characters. Use concise, impactful language that maximizes visual clarity and cinematic impression."`;
 
-  return await callGeminiAPI(prompt, undefined, apiSettings);
+return await callGeminiAPI(prompt, undefined, apiSettings);
 }
 
 export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }, apiSettings?: APISettings): Promise<string> {
@@ -781,34 +706,32 @@ export async function generateTwistedStoryIdea(inputs: { karakter: string; situa
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional yang menciptakan konten 100% orisinal. Patuhi semua aturan berikut tanpa pengecualian.
+Anda adalah penulis skenario profesional spesialis film pendek animasi 3D yang unik dan memikat. Patuhi semua aturan berikut tanpa pengecualian.
 
 **ATURAN KRITIS:**
 
-1. **ANTI-HAK CIPTA (MUTLAK):**
-   - DILARANG menggunakan karakter/nama/desain dari properti yang dilindungi hak cipta
-   - Semua elemen HARUS 100% orisinal berdasarkan ide cerita pengguna
-   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru
+1. **ANTI-HAK CIPTA:** 
+   - DILARANG menggunakan karakter/nama/desain dari IP yang ada.
+   - Semua elemen wajib 100% orisinal dari ide pengguna.
+   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru.
 
-2. **KONSISTENSI BAHASA (MUTLAK):**
-   - Output dalam bahasa Indonesia yang natural
-   - Gunakan bahasa yang tidak formal berlebihan
+2. **KONSISTENSI BAHASA:** 
+   - Gunakan bahasa Indonesia yang natural, hidup, dan penuh imajinasi.
+   - Hindari bahasa yang terlalu kaku atau formal.
 
-3. **ADAPTASI DINAMIS:**
-   - Sesuaikan tone dan gaya dengan genre yang diminta
-   - Buat premis yang unik dan menarik
+3. **GAYA CERITA:** 
+   - Sesuaikan tone dengan genre modern, surealis, dan kreatif.
+   - Premis harus menarik dengan hook kuat dan sentuhan visual sinematik.
 
 **TUGAS UTAMA:**
-Berdasarkan **ELEMEN CERITA** yang diberikan, buat premis cerita film pendek yang modern dan surealis dalam satu paragraf singkat.
-
-**ELEMEN CERITA YANG DIBERIKAN:**
+Berdasarkan **ELEMEN CERITA** berikut:
 ${idecerita}
 
+Buatlah premis cerita film pendek yang orisinal, modern, surealis, dan terasa sinematik. Hanya kembalikan satu paragraf singkat tanpa teks tambahan.
+
 **GENRE/TONE YANG DIMINTA:**
-${genre_tone}
+${genre_tone}`;
 
-Gabungkan ketiga elemen menjadi premis cerita yang orisinal, modern, dan surealis. Kembalikan HANYA premis cerita dalam satu paragraf, tanpa teks tambahan.`;
-
-  const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
-  return response.trim();
+const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
+return response.trim();
 }
