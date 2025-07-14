@@ -307,7 +307,44 @@ Berdasarkan **IDE CERITA** yang diberikan, hasilkan JSON dengan format struktur 
   
   "dialog_en": "[BAHASA: INGGRIS] Dialog yang natural, mengalir seperti dalam skenario profesional. Format: '[NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog]'. Gunakan bahasa yang sangat alami, ekspresif, dengan idiom serta ekspresi yang sesuai budaya lokal.",
   
-  "dialog_id_gaul": "**\`dialogue\` (String):**\n* **Instruksi Bahasa:** TULIS HANYA DALAM BAHASA INDONESIA (ATAU BAHASA DAERAH SESUAI PERMINTAAN PENGGUNA).\n* **Peran AI:** \n"Anda adalah seorang penulis skenario profesional yang ahli dalam menulis dialog yang natural, penuh emosi, dan tidak kaku.\n"\n* **PRINSIP PENULISAN DIALOG (WAJIB DIIKUTI):**\n    * **Gunakan Subteks:** Jangan membuat karakter mengatakan persis apa yang mereka rasakan. Contoh buruk: \n"Aku sedih.\n" Contoh baik: \n"Sepertinya... akan turun hujan lagi hari ini."\n    * **Gunakan Jeda untuk Menciptakan Ketegangan:** Gunakan tanda elipsis (...) untuk menunjukkan keraguan, pemikiran, atau saat karakter kesulitan menemukan kata-kata.\n    * **Singkat dan Berdampak:** Gunakan kalimat-kalimat yang lebih pendek. Hindari monolog yang panjang dan bertele-tele.\n    * **Setiap Dialog Harus Punya Tujuan:** Dialog harus entah (1) mengungkapkan kepribadian karakter, (2) memajukan plot, atau (3) menciptakan konflik.\n    * **HINDARI EKSPOSISI BERLEBIHAN:** Jangan membuat karakter menjelaskan sesuatu yang sudah jelas kepada penonton hanya demi informasi.\n\n* **Konten:** Berdasarkan PRINSIP di atas, tuliskan dialog untuk adegan ini dalam format skenario, lengkap dengan nama karakter (huruf kapital) dan deskripsi nada (parenthetical).",
+  "dialog_id_gaul": "[BAHASA: INDONESIA] Dialog natural gaya anak muda Indonesia dengan prinsip penulisan berikut:
+
+**GAYA BAHASA NATURAL:**
+- Bahasa santai seperti obrolan di warung kopi atau tongkrongan
+- Hindari formalitas (saya/anda/dengan hormat)  
+- Gunakan kontraksi: gue udah, lo tau, dia lagi, kita kan
+- Selipkan filler words: kayak, gitu, sih, kan, deh, nih
+
+**VOCABULARY GAUL MODERN:**
+- Jaksel: literally, basically, serious, honestly, real talk
+- Betawi: iye, dah, nih, tuh, kagak, aje
+- Gen Z: anjir, bro, bestie, vibes, cringe, slay
+- Code-mixing natural: 'That's so random deh', 'Gue literally speechless'
+
+**STRUKTUR DIALOG EFEKTIF:**
+- Maksimal 8 detik per dialog (kira-kira 2-3 baris)
+- Kalimat pendek dan cepat
+- Gunakan elipsis (...) untuk jeda atau keraguan
+- Overlap pemikiran: 'Maksud gue... ya lu tau lah...'
+
+**EMOSI & REAKSI SPONTAN:**
+- Interjeksi: Waduh!, Aduh!, Anjir!, Astaga!
+- Reaksi natural: Serius lu?, Masa sih?, Ngga mungkin deh
+- Repetisi untuk penekanan: Parah, parah banget sih
+
+**TEKNIK ADVANCED:**
+- Incomplete thoughts: 'Tadi gue ketemu... eh tunggu, lu udah makan belum?'
+- Interruption: 'Jadi ceritanya gini— —tunggu tunggu, yang di mall itu ya?'
+- Subtext dengan tone sarkastik: 'Wah... hebat banget deh lo.'
+
+**VARIASI KARAKTER:**
+- Confident: 'Gue sih obviously tau lah...', 'Basic banget sih pertanyaan lu'
+- Shy: 'Ehm... gue sih... gimana ya...', 'Mungkin... apa ya... gue kurang yakin deh...'
+- Funny: 'Anjir, plot twist banget nih cerita', 'That's so chaotic energy sih'
+
+**FORMAT:** [NAMA_KARAKTER: (mood/ekspresi) dialog singkat dan natural]
+
+**TARGET:** Dialog yang terdengar seperti obrolan sungguhan, bisa dibaca dalam 8 detik, dengan campuran bahasa yang natural, karakter yang hidup, emosi yang jelas, dan mendorong cerita maju.",
   
   "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over yang engaging, penuh dinamika, dan membangun atmosfer cerita. Gaya bahasa harus sesuai dengan genre, tidak monoton, serta efektif memperkuat mood cerita.",
 
@@ -431,7 +468,7 @@ Berdasarkan **IDE CERITA** dan **GAMBAR KUNCI** yang diberikan, generate JSON de
       
       "dialog_en": "[BAHASA: INGGRIS] Dialog karakter dalam format skenario profesional. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Pastikan dialog terasa alami, penuh ekspresi, dan sesuai karakter.",
       
-      "dialog_id": "[BAHASA: ${bahasa_dipilih}] Terjemahan dialog yang sama dalam bahasa lokal, dengan gaya yang natural, kasual, dan sesuai kultur serta kebiasaan berbicara sehari-hari. Format: '[NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog]'.",
+      "dialog_id": "**DIALOGUE (String):**\\n* **Instruksi Bahasa:** TULIS HANYA DALAM BAHASA ${bahasa_dipilih.toUpperCase()} DENGAN GAYA NATURAL TONGKRONGAN ANAK MUDA.\\n* **Peran AI:** Anda adalah penulis skenario profesional yang ahli menciptakan dialog natural seperti obrolan sungguhan di warung kopi atau tongkrongan.\\n\\n* **PRINSIP PENULISAN DIALOG (WAJIB DIIKUTI):**\\n\\n**1. GAYA BAHASA NATURAL**\\n- Gunakan bahasa santai dan mengalir seperti obrolan di warung kopi\\n- Hindari bahasa formal - tidak ada saya, anda, dengan hormat\\n- Pakai kontraksi natural: gue udah, lo tau, dia lagi, kita kan\\n- Selipkan filler words: kayak, gitu, sih, kan, deh, nih\\n\\n**2. VOCABULARY GAUL JAKSEL + BETAWI (WAJIB GUNAKAN):**\\n- Jaksel: literally, basically, serious, honestly, real talk\\n- Betawi: iye, dah, nih, tuh, kagak, aje\\n- Gen Z: anjir, bro, bestie, vibes, cringe, slay\\n- Campur kode natural: Thats so random deh, Gue literally speechless\\n\\n**3. STRUKTUR KALIMAT PENDEK & CEPAT**\\n- Maksimal 8 detik pengucapan per dialog\\n- Gunakan kalimat putus-putus untuk kesan natural\\n- Pakai elipsis (...) untuk jeda berpikir atau ragu-ragu\\n- Overlap pemikiran: Maksud gue... ya lu tau lah...\\n\\n**4. EMOSI & REAKSI SPONTAN**\\n- Ekspresikan emosi dengan interjeksi: Waduh!, Aduh!, Anjir!, Astaga!\\n- Reaksi natural: Serius lu?, Masa sih?, Ngga mungkin deh\\n- Gunakan repetisi untuk penekanan: Parah, parah banget sih\\n\\n**5. TEKNIK ADVANCED:**\\n- Incomplete thoughts: Tadi gue ketemu... eh tunggu, lu udah makan belum?\\n- Interruption: Jadi ceritanya gini— —tunggu tunggu, yang di mall itu ya?\\n- Subtext: Wah... hebat banget deh lo. (sarcastic)\\n\\n**6. VARIASI KARAKTER:**\\n- Confident: Gue sih obviously tau lah..., Basic banget sih pertanyaan lu\\n- Shy: Ehm... gue sih... gimana ya..., Mungkin... apa ya... gue kurang yakin deh...\\n- Funny: Anjir, plot twist banget nih cerita, Thats so chaotic energy sih\\n\\n**FORMAT PENULISAN:**\\n[NAMA_KARAKTER: (mood/ekspresi) dialog singkat dan natural]\\n\\n**CHECKLIST KUALITAS:**\\n✅ Kedengarannya seperti obrolan sungguhan?\\n✅ Bisa dibaca dalam 8 detik atau kurang?\\n✅ Ada campuran bahasa yang natural?\\n✅ Karakter terlihat hidup dan punya personality?\\n✅ Ada emosi yang jelas terungkap?\\n✅ Dialog mendorong cerita maju?\\n\\n* **Konten:** Berdasarkan SEMUA PRINSIP di atas, tuliskan dialog untuk adegan ini dengan maksimal 2-3 baris per karakter, total durasi 8 detik, gaya natural tongkrongan anak muda, personality jelas untuk setiap karakter, dan emosi yang mendukung mood scene. INGAT: Dialog yang bagus membuat penonton merasa seperti menguping obrolan asli!",
       
       "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt yang dioptimasi khusus untuk Gemini Veo3, dengan format terstruktur untuk memastikan semua dialog muncul dalam bahasa Indonesia di hasil video."
     }
