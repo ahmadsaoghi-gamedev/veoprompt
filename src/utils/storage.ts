@@ -1,5 +1,5 @@
 // Fallback to localStorage if IndexedDB fails
-export function saveToLocalStorage(key: string, data: any): void {
+export function saveToLocalStorage(key: string, data: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
@@ -25,7 +25,7 @@ export function removeFromLocalStorage(key: string): void {
   }
 }
 
-export function exportData(data: any, filename: string): void {
+export function exportData(data: unknown, filename: string): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -37,14 +37,15 @@ export function exportData(data: any, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function importData(file: File): Promise<any> {
+export function importData<T = unknown>(file: File): Promise<T> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target?.result as string);
+        const data = JSON.parse(e.target?.result as string) as T;
         resolve(data);
-      } catch (error) {
+      } catch (parseError) {
+        console.error('Failed to parse JSON:', parseError);
         reject(new Error('Invalid JSON file'));
       }
     };
