@@ -14,6 +14,7 @@ import Contact from './components/Contact';
 import AnomalyMode from './components/AnomalyMode';
 import ConceptVizMode from './components/ConceptVizMode';
 import DialogueFixerMode from './components/DialogueFixerMode';
+import GuidePage from './components/GuidePage';
 import { Helmet } from 'react-helmet-async';
 import { initDB } from './utils/database';
 
@@ -89,6 +90,8 @@ function App() {
         return <ConceptVizMode />;
       case 'dialogue-fixer':
         return <DialogueFixerMode />;
+      case 'guide':
+        return <GuidePage onBack={() => setActiveTab('assets')} />;
       default:
         return <AssetManagement />;
     }
@@ -108,8 +111,9 @@ function App() {
   return (
     <>
       <Helmet>
-        <title>Shabira Prompt Lab - AI Video Creator</title>
-        <meta name="description" content="Buat video berkualitas tinggi dengan mudah menggunakan AI. Hasilkan video promosi, konten media sosial, dan banyak lagi." />
+        <title>AI Video Generator & Short Film AI Creator - Shabira Prompt Lab | Veo Alternative</title>
+        <meta name="description" content="AI Video Generator terbaik untuk Short Film AI dan animasi 3D AI. Prompt Generator canggih dengan teknologi Gemini untuk alternatif Veo3. Buat video sinematik berkualitas tinggi." />
+        <meta name="keywords" content="AI video generator, short film AI, 3D AI animation, prompt generator, Veo, Gemini, alternatif Veo3, cinematic video prompt, AI untuk video vertikal 9:16" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -118,7 +122,7 @@ function App() {
       <Layout activeTab={activeTab} onTabChange={setActiveTab}>
         {renderActiveComponent()}
       </Layout>
-    </>
+      m    </>
   );
 }
 
