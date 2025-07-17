@@ -217,6 +217,32 @@ export function getAvailableCulturalThemes(): string[] {
   ];
 }
 
+// Helper function to get dialog style based on accent
+function getDialogStyleByAccent(accent: string): string {
+  const accentStyles: Record<string, string> = {
+    'Betawi': '- Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh)\n- Tambahkan logat Betawi seperti "iye", "kagak", "ape", "nih", "dah"\n- Gunakan struktur kalimat khas Betawi',
+    'Jawa': '- Gunakan bahasa Jawa yang natural dengan tingkat kesopanan yang sesuai (ngoko untuk teman sebaya, krama untuk yang lebih tua)\n- Gunakan kata-kata khas Jawa seperti "mas", "mbak", "pak", "bu", "iki", "kuwi", "opo", "piye"\n- Tambahkan partikel khas Jawa seperti "to", "ta", "kok", "lho"',
+    'Sunda': '- Gunakan bahasa Sunda yang natural dan lembut\n- Gunakan kata-kata khas Sunda seperti "teh", "mah", "nya", "euy", "atuh", "yeuh"\n- Struktur kalimat mengikuti pola bahasa Sunda',
+    'US': '- Use natural American English with contemporary slang and idioms\n- Include contractions and casual expressions\n- Reflect modern American speech patterns',
+    'British': '- Use British English with appropriate vocabulary and expressions\n- Include British slang and idioms where appropriate\n- Reflect British speech patterns and politeness conventions'
+  };
+  
+  return accentStyles[accent] || '- Gunakan bahasa yang natural sesuai dengan aksen yang dipilih';
+}
+
+// Helper function to get dialog language based on accent
+function getDialogLanguageByAccent(accent: string): string {
+  const languageMap: Record<string, string> = {
+    'Betawi': 'Bahasa Indonesia Gaul dengan Logat Betawi',
+    'Jawa': 'Bahasa Jawa',
+    'Sunda': 'Bahasa Sunda',
+    'US': 'American English',
+    'British': 'British English'
+  };
+  
+  return languageMap[accent] || 'Bahasa Indonesia';
+}
+
 // PERBAIKAN UNTUK DIALOG GENERATION
 export async function generateAnomalyScenePrompt(
   storyContext: StoryContext,
@@ -285,14 +311,15 @@ export async function generateAnomalyScenePrompt(
 * **Format:** '${characters.karakter_1.nama}: (deskripsi nada/emosi) teks dialog' dan '${characters.karakter_2.nama}: (deskripsi nada/emosi) teks dialog'
 * **Aturan:** Kedua karakter HARUS berbicara dengan pergantian yang jelas. Maksimal 8 detik total durasi dialog.
 
-**Langkah 2: Adaptasi Kreatif ke Bahasa Indonesia Gaul**
-* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario untuk sitkom pergaulan anak muda Jakarta. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
-* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Bahasa Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
+**Langkah 2: Adaptasi Kreatif ke Bahasa ${bahasa_dipilih} dengan Aksen ${languageOptions.aksen}**
+* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario yang ahli dalam bahasa dan budaya lokal. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
+* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam bahasa yang sesuai dengan pilihan pengguna.
 * **ATURAN SINKRONISASI (SANGAT PENTING):**
     * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
     * Jumlah baris dialog HARUS SAMA PERSIS.
     * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).
+* **Gaya Bahasa berdasarkan Aksen:**
+    ${getDialogStyleByAccent(languageOptions.aksen)}
 
 **STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
 
@@ -303,7 +330,7 @@ export async function generateAnomalyScenePrompt(
   
       "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[${characters.karakter_1.nama}: (emotion), dialog]' dan '[${characters.karakter_2.nama}: (emotion), dialog]'.",
       
-      "dialogue": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Bahasa Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
+      "dialogue": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif ke ${getDialogLanguageByAccent(languageOptions.aksen)}). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
   
   "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over yang engaging, penuh dinamika, dan membangun atmosfer cerita. Gaya bahasa harus sesuai dengan genre, tidak monoton, serta efektif memperkuat mood cerita.",
 
