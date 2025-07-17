@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { MessageSquare, Wand2, Copy, Download, Settings2, AlertCircle } from 'lucide-react';
 import { fixMultiCharacterDialogue } from '../utils/api';
 import { getSettings } from '../utils/database';
@@ -115,6 +116,11 @@ const DialogueFixerMode: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Cara Membuat Dialog AI: Dialogue Fixer untuk Gemini & Veo3 - Shabira Prompt Lab</title>
+                <meta name="description" content="Bagaimana cara membuat dialog AI yang sempurna? Gunakan Dialogue Fixer untuk transform dialog multi-karakter menjadi format BEAT system untuk Gemini Veo3." />
+                <meta name="keywords" content="cara membuat dialog AI, dialogue fixer, Gemini, Veo3, BEAT system, multi-character dialogue, AI video generator" />
+            </Helmet>
             {/* Header */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
                 <div className="flex items-center gap-4 mb-4">
@@ -122,8 +128,8 @@ const DialogueFixerMode: React.FC = () => {
                         <MessageSquare className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Dialogue Fixer for Gemini Veo 3</h1>
-                        <p className="text-gray-600">Transform messy multi-character dialogues into clear BEAT system format</p>
+                        <h1 className="text-2xl font-bold text-gray-800">Dialogue Fixer: How to Make AI Dialogue for Gemini</h1>
+                        <p className="text-gray-600">Transforming multi-character dialogue into a clear beat system format for Gemini VEO 3</p>
                     </div>
                 </div>
             </div>

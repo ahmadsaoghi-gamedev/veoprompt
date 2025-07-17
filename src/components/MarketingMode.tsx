@@ -276,8 +276,9 @@ Format as a detailed video production prompt suitable for AI video generation.`;
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Mode Marketing & Promosi - Shabira Prompt Lab</title>
-        <meta name="description" content="Buat video promosi dan marketing yang profesional. Tentukan target audiens dan tujuan marketing untuk menghasilkan konten yang efektif." />
+        <title>Marketing Mode: Prompt Video TikTok & AI untuk Video Vertikal 9:16 - Shabira Prompt Lab</title>
+        <meta name="description" content="Buat prompt video TikTok dan konten marketing vertikal 9:16 dengan AI. Generator video promosi profesional untuk target audiens yang efektif." />
+        <meta name="keywords" content="prompt video TikTok, AI untuk video vertikal 9:16, video marketing AI, konten promosi, AI video generator, video vertikal" />
       </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Marketing Mode - Professional Video Creation</h2>

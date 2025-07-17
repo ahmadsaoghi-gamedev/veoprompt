@@ -378,8 +378,9 @@ Ultra Sharp 4K Quality
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-6">
       <Helmet>
-        <title>Analisis Gambar Mendalam - Shabira Prompt Lab</title>
-        <meta name="description" content="Lakukan analisis gambar tingkat lanjut untuk proyek video Anda. Ekstrak DNA karakter, konteks cerita, dan dialog dari sebuah gambar." />
+        <title>Analisis Gambar: AI Video Generator & Prompt Generator - Shabira Prompt Lab</title>
+        <meta name="description" content="AI video generator untuk analisis gambar mendalam. Ekstrak DNA karakter dan konteks cerita untuk prompt generator film pendek AI yang akurat." />
+        <meta name="keywords" content="AI video generator, prompt generator, analisis gambar, film pendek AI, ekstrak DNA karakter, konteks cerita" />
       </Helmet>
       {/* Toast Notification */}
       {toast && (

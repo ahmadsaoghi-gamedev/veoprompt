@@ -16,8 +16,8 @@ const AnomalyMode = () => {
   const [situasiInput, setSituasiInput] = useState('');
   const [elemenAnehInput, setElemenAnehInput] = useState('');
   const [languageOptions, setLanguageOptions] = useState({
-    bahasa: 'Indonesia',
-    aksen: 'Betawi'
+    Language: 'Indonesia',
+    Accent: 'Betawi'
   });
   const [selectedStyle, setSelectedStyle] = useState('larva_tuba');
   const [isLoading, setIsLoading] = useState(false);
@@ -102,17 +102,17 @@ ${cleanedDialog.trim()}
     setError('');
     try {
       // 1. Fetch brain prompt at the beginning
-      setLoadingMessage('Mengambil referensi gaya visual dari Brain Prompt...');
+      setLoadingMessage('Fetching visual style references from Brain Prompt...');
       const referencePrompt = await fetchBrainPrompt(selectedStyle);
 
-      setLoadingMessage('Menciptakan karakter anomali...');
+      setLoadingMessage('Creating anomaly characters...');
       const characters = await generateAnomalyCharacters(userIdea, apiSettings);
 
-      setLoadingMessage('Merancang alur cerita & judul...');
+      setLoadingMessage('Designing storyline & title...');
       const story = await generateAnomalyStory(characters, userIdea, apiSettings);
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
-        setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
+        setLoadingMessage(`Crafting cinematography & dialogue for Scene ${i + 1} of ${story.sinopsis_per_adegan.length}...`);
         // 2. Pass referencePrompt to the main API function
         const prompt: AnomalyScenePrompt = await generateAnomalyScenePrompt(
           story,
@@ -146,14 +146,15 @@ ${cleanedDialog.trim()}
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <Helmet>
-        <title>Anomaly Brainroot Mode - AI Video Creator</title>
-        <meta name="description" content="Hasilkan film pendek surealis dan out-of-the-box dengan mesin AI Anomaly Brainroot. Ciptakan karakter dan cerita yang belum pernah ada." />
+        <title>Anomaly Mode: AI Video Generator untuk Cerita Surealis - Shabira Prompt Lab</title>
+        <meta name="description" content="Gunakan mesin AI Anomaly Brainroot untuk membuat film pendek AI yang unik. Dapatkan prompt video sinematik dengan generator cerita surealis yang belum pernah ada." />
+        <meta name="keywords" content="AI video generator, film pendek AI, generator cerita surealis, prompt video sinematik, Anomaly Brainroot, alternatif Veo3" />
       </Helmet>
-      <h2 className="text-2xl font-bold mb-4">Anomaly Brainroot Mode</h2>
-      <p className="mb-6">Fitur ini sedang dalam pengembangan.</p>
+      <h2 className="text-2xl font-bold mb-4">Anomaly Mode: AI Video Generator For Surrealist & Short Film Ai Stories</h2>
+      <p className="mb-6">Surrealist Story Generator, Cinematic with Gemini Technology for Alternative VEO3.</p>
 
       <fieldset className="mb-6 p-4 border rounded">
-        <legend className="px-2 font-bold">Generator Ide Cerita (Opsional)</legend>
+        <legend className="px-2 font-bold">Story Idee Generator (Optional)</legend>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
@@ -193,12 +194,12 @@ ${cleanedDialog.trim()}
           onClick={handleGenerateIdea}
           disabled={isLoading || !apiSettings?.isActive}
         >
-          {isLoading ? 'Memproses...' : 'Generate Ide Cerita'}
+          {isLoading ? 'Memproses...' : 'Buat Prompt Cerita Surealis'}
         </button>
       </fieldset>
 
       <div className="mb-4">
-        <label className="block mb-2 font-medium">Ide Dasar Film:</label>
+        <label className="block mb-2 font-medium">Basic Film Ideas:</label>
         <textarea
           className="w-full p-2 border rounded"
           value={userIdea}
@@ -210,13 +211,13 @@ ${cleanedDialog.trim()}
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div>
-          <label className="block mb-2 font-medium">Bahasa:</label>
+          <label className="block mb-2 font-medium">Language:</label>
           <select
             className="w-full p-2 border rounded"
             value={languageOptions.bahasa}
             onChange={(e) => setLanguageOptions(prev => ({
               ...prev,
-              bahasa: e.target.value
+              Language: e.target.value
             }))}
           >
             <option value="Indonesia">Indonesia</option>
@@ -224,13 +225,13 @@ ${cleanedDialog.trim()}
           </select>
         </div>
         <div>
-          <label className="block mb-2 font-medium">Aksen:</label>
+          <label className="block mb-2 font-medium">Accent:</label>
           <select
             className="w-full p-2 border rounded"
             value={languageOptions.aksen}
             onChange={(e) => setLanguageOptions(prev => ({
               ...prev,
-              aksen: e.target.value
+              Accent: e.target.value
             }))}
           >
             <option value="Betawi">Betawi</option>
@@ -241,7 +242,7 @@ ${cleanedDialog.trim()}
           </select>
         </div>
         <div>
-          <label className="block mb-2 font-medium">🧠 Gaya Visual (Brain Prompt):</label>
+          <label className="block mb-2 font-medium">🧠 Visual force (Brain Prompt):</label>
           <select
             className="w-full p-2 border rounded"
             value={selectedStyle}
@@ -273,7 +274,7 @@ ${cleanedDialog.trim()}
           onClick={handleGenerate}
           disabled={isLoading || !apiSettings?.isActive}
         >
-          {isLoading ? 'Memproses...' : 'Generate Anomaly Film'}
+          {isLoading ? 'Memproses...' : 'Create AI Film with Prompt Generator'}
         </button>
       </div>
 
@@ -325,7 +326,7 @@ ${cleanedDialog.trim()}
             </div>
             {/* NEW: Veo3 Optimized Prompt Section */}
             <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
-              <strong className="text-green-800">🎯 Prompt Veo3 yang Dioptimalkan (GUNAKAN INI!):</strong>
+              <strong className="text-green-800">🎯Optimized VeO3 Prompt (Use this!):</strong>
               <textarea
                 className="w-full p-2 bg-white border rounded mt-2"
                 value={prompt.veo3_optimized_prompt}

@@ -213,13 +213,14 @@ Make each scene prompt detailed and cinematic, suitable for professional video g
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Mode Satset (Generator Adegan Otomatis) - Shabira Prompt Lab</title>
-        <meta name="description" content="Hasilkan 7 rangkaian adegan video secara otomatis dari satu ide cerita. Cepat, efisien, dan sempurna untuk konten naratif." />
+        <title>Satset Mode: Prompt Video Sinematik & AI Video Generator - Shabira Prompt Lab</title>
+        <meta name="description" content="Generator adegan otomatis untuk prompt video sinematik. Hasilkan 7 rangkaian adegan dengan AI video generator yang cepat dan efisien untuk film pendek AI." />
+        <meta name="keywords" content="prompt video sinematik, AI video generator, film pendek AI, generator adegan otomatis, Satset mode, prompt generator" />
       </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Satset Mode - Auto Scene Generation</h2>
         <p className="text-lg text-gray-600">
-          Generate 7 sequential scenes automatically from your main video idea
+          Generate 7 Sequential Scenes Automatically From Your Main Video Idea
         </p>
       </div>
 

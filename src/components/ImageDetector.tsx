@@ -153,8 +153,9 @@ Format the response as a detailed, professional video prompt that could be used 
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Detektor Gambar & Analisis AI - Shabira Prompt Lab</title>
-        <meta name="description" content="Unggah gambar apa pun dan biarkan AI menganalisisnya secara detail, mengubah visual menjadi prompt video sinematik yang siap pakai." />
+        <title>Detektor Gambar: AI Video Generator & Prompt Video Sinematik - Shabira Prompt Lab</title>
+        <meta name="description" content="AI video generator untuk deteksi gambar otomatis. Ubah visual menjadi prompt video sinematik siap pakai dengan analisis AI mendalam untuk film pendek." />
+        <meta name="keywords" content="AI video generator, prompt video sinematik, detektor gambar, analisis AI, film pendek AI, visual to prompt" />
       </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Image Detector & Analyzer</h2>
@@ -173,8 +174,8 @@ Format the response as a detailed, professional video prompt that could be used 
 
           <div
             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${uploadedImage
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+              ? 'border-green-300 bg-green-50'
+              : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
               }`}
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}

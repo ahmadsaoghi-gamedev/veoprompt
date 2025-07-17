@@ -92,32 +92,32 @@ const PromptBank: React.FC = () => {
   const enhancePrompt = (prompt: VideoPrompt): string => {
     return prompt.scenes.map(scene => {
       return `**Enhanced Cinematic Video Production:**\n` +
-             `**Visual Concept:**\n${scene.visualDescription}\n\n` +
-             `**Location:**\n${scene.location}\n\n` +
-             `**Time:**\n${scene.time}\n\n` +
-             `**Weather:**\n${scene.weather}\n\n` +
-             `**Cinematography:**\n` +
-             scene.cinematography.cameraTechniques.map(t => `- ${t}`).join('\n') + '\n' +
-             `- Lighting: ${scene.cinematography.lighting}\n` +
-             `- Color Palette: ${scene.cinematography.colorPalette}\n\n` +
-             `**Audio:**\n` +
-             `Dialogue in ${languageSettings.dialog}:\n` +
-             scene.audio.dialogue.map(d => 
-               `${d.character} (${d.description}): "${d.text}"`
-             ).join('\n') + '\n\n' +
-             `Ambient Sounds:\n` +
-             scene.audio.ambientSounds.map(s => 
-               `${s.name} (${s.volume})`
-             ).join('\n') + '\n\n' +
-             `Audio Mix:\n${scene.audio.audioMix}\n\n` +
-             `**Production Quality:**\n` +
-             `- Resolution: ${prompt.settings.resolution}\n` +
-             `- Frame Rate: ${prompt.settings.frameRate}fps\n` +
-             `${captionSettings.enabled ? 
-               `- Captions: Enabled (${captionSettings.accuracy} accuracy, ${captionSettings.language})` : 
-               `- Captions: Disabled (clean video output)`
-             }\n` +
-             `- Ultra-sharp 4K with stabilized motion`;
+        `**Visual Concept:**\n${scene.visualDescription}\n\n` +
+        `**Location:**\n${scene.location}\n\n` +
+        `**Time:**\n${scene.time}\n\n` +
+        `**Weather:**\n${scene.weather}\n\n` +
+        `**Cinematography:**\n` +
+        scene.cinematography.cameraTechniques.map(t => `- ${t}`).join('\n') + '\n' +
+        `- Lighting: ${scene.cinematography.lighting}\n` +
+        `- Color Palette: ${scene.cinematography.colorPalette}\n\n` +
+        `**Audio:**\n` +
+        `Dialogue in ${languageSettings.dialog}:\n` +
+        scene.audio.dialogue.map(d =>
+          `${d.character} (${d.description}): "${d.text}"`
+        ).join('\n') + '\n\n' +
+        `Ambient Sounds:\n` +
+        scene.audio.ambientSounds.map(s =>
+          `${s.name} (${s.volume})`
+        ).join('\n') + '\n\n' +
+        `Audio Mix:\n${scene.audio.audioMix}\n\n` +
+        `**Production Quality:**\n` +
+        `- Resolution: ${prompt.settings.resolution}\n` +
+        `- Frame Rate: ${prompt.settings.frameRate}fps\n` +
+        `${captionSettings.enabled ?
+          `- Captions: Enabled (${captionSettings.accuracy} accuracy, ${captionSettings.language})` :
+          `- Captions: Disabled (clean video output)`
+        }\n` +
+        `- Ultra-sharp 4K with stabilized motion`;
     }).join('\n\n--- SCENE TRANSITION ---\n\n');
   };
 
@@ -125,41 +125,41 @@ const PromptBank: React.FC = () => {
     try {
       const promptText = prompt.scenes.map(scene => {
         return `Create a cinematic and viral video\n` +
-               `${scene.visualDescription}\n\n` +
-               `Location\n` +
-               `${scene.location}\n\n` +
-               `Time\n` +
-               `${scene.time}\n\n` +
-               `Weather\n` +
-               `${scene.weather}\n\n` +
-               `Cinematography\n` +
-               scene.cinematography.cameraTechniques.map(t => `- ${t}`).join('\n') + '\n' +
-               `- ${scene.cinematography.lighting}\n` +
-               `- ${scene.cinematography.colorPalette}\n\n` +
-               `Audio\n` +
-               `Dialogue in ${languageSettings.dialog}\n` +
-               scene.audio.dialogue.map(d => 
-                 `${d.character} with ${d.description} says "${d.text}"`
-               ).join('\n') + '\n\n' +
-               `Ambient Sounds\n` +
-               scene.audio.ambientSounds.map(s => 
-                 `${s.name} ${s.volume}`
-               ).join('\n') + '\n\n' +
-               `Audio Mix\n` +
-               `${scene.audio.audioMix}\n\n` +
-               `${captionSettings.enabled ? 
-                 `Caption Settings:\n` +
-                 `- Display captions: Yes\n` +
-                 `- Caption language: ${captionSettings.language}\n` +
-                 `- Caption accuracy: ${captionSettings.accuracy}\n` +
-                 `- Sync with audio: Exact timing match\n` +
-                 `- Font: Clean, readable\n` +
-                 `- Position: Bottom center\n\n` :
-                 `Caption Settings:\n` +
-                 `- No captions display\n` +
-                 `- Clean video output without text overlay\n\n`
-               }` +
-               `Ultra-sharp 4K quality with stabilized motion`;
+          `${scene.visualDescription}\n\n` +
+          `Location\n` +
+          `${scene.location}\n\n` +
+          `Time\n` +
+          `${scene.time}\n\n` +
+          `Weather\n` +
+          `${scene.weather}\n\n` +
+          `Cinematography\n` +
+          scene.cinematography.cameraTechniques.map(t => `- ${t}`).join('\n') + '\n' +
+          `- ${scene.cinematography.lighting}\n` +
+          `- ${scene.cinematography.colorPalette}\n\n` +
+          `Audio\n` +
+          `Dialogue in ${languageSettings.dialog}\n` +
+          scene.audio.dialogue.map(d =>
+            `${d.character} with ${d.description} says "${d.text}"`
+          ).join('\n') + '\n\n' +
+          `Ambient Sounds\n` +
+          scene.audio.ambientSounds.map(s =>
+            `${s.name} ${s.volume}`
+          ).join('\n') + '\n\n' +
+          `Audio Mix\n` +
+          `${scene.audio.audioMix}\n\n` +
+          `${captionSettings.enabled ?
+            `Caption Settings:\n` +
+            `- Display captions: Yes\n` +
+            `- Caption language: ${captionSettings.language}\n` +
+            `- Caption accuracy: ${captionSettings.accuracy}\n` +
+            `- Sync with audio: Exact timing match\n` +
+            `- Font: Clean, readable\n` +
+            `- Position: Bottom center\n\n` :
+            `Caption Settings:\n` +
+            `- No captions display\n` +
+            `- Clean video output without text overlay\n\n`
+          }` +
+          `Ultra-sharp 4K quality with stabilized motion`;
       }).join('\n\n---\n\n');
       await navigator.clipboard.writeText(promptText);
       alert('Prompt berhasil disalin ke clipboard!');
@@ -194,7 +194,7 @@ const PromptBank: React.FC = () => {
       console.error('Failed to import prompts:', err);
       alert('Failed to import prompts');
     }
-    
+
     // Reset file input
     event.target.value = '';
   };
@@ -228,8 +228,9 @@ const PromptBank: React.FC = () => {
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Bank Prompt & Repositori - Shabira Prompt Lab</title>
-        <meta name="description" content="Simpan, kelola, dan organisir semua prompt video Anda. Cari dan gunakan kembali prompt terbaik Anda dengan mudah." />
+        <title>Bank Prompt: Prompt Generator & Alternatif Veo3 - Shabira Prompt Lab</title>
+        <meta name="description" content="Prompt generator profesional untuk menyimpan dan mengelola prompt video. Alternatif Veo3 dengan bank prompt yang terorganisir untuk film pendek AI." />
+        <meta name="keywords" content="prompt generator, alternatif Veo3, bank prompt, film pendek AI, prompt video, repositori prompt" />
       </Helmet>
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Prompt Bank - Repository</h2>
@@ -297,7 +298,7 @@ const PromptBank: React.FC = () => {
               <Download className="w-4 h-4" />
               Export
             </button>
-            
+
             <label className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
               <Upload className="w-4 h-4" />
               Import
@@ -323,7 +324,7 @@ const PromptBank: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-white/20">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎬</span>
@@ -335,7 +336,7 @@ const PromptBank: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-white/20">
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚙️</span>
@@ -347,7 +348,7 @@ const PromptBank: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-4 border border-white/20">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📈</span>
@@ -373,8 +374,8 @@ const PromptBank: React.FC = () => {
             <Database className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg">No prompts found</p>
             <p className="text-sm">
-              {searchTerm || filterType !== 'all' 
-                ? 'Try adjusting your search or filters' 
+              {searchTerm || filterType !== 'all'
+                ? 'Try adjusting your search or filters'
                 : 'Create some prompts to see them here'}
             </p>
           </div>
@@ -401,7 +402,7 @@ const PromptBank: React.FC = () => {
                       <span>Created: {new Date(prompt.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => copyPromptToClipboard(prompt)}

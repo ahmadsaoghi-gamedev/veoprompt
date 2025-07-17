@@ -644,11 +644,12 @@ Generate a clean, enhanced version following the exact format.`;
   return (
     <div className="space-y-8">
       <Helmet>
-        <title>Mode Manual (Kontrol Penuh) - Shabira Prompt Lab</title>
-        <meta name="description" content="Dapatkan kontrol penuh atas setiap detail film Anda. Atur kamera, pencahayaan, dialog, dan gaya visual secara manual." />
+        <title>Manual Mode: Prompt Generator & Aplikasi untuk Membuat Cerita Film - Shabira Prompt Lab</title>
+        <meta name="description" content="Aplikasi untuk membuat cerita film dengan kontrol penuh. Prompt generator manual untuk atur kamera, pencahayaan, dialog, dan gaya visual film pendek AI Anda." />
+        <meta name="keywords" content="prompt generator, aplikasi untuk membuat cerita film, film pendek AI, manual mode, kontrol penuh video, AI video generator" />
       </Helmet>
       <div className="text-center">
-        <h2 className="text-4xl font-bold gradient-title mb-4">Manual Mode - Advanced Control</h2>
+        <h2 className="text-4xl font-bold gradient-title mb-4">Manual Mode - Prompt Generator Profesional</h2>
         <p className="text-xl text-gray-600">
           Create detailed video prompts with precise control over every aspect
         </p>

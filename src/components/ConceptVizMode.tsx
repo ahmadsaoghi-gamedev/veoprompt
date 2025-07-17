@@ -205,7 +205,7 @@ const ConceptVizMode: React.FC = () => {
     setVideoPrompts([]);
 
     try {
-      const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' };
+      const languageOptions = { Language: 'Indonesia Gaul', Accent: '' };
       const enhancedIdea = `${userIdea}\n\nAspect Ratio: ${aspectRatio}`;
       const result = await generateVideoPromptsFromImage(enhancedIdea, uploadedImage, languageOptions, apiSettings);
       setVideoPrompts(result.video_prompts);
@@ -227,13 +227,14 @@ const ConceptVizMode: React.FC = () => {
   return (
     <div className="concept-viz-mode p-6 max-w-4xl mx-auto">
       <Helmet>
-        <title>Mode Visualisasi Konsep (Image-to-Video) - Shabira Prompt Lab</title>
-        <meta name="description" content="Ubah ide cerita menjadi gambar kunci, lalu gunakan gambar tersebut sebagai fondasi untuk menghasilkan rangkaian prompt video yang konsisten." />
+        <title>Visualisasi Konsep: Animasi 3D AI & Prompt Generator - Shabira Prompt Lab</title>
+        <meta name="description" content="Cara buat film dengan AI menggunakan visualisasi konsep. Ubah ide menjadi animasi 3D AI dengan prompt generator canggih untuk hasil video berkualitas tinggi." />
+        <meta name="keywords" content="animasi 3D AI, prompt generator, cara buat film dengan AI, AI video generator, visualisasi konsep, image to video" />
       </Helmet>
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Mode Visualisasi Konsep</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Concept Visualization: How to Make a Film with AI and Animation 3D AI Generator</h2>
 
       <div className="mb-6">
-        <label htmlFor="style-select" className="block mb-2 font-medium text-gray-700">Pilih Gaya Visual</label>
+        <label htmlFor="style-select" className="block mb-2 font-medium text-gray-700">Choose a visual force</label>
         <select
           id="style-select"
           value={selectedStyle}
@@ -284,7 +285,7 @@ const ConceptVizMode: React.FC = () => {
             ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
         >
-          {isLoading ? 'Memproses...' : 'Generate Prompt Gambar Kunci'}
+          {isLoading ? 'Memproses...' : 'Buat Prompt Animasi Pixar Style'}
         </button>
       </div>
 
@@ -379,7 +380,7 @@ const ConceptVizMode: React.FC = () => {
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
             >
-              {isLoading ? 'Memproses...' : 'Generate Rangkaian Video Prompt'}
+              {isLoading ? 'Memproses...' : 'Buat Prompt Video Sinematik untuk TikTok'}
             </button>
           </div>
 
@@ -391,7 +392,7 @@ const ConceptVizMode: React.FC = () => {
                 {videoPrompts.map((prompt, index) => (
                   <li key={index} className="text-gray-700 mb-6">
                     <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
-                      <h4 className="font-bold text-green-800 mb-2">🎯 Prompt Veo3 yang Dioptimalkan (GUNAKAN INI!):</h4>
+                      <h4 className="font-bold text-green-800 mb-2">🎯Optimized VeO3 Prompt (Use this!):</h4>
                       <textarea
                         className="w-full p-3 border border-gray-300 rounded-lg bg-white"
                         rows={6}

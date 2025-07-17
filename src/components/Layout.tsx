@@ -10,7 +10,8 @@ import {
   Sun,
   Zap,
   Lightbulb,
-  MessageSquare
+  MessageSquare,
+  BookOpen
 } from 'lucide-react';
 import { FaYoutube, FaTiktok, FaApple, FaHeart } from 'react-icons/fa';
 import { SiBuymeacoffee } from 'react-icons/si';
@@ -55,8 +56,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'bank', label: t('promptBank.title'), icon: Database },
     { id: 'api', label: t('apiSettings.title'), icon: Zap },
     { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb },
-    { id: 'concept-viz', label: 'Visualisasi Konsep', icon: Image },
-    { id: 'dialogue-fixer', label: 'Dialogue Fixer', icon: MessageSquare }
+    { id: 'concept-viz', label: 'Concept Visualization', icon: Image },
+    { id: 'dialogue-fixer', label: 'Dialogue Fixer', icon: MessageSquare },
+    { id: 'guide', label: 'AI Film Guide', icon: BookOpen }
+
   ];
 
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
@@ -221,9 +224,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-gray-800">
-              <span>Dibuat dengan</span>
+              <span>Made with</span>
               <FaHeart className="text-pink-500 animate-pulse" />
-              <span>cinta</span>
+              <span>Love</span>
             </div>
             <a
               href="https://saweria.co/ahmadsaoghi"

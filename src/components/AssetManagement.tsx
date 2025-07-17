@@ -156,29 +156,28 @@ const AssetManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <Helmet>
-        <title>Manajemen Aset (Karakter & Objek) - Shabira Prompt Lab</title>
-        <meta name="description" content="Kelola semua aset digital Anda. Buat, simpan, dan edit karakter serta objek untuk digunakan dalam pembuatan film pendek AI Anda." />
+        <title>Manajemen Aset: Film Pendek AI & Animasi 3D AI - Shabira Prompt Lab</title>
+        <meta name="description" content="Kelola aset digital untuk film pendek AI dan animasi 3D AI. Buat, simpan, dan edit karakter serta objek untuk prompt generator yang efisien." />
+        <meta name="keywords" content="film pendek AI, animasi 3D AI, manajemen aset, prompt generator, karakter digital, objek 3D" />
       </Helmet>
       {/* Sub-navigation */}
       <div className="flex gap-4">
         <button
           onClick={() => setActiveSubTab('characters')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            activeSubTab === 'characters'
+          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeSubTab === 'characters'
               ? 'bg-blue-600 text-white shadow-lg'
               : 'bg-white/80 text-gray-700 hover:bg-white'
-          }`}
+            }`}
         >
           <User className="w-5 h-5" />
           Characters
         </button>
         <button
           onClick={() => setActiveSubTab('objects')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-            activeSubTab === 'objects'
+          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${activeSubTab === 'objects'
               ? 'bg-blue-600 text-white shadow-lg'
               : 'bg-white/80 text-gray-700 hover:bg-white'
-          }`}
+            }`}
         >
           <Package className="w-5 h-5" />
           Objects
@@ -360,7 +359,7 @@ const AssetManagement: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 text-sm text-gray-600">
                   <p><span className="font-medium">Hair:</span> {character.hairColor}</p>
                   <p><span className="font-medium">Face:</span> {character.faceShape}</p>
@@ -492,7 +491,7 @@ const AssetManagement: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-gray-600 line-clamp-3">{object.description}</p>
               </div>
             ))}
