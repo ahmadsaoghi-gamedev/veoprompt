@@ -1,0 +1,9 @@
+Indonesian Local Dialect Example (Javanese):
+
+“Nggih Pak, kulo badhe nyuwun sewu, mboten saged rawuh dinten puniko.”
+
+“Ayo rek, dolan nang pasar bareng-bareng!”
+
+“Le, ojo lali tuku pecel nggone Bu Sri yo.”
+
+(Bali, Sunda, Batak etc. can be added similarly)
