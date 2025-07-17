@@ -118,3 +118,32 @@ export interface VideoPromptWithOptimization {
   dialog_id: string;
   veo3_optimized_prompt: string; // NEW: Optimized prompt for Veo3
 }
+
+export interface DialogueBeat {
+  beatNumber: number;
+  timing: string;
+  character: string;
+  action: string;
+  dialogue: string;
+  camera: string;
+  audio: string;
+}
+
+export interface FixedDialogue {
+  scene: string;
+  characters: {
+    name: string;
+    description: string;
+    position: string;
+  }[];
+  dialogueSequence: DialogueBeat[];
+  originalDialogue: string;
+}
+
+export interface DialogueFixerSettings {
+  sceneDuration: number;
+  numberOfCharacters: number;
+  includeNarration: boolean;
+  language: 'indonesian' | 'english';
+  tone: 'dramatic' | 'comedic' | 'neutral' | 'emotional';
+}
