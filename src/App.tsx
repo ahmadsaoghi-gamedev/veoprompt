@@ -13,6 +13,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import Contact from './components/Contact';
 import AnomalyMode from './components/AnomalyMode';
 import ConceptVizMode from './components/ConceptVizMode';
+import DialogueFixerMode from './components/DialogueFixerMode';
 import { Helmet } from 'react-helmet-async';
 import { initDB } from './utils/database';
 
@@ -86,6 +87,8 @@ function App() {
         return <AnomalyMode />;
       case 'concept-viz':
         return <ConceptVizMode />;
+      case 'dialogue-fixer':
+        return <DialogueFixerMode />;
       default:
         return <AssetManagement />;
     }
