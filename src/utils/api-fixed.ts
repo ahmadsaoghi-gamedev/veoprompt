@@ -220,27 +220,27 @@ export function getAvailableCulturalThemes(): string[] {
 // Helper function to get dialog style based on accent
 function getDialogStyleByAccent(accent: string): string {
   const accentStyles: Record<string, string> = {
-    'Betawi': '- Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh)\n- Tambahkan logat Betawi seperti "iye", "kagak", "ape", "nih", "dah"\n- Gunakan struktur kalimat khas Betawi',
-    'Jawa': '- Gunakan bahasa Jawa yang natural dengan tingkat kesopanan yang sesuai (ngoko untuk teman sebaya, krama untuk yang lebih tua)\n- Gunakan kata-kata khas Jawa seperti "mas", "mbak", "pak", "bu", "iki", "kuwi", "opo", "piye"\n- Tambahkan partikel khas Jawa seperti "to", "ta", "kok", "lho"',
-    'Sunda': '- Gunakan bahasa Sunda yang natural dan lembut\n- Gunakan kata-kata khas Sunda seperti "teh", "mah", "nya", "euy", "atuh", "yeuh"\n- Struktur kalimat mengikuti pola bahasa Sunda',
+    'Betawi': '- Gunakan Language gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh)\n- Tambahkan logat Betawi seperti "iye", "kagak", "ape", "nih", "dah"\n- Gunakan struktur kalimat khas Betawi',
+    'Jawa': '- Gunakan Language Jawa yang natural dengan tingkat kesopanan yang sesuai (ngoko untuk teman sebaya, krama untuk yang lebih tua)\n- Gunakan kata-kata khas Jawa seperti "mas", "mbak", "pak", "bu", "iki", "kuwi", "opo", "piye"\n- Tambahkan partikel khas Jawa seperti "to", "ta", "kok", "lho"',
+    'Sunda': '- Gunakan Language Sunda yang natural dan lembut\n- Gunakan kata-kata khas Sunda seperti "teh", "mah", "nya", "euy", "atuh", "yeuh"\n- Struktur kalimat mengikuti pola Language Sunda',
     'US': '- Use natural American English with contemporary slang and idioms\n- Include contractions and casual expressions\n- Reflect modern American speech patterns',
     'British': '- Use British English with appropriate vocabulary and expressions\n- Include British slang and idioms where appropriate\n- Reflect British speech patterns and politeness conventions'
   };
   
-  return accentStyles[accent] || '- Gunakan bahasa yang natural sesuai dengan aksen yang dipilih';
+  return accentStyles[accent] || '- Gunakan Language yang natural sesuai dengan Accent yang dipilih';
 }
 
 // Helper function to get dialog language based on accent
 function getDialogLanguageByAccent(accent: string): string {
   const languageMap: Record<string, string> = {
-    'Betawi': 'Bahasa Indonesia Gaul dengan Logat Betawi',
-    'Jawa': 'Bahasa Jawa',
-    'Sunda': 'Bahasa Sunda',
+    'Betawi': 'Language Indonesia Gaul dengan Logat Betawi',
+    'Jawa': 'Language Jawa',
+    'Sunda': 'Language Sunda',
     'US': 'American English',
     'British': 'British English'
   };
   
-  return languageMap[accent] || 'Bahasa Indonesia';
+  return languageMap[accent] || 'Language Indonesia';
 }
 
 // Helper function to detect existing dialogue in text
@@ -347,14 +347,14 @@ export async function generateAnomalyScenePrompt(
   veo3_optimized_prompt: string;
 }> {
   const userIdea = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}), ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik}), and ${characters.karakter_3.nama} (${characters.karakter_3.deskripsi_fisik})`;
-  const bahasa_dipilih = languageOptions.bahasa;
+  const Language_dipilih = languageOptions.Language;
   const genre_tone = "Realistic 3D Animation, Stylized 3D, Semi-realistic/stylized cartoon, DreamWorks Turbo, Pixar-Disney quality";
 
   // Check if dialogue already exists in the scene
   const existingDialogue = detectExistingDialogue(storyContext.sinopsis_per_adegan[sceneNumber - 1]);
   
   // Translate character names if using British accent
-  const isEnglishAccent = languageOptions.aksen === 'British' || languageOptions.aksen === 'US';
+  const isEnglishAccent = languageOptions.Accent === 'British' || languageOptions.Accent === 'US';
   
   const dialogueInstructions = existingDialogue.hasDialogue ? `
 **CRITICAL DIALOGUE PRESERVATION RULE:**
@@ -411,7 +411,7 @@ ${dialogueInstructions}
   
   "audio_prompt": "[String] WRITE IN ENGLISH ONLY. Description of background music and sound effects. Include: modern cinematic orchestral music (avoid traditional instruments unless specifically requested), spatial audio design, character voice acting direction for all characters (describe voice characteristics), ambient soundscape, foley effects, dynamic range, and emotional musical themes. For modern 3D animation, use contemporary film scoring with electronic elements, hybrid orchestral arrangements, and modern sound design.",
   
-  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.aksen)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, separated by spaces. Example for ${languageOptions.aksen === 'US' || languageOptions.aksen === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.aksen === 'US' || languageOptions.aksen === 'British' ? "'[Brian: (pleading), Mom, this is really delicious!] [Mom: (tired), Thank you. What do you see outside?] [Brian: (hopeful), There are people suffering. We should share.]'" : "'[${characters.karakter_1.nama}: (emotion), short dialogue] [${characters.karakter_2.nama}: (emotion), short response] [${characters.karakter_3.nama}: (emotion), another response]'"} Total 8 seconds - approximately 15-25 words total. Style: ${getDialogStyleByAccent(languageOptions.aksen)}",
+  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, separated by spaces. Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[Brian: (pleading), Mom, this is really delicious!] [Mom: (tired), Thank you. What do you see outside?] [Brian: (hopeful), There are people suffering. We should share.]'" : "'[${characters.karakter_1.nama}: (emotion), short dialogue] [${characters.karakter_2.nama}: (emotion), short response] [${characters.karakter_3.nama}: (emotion), another response]'"} Total 8 seconds - approximately 15-25 words total. Style: ${getDialogStyleByAccent(languageOptions.Accent)}",
   
   "narration": "[String] WRITE IN INDONESIAN ONLY. Script for the narrator. Engaging, dynamic narration that builds the story atmosphere. The language style should match the genre, not monotonous, and effectively strengthen the story mood.",
   
@@ -421,28 +421,28 @@ ${dialogueInstructions}
 **SPECIAL INSTRUCTIONS FOR VEO3_OPTIMIZED_PROMPT:**
 Create a prompt with the following VERY SPECIFIC pattern about character speaking and integrating visual style:
 
-"LANGUAGE INSTRUCTION: Generate video with ${getDialogLanguageByAccent(languageOptions.aksen)} dialog featuring conversation between all characters.
+"LANGUAGE INSTRUCTION: Generate video with ${getDialogLanguageByAccent(languageOptions.Accent)} dialog featuring conversation between all characters.
 
 VISUAL SCENE: [visual description with details of when each character speaks, adapting visual style from reference]
 
 CHARACTER SPEAKING INSTRUCTION:
 [List all characters and their speaking visual cues]
 
-DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getDialogLanguageByAccent(languageOptions.aksen).toUpperCase()} LANGUAGE:
+DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getDialogLanguageByAccent(languageOptions.Accent).toUpperCase()} LANGUAGE:
 [All character dialogues]
 
 AUDIO DESIGN: [audio description with voice characteristics for each character]
 
-CRITICAL INSTRUCTION: Ensure all characters take turns speaking naturally. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in ${getDialogLanguageByAccent(languageOptions.aksen)} language, NOT English."
+CRITICAL INSTRUCTION: Ensure all characters take turns speaking naturally. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in ${getDialogLanguageByAccent(languageOptions.Accent)} language, NOT English."
 
 **GIVEN STORY IDEA:**
 ${userIdea}
 
 **REQUESTED DIALOGUE LANGUAGE:**
-${bahasa_dipilih}
+${Language_dipilih}
 
 **REQUESTED ACCENT:**
-${languageOptions.aksen}
+${languageOptions.Accent}
 
 **REQUESTED GENRE/TONE:**
 ${genre_tone}
@@ -462,7 +462,7 @@ Generate JSON with the above structure and professional scenario and production 
         result.visual_prompt as string,
         result.audio_prompt as string,
         result.dialog_id_gaul as string,
-        bahasa_dipilih,
+        Language_dipilih,
         characters
       );
     }
@@ -557,7 +557,7 @@ export async function generateVideoPromptsFromImage(
     veo3_optimized_prompt: string;
   }[]
 }> {
-  const bahasa_dipilih = languageOptions.bahasa;
+  const Language_dipilih = languageOptions.Language;
   const genre_tone = "Cinematic, narrative-driven";
 
   // Check if dialogue already exists in the user idea
@@ -565,7 +565,7 @@ export async function generateVideoPromptsFromImage(
   
   // Format existing dialogue for better preservation
   const formattedExistingDialogue = existingDialogue.dialogues.map(d => {
-    const translatedSpeaker = translateCharacterName(d.speaker, languageOptions.aksen === 'British' || languageOptions.aksen === 'US');
+    const translatedSpeaker = translateCharacterName(d.speaker, languageOptions.Accent === 'British' || languageOptions.Accent === 'US');
     return {
       original: d.fullMatch,
       formatted: `[${translatedSpeaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"]`
@@ -595,20 +595,20 @@ DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW.
 
 **PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
 
-**Langkah 1: Ciptakan Dialog Master (Bahasa Inggris)**
-* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Bahasa Inggris."
+**Langkah 1: Ciptakan Dialog Master (Language Inggris)**
+* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Language Inggris."
 * **Tugas:** Buat sebuah dialog dalam format skenario standar. Dialog ini akan menjadi "sumber kebenaran" (source of truth).
 * **Format:** 'KARAKTER_A: (deskripsi nada/emosi) teks dialog' dan 'KARAKTER_B: (deskripsi nada/emosi) teks dialog'
 * **Aturan:** Minimal 2 karakter HARUS berbicara dengan pergantian yang jelas.
 
-**Langkah 2: Adaptasi Kreatif ke Bahasa Indonesia Gaul**
+**Langkah 2: Adaptasi Kreatif ke Language Indonesia Gaul**
 * **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario untuk sitkom pergaulan anak muda Jakarta. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
-* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Bahasa Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
+* **Tugas:** Ambil dialog Language Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Language Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
 * **ATURAN SINKRONISASI (SANGAT PENTING):**
-    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
+    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Language Inggris.
     * Jumlah baris dialog HARUS SAMA PERSIS.
     * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Language:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
+* **Gaya Language:** Gunakan Language gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
@@ -623,7 +623,7 @@ Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi
 2. **KONSISTENSI DIALOG:**
    - Setiap scene HARUS memiliki minimal 2 karakter yang berbicara
    - Format dialog harus konsisten: "NAMA_KARAKTER: (ekspresi) dialog"
-   - Dialog dalam bahasa Indonesia harus menggunakan format yang sama dengan dialog English
+   - Dialog dalam Language Indonesia harus menggunakan format yang sama dengan dialog English
 
 ${dialogueInstructions}
 
@@ -639,9 +639,9 @@ Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
       
       "narasi": "[Language: INDONESIA] Narasi voice-over yang engaging.",
       
-      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[KARAKTER_A: (emotion), dialog]' dan '[KARAKTER_B: (emotion), dialog]'.",
+      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Language Inggris). Format: '[KARAKTER_A: (emotion), dialog]' dan '[KARAKTER_B: (emotion), dialog]'.",
       
-      "dialog_id": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Bahasa Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
+      "dialog_id": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Language Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
       
       "veo3_optimized_prompt": "[Language: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan instruksi spesifik tentang character speaking assignment."
     }
@@ -668,8 +668,8 @@ CRITICAL INSTRUCTION: Show clear turn-taking between characters with distinct mo
 **IDE CERITA:**
 ${userIdea}
 
-**BAHASA DIALOG:**
-${bahasa_dipilih}
+**Language DIALOG:**
+${Language_dipilih}
 
 **GENRE/TONE YANG DIMINTA:**
 ${genre_tone}
@@ -685,7 +685,7 @@ Hasilkan JSON dengan 8 scene prompts yang memastikan dialog multi-karakter yang 
       prompt.veo3_optimized_prompt = generateSceneSpecificVeo3Prompt(
         prompt.scenePrompt,
         prompt.dialog_id,
-        bahasa_dipilih,
+        Language_dipilih,
         index + 1
       );
     }
@@ -1153,8 +1153,8 @@ Anda adalah penulis skenario profesional spesialis film pendek animasi 3D yang u
    - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru.
 
 2. **KONSISTENSI Language:** 
-   - Gunakan bahasa Indonesia yang natural, hidup, dan penuh imajinasi.
-   - Hindari bahasa yang terlalu kaku atau formal.
+   - Gunakan Language Indonesia yang natural, hidup, dan penuh imajinasi.
+   - Hindari Language yang terlalu kaku atau formal.
 
 3. **GAYA CERITA:** 
    - Sesuaikan tone dengan genre modern, surealis, dan kreatif.
