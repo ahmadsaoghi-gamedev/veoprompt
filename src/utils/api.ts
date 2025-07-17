@@ -1,3 +1,5 @@
+
+
 import { APISettings } from '../types';
 
 export async function callGeminiAPI(
@@ -415,4 +417,156 @@ Gabungkan ketiga elemen menjadi premis cerita yang orisinal, modern, dan sureali
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   return response.trim();
+}
+
+export async function fixMultiCharacterDialogue(
+  problematicDialogue: string,
+  settings: {
+    sceneDuration?: number;
+    numberOfCharacters?: number;
+    includeNarration?: boolean;
+    language?: 'indonesian' | 'english';
+    tone?: 'dramatic' | 'comedic' | 'neutral' | 'emotional';
+  },
+  apiSettings?: APISettings
+): Promise<{
+  scene: string;
+  characters: Array<{
+    name: string;
+    description: string;
+    position: string;
+  }>;
+  dialogueSequence: Array<{
+    beatNumber: number;
+    timing: string;
+    character: string;
+    action: string;
+    dialogue: string;
+    camera: string;
+    audio: string;
+  }>;
+  tips: string[];
+}> {
+  const duration = settings.sceneDuration || 11;
+  const language = settings.language || 'indonesian';
+  const tone = settings.tone || 'neutral';
+
+  // Helper function to extract dialogue from various formats
+  const extractDialogueFromInput = (input: string): Array<{speaker: string; emotion?: string; text: string}> => {
+    const dialogues: Array<{speaker: string; emotion?: string; text: string}> = [];
+    
+    // Pattern 1: **Character:** "dialogue"
+    const pattern1 = /\*\*([^:*]+):\*\*\s*"([^"]+)"/g;
+    let match;
+    while ((match = pattern1.exec(input)) !== null) {
+      dialogues.push({ speaker: match[1].trim(), text: match[2].trim() });
+    }
+    
+    // Pattern 2: Character: "dialogue"
+    const pattern2 = /^([^:*\n]+):\s*"([^"]+)"/gm;
+    while ((match = pattern2.exec(input)) !== null) {
+      if (!match[0].includes('**')) {
+        dialogues.push({ speaker: match[1].trim(), text: match[2].trim() });
+      }
+    }
+    
+    // Pattern 3: [Character: (emotion), dialogue]
+    const pattern3 = /\[([^:]+):\s*\(([^)]+)\),\s*([^\]]+)\]/g;
+    while ((match = pattern3.exec(input)) !== null) {
+      dialogues.push({ speaker: match[1].trim(), emotion: match[2].trim(), text: match[3].trim() });
+    }
+    
+    // Pattern 4: Character (emotion): "dialogue"
+    const pattern4 = /([^(\n]+)\s*\(([^)]+)\):\s*"([^"]+)"/g;
+    while ((match = pattern4.exec(input)) !== null) {
+      dialogues.push({ speaker: match[1].trim(), emotion: match[2].trim(), text: match[3].trim() });
+    }
+    
+    return dialogues;
+  };
+
+  const extractedDialogues = extractDialogueFromInput(problematicDialogue);
+
+  const prompt = `You are an expert Gemini Veo 3 specialist tasked with fixing multi-character dialogue structure for AI video generation. Your focus is ensuring smooth conversation flow between characters without confusion about who is speaking.
+
+**EXTRACTED DIALOGUE TO STRUCTURE:**
+${extractedDialogues.map((d, i) => `${i + 1}. ${d.speaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"`).join('\n')}
+
+**SETTINGS:**
+- Scene Duration: ${duration} seconds
+- Language: ${language}
+- Tone: ${tone}
+- Include Narration: ${settings.includeNarration ? 'Yes' : 'No'}
+
+**YOUR TASK:**
+Transform the extracted dialogue into a properly structured BEAT system format that Gemini Veo 3 can understand clearly.
+
+**ABSOLUTE CRITICAL RULES - DIALOGUE PRESERVATION (VIOLATION WILL RESULT IN FAILURE):**
+1. **USE ONLY THE EXTRACTED DIALOGUE** - The dialogue lines have been extracted above. Use them EXACTLY as shown.
+2. **PRESERVE SPEAKER ORDER** - The speakers appear in the order shown in the extraction. Maintain this order.
+3. **CHARACTER NAMING RULES**:
+   - If language is 'english', ALL character names MUST be in English (e.g., "Mother" not "Ibu", "Child" not "Anak")
+   - If language is 'indonesian', character names can be in Indonesian
+   - Common translations: Ibu/Mom/Mother, Anak/Child/Son/Daughter, Ayah/Dad/Father, Kakak/Brother/Sister
+4. **DO NOT CREATE NEW DIALOGUE** - Use only what was extracted
+5. **MAINTAIN EXACT WORDING** - Only translate if language setting requires it
+
+**DIALOGUE ASSIGNMENT RULES:**
+- Speaker 1 from extraction = Character 1 in output
+- Speaker 2 from extraction = Character 2 in output
+- And so on...
+
+**REQUIRED OUTPUT FORMAT (JSON):**
+{
+  "scene": "Brief visual description of the scene setting",
+  "characters": [
+    {
+      "name": "${language === 'english' ? '[English name for Character 1]' : '[Character 1 Name]'}",
+      "description": "Complete physical description",
+      "position": "Initial position in scene"
+    },
+    {
+      "name": "${language === 'english' ? '[English name for Character 2]' : '[Character 2 Name]'}", 
+      "description": "Complete physical description",
+      "position": "Initial position in scene"
+    }
+  ],
+  "dialogueSequence": [
+    {
+      "beatNumber": 1,
+      "timing": "[0:00-0:03]",
+      "character": "${language === 'english' ? '[English name]' : '[Character name]'}",
+      "action": "Specific gesture and facial expression description",
+      "dialogue": "[Exact dialogue from extraction, translated if needed]",
+      "camera": "Camera movement/angle instruction",
+      "audio": "Sound design for this moment"
+    }
+  ],
+  "tips": [
+    "Character names are ${language === 'english' ? 'in English' : 'localized'}",
+    "Dialogue preserved exactly as provided"
+  ]
+}
+
+**CRITICAL RULES:**
+1. Use the EXACT dialogue lines from the extraction above
+2. Maintain the EXACT speaker order from the extraction
+3. If language is 'english', translate character names to English
+4. Each BEAT must have clear timing that doesn't overlap
+5. Total duration must not exceed ${duration} seconds
+6. DO NOT add any dialogue that wasn't in the extraction
+
+**EXTRACTED DIALOGUE COUNT: ${extractedDialogues.length} lines**
+You must create exactly ${extractedDialogues.length} dialogue beats.
+
+Return ONLY the JSON object with no additional text.`;
+
+  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+  
+  try {
+    return JSON.parse(response);
+  } catch (error) {
+    console.error('Failed to parse dialogue fix response:', error);
+    throw new Error('Failed to process dialogue. Please try again.');
+  }
 }

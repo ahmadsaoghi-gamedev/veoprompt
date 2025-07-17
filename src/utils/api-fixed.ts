@@ -153,9 +153,9 @@ ${getCulturalIntegrationSpecs(culturalTheme)}`;
 // NEW FUNCTION: International Cultural Integration Support
 function getIndonesianInstruments(isModern: boolean): string {
   if (isModern) {
-    return 'saxophone, electric guitar, cinematic percussion, synthesizer layers — creating a vibrant, modern soundscape';
+    return 'modern orchestral arrangements, electronic beats, synthesizer layers, hybrid cinematic scoring — creating a contemporary film soundscape';
   }
-  return 'sasando, suling Bali, kolintang, rebab — fused with cinematic strings and percussion for dynamic storytelling';
+  return 'subtle cultural motifs integrated with cinematic orchestration, modern film scoring techniques, emotional string arrangements';
 }
 
 
@@ -243,10 +243,94 @@ function getDialogLanguageByAccent(accent: string): string {
   return languageMap[accent] || 'Bahasa Indonesia';
 }
 
+// Helper function to detect existing dialogue in text
+function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues: Array<{speaker: string; emotion?: string; text: string; fullMatch: string}> } {
+  const dialogues: Array<{speaker: string; emotion?: string; text: string; fullMatch: string}> = [];
+  
+  // Pattern 1: **Character:** "dialogue"
+  const pattern1 = /\*\*([^:*]+):\*\*\s*"([^"]+)"/g;
+  let match;
+  while ((match = pattern1.exec(text)) !== null) {
+    dialogues.push({ 
+      speaker: match[1].trim(), 
+      text: match[2].trim(),
+      fullMatch: match[0]
+    });
+  }
+  
+  // Pattern 2: Character: "dialogue"
+  const pattern2 = /^([^:*\n]+):\s*"([^"]+)"/gm;
+  while ((match = pattern2.exec(text)) !== null) {
+    if (!match[0].includes('**')) {
+      dialogues.push({ 
+        speaker: match[1].trim(), 
+        text: match[2].trim(),
+        fullMatch: match[0]
+      });
+    }
+  }
+  
+  // Pattern 3: [Character: (emotion), dialogue]
+  const pattern3 = /\[([^:]+):\s*\(([^)]+)\),\s*([^\]]+)\]/g;
+  while ((match = pattern3.exec(text)) !== null) {
+    dialogues.push({ 
+      speaker: match[1].trim(), 
+      emotion: match[2].trim(), 
+      text: match[3].trim(),
+      fullMatch: match[0]
+    });
+  }
+  
+  // Pattern 4: Character (emotion): "dialogue"
+  const pattern4 = /([^(\n]+)\s*\(([^)]+)\):\s*"([^"]+)"/g;
+  while ((match = pattern4.exec(text)) !== null) {
+    dialogues.push({ 
+      speaker: match[1].trim(), 
+      emotion: match[2].trim(), 
+      text: match[3].trim(),
+      fullMatch: match[0]
+    });
+  }
+  
+  return {
+    hasDialogue: dialogues.length > 0,
+    dialogues: dialogues
+  };
+}
+
+// Helper function to translate character names to English
+function translateCharacterName(name: string, toEnglish: boolean): string {
+  if (!toEnglish) return name;
+  
+  const translations: Record<string, string> = {
+    'ibu': 'Mother',
+    'mom': 'Mother',
+    'mama': 'Mother',
+    'bunda': 'Mother',
+    'anak': 'Child',
+    'brian': 'Brian',
+    'ayah': 'Father',
+    'papa': 'Father',
+    'bapak': 'Father',
+    'kakak': 'Sibling',
+    'adik': 'Younger Sibling',
+    'nenek': 'Grandmother',
+    'kakek': 'Grandfather',
+    'paman': 'Uncle',
+    'bibi': 'Aunt',
+    'pekerja': 'Worker',
+    'pekerja lapangan': 'Field Worker',
+    'field worker': 'Field Worker'
+  };
+  
+  const lowerName = name.toLowerCase();
+  return translations[lowerName] || name;
+}
+
 // PERBAIKAN UNTUK DIALOG GENERATION
 export async function generateAnomalyScenePrompt(
   storyContext: StoryContext,
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
   sceneNumber: number,
   totalScenes: number,
   languageOptions: LanguageOptions,
@@ -262,112 +346,110 @@ export async function generateAnomalyScenePrompt(
   narasi: string;
   veo3_optimized_prompt: string;
 }> {
-  const userIdea = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
+  const userIdea = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}), ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik}), and ${characters.karakter_3.nama} (${characters.karakter_3.deskripsi_fisik})`;
   const bahasa_dipilih = languageOptions.bahasa;
   const genre_tone = "Realistic 3D Animation, Stylized 3D, Semi-realistic/stylized cartoon, DreamWorks Turbo, Pixar-Disney quality";
 
-  const dynamicPrompt = `
-**PERINTAH SISTEM (SANGAT PENTING):**
-"Anda adalah seorang penulis skenario profesional. Tugas Anda adalah membuat output JSON berdasarkan **TUGAS UTAMA**. Gunakan **CONTOH REFERENSI GAYA** di bawah ini sebagai panduan utama untuk gaya visual dan kualitas deskripsi."
+  // Check if dialogue already exists in the scene
+  const existingDialogue = detectExistingDialogue(storyContext.sinopsis_per_adegan[sceneNumber - 1]);
+  
+  // Translate character names if using British accent
+  const isEnglishAccent = languageOptions.aksen === 'British' || languageOptions.aksen === 'US';
+  
+  const dialogueInstructions = existingDialogue.hasDialogue ? `
+**CRITICAL DIALOGUE PRESERVATION RULE:**
+"The scene description ALREADY CONTAINS DIALOGUE. You MUST:
+1. EXTRACT the existing dialogue EXACTLY as written
+2. DO NOT create any new dialogue
+3. USE ONLY the dialogue found in the scene description
+4. Format the existing dialogue according to the required structure
+5. If accent is British or US, translate character names to English (e.g., "Ibu" → "Mother", "Anak" → "Child")
 
-**CONTOH REFERENSI GAYA (PELAJARI INI):**
+EXISTING DIALOGUE DETECTED:
+${existingDialogue.dialogues.map(d => {
+  const translatedSpeaker = translateCharacterName(d.speaker, isEnglishAccent);
+  return `${translatedSpeaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"`;
+}).join('\n')}
+
+YOU ARE FORBIDDEN FROM CREATING NEW DIALOGUE. USE ONLY WHAT EXISTS ABOVE."` : `
+**DIALOGUE CREATION RULE:**
+"No existing dialogue was found in the scene description. You should CREATE appropriate dialogue for the characters based on the scene context."`;
+
+  const dynamicPrompt = `
+**SYSTEM COMMAND (MAIN RULE):**
+"You are a professional film director and screenwriter. Your task is to read the scene description and handle dialogue appropriately."
+
+${dialogueInstructions}
+
+**RULE 1: ANTI-COPYRIGHT (VERY IMPORTANT):**
+"DO NOT use copyrighted characters. All characters MUST be 100% original."
+
+**RULE 2: 8-SECOND DURATION WITH BRACKET FORMAT (CRITICAL):**
+"The total duration is ONLY 8 SECONDS. Follow these strict rules:
+- Each character can speak approximately 2-3 words per second
+- Total word count for ALL dialogue combined: 15-25 words maximum
+- Each character should speak 1-2 short sentences (5-15 words per character)
+- MANDATORY FORMAT: Each character's line MUST be wrapped in brackets
+- Multiple character lines MUST be separated by a space
+- Example: '[Budi: (excited), Wah, lihat itu!] [Siti: (amazed), Keren banget ya!] [Andi: (laughing), Gila, parah!]'"
+
+**MAIN TASK:**
+"Based on the user's **Story Idea**: '${userIdea}', create a new JSON object that follows the structure below:"
+
+**REFERENCE STYLE:**
 "${referencePrompt}"
 
-**TUGAS UTAMA (KERJAKAN INI):**
-"Berdasarkan **Ide Cerita** dari pengguna: '${userIdea}', buatlah sebuah objek JSON baru yang meniru format dan kualitas kreatif dari **CONTOH REFERENSI GAYA** di atas."
+**MAIN CHARACTERS PROVIDED:**
+- CHARACTER 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
+- CHARACTER 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+- CHARACTER 3: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
 
-**KARAKTER YANG HARUS BERBICARA:**
-- KARAKTER 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
-- KARAKTER 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
-
-**ATURAN KRITIS:**
-
-1. **ANTI-HAK CIPTA (WAJIB ABSOLUT):**
-   - DILARANG keras menggunakan karakter, nama, atau desain yang dilindungi hak cipta
-   - Semua elemen WAJIB 100% orisinal, dikembangkan dari ide cerita pengguna
-   - Ciptakan karakter, lokasi, dan konsep baru yang kreatif, inovatif, dan unik
-
-2. **KONSISTENSI DIALOG DAN KARAKTER (TANPA TOLERANSI):**
-   - WAJIB ada pergantian dialog antara ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}
-   - Setiap karakter HARUS berbicara minimal 1 kali dalam scene ini
-   - Format dialog HARUS konsisten: "NAMA_KARAKTER: (ekspresi/emosi) dialog"
-   - TIDAK BOLEH ada dialog tanpa nama karakter yang jelas
-
-3. **OPTIMASI SPESIFIK UNTUK VEO3:**
-   - Tulis prompt yang telah dioptimalkan eksklusif untuk memaksimalkan performa Gemini Veo3
-   - Format penulisan harus memastikan pemisahan antara instruksi visual, audio, dan dialog secara jelas
-   - Rancang agar hasil render maksimal dengan kualitas audio-visual terbaik
-
-4. **GAYA VISUAL BERDASARKAN REFERENSI:**
-   - Gunakan **CONTOH REFERENSI GAYA** sebagai panduan utama untuk kualitas visual dan deskripsi
-   - Tiru gaya penulisan, detail, dan pendekatan kreatif dari contoh referensi
-   - Adaptasi elemen-elemen visual yang kuat dari referensi ke dalam cerita pengguna
-
-**PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
-
-**Langkah 1: Ciptakan Dialog Master (Bahasa Inggris)**
-* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Bahasa Inggris."
-* **Tugas:** Buat sebuah dialog dalam format skenario standar. Dialog ini akan menjadi "sumber kebenaran" (source of truth).
-* **Format:** '${characters.karakter_1.nama}: (deskripsi nada/emosi) teks dialog' dan '${characters.karakter_2.nama}: (deskripsi nada/emosi) teks dialog'
-* **Aturan:** Kedua karakter HARUS berbicara dengan pergantian yang jelas. Maksimal 8 detik total durasi dialog.
-
-**Langkah 2: Adaptasi Kreatif ke Bahasa ${bahasa_dipilih} dengan Aksen ${languageOptions.aksen}**
-* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario yang ahli dalam bahasa dan budaya lokal. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
-* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam bahasa yang sesuai dengan pilihan pengguna.
-* **ATURAN SINKRONISASI (SANGAT PENTING):**
-    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
-    * Jumlah baris dialog HARUS SAMA PERSIS.
-    * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Bahasa berdasarkan Aksen:**
-    ${getDialogStyleByAccent(languageOptions.aksen)}
-
-**STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
+**MUST FOLLOW JSON OUTPUT STRUCTURE:**
 
 {
-  "visual_prompt": "[String] TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS. Deskripsikan semua elemen visual dengan format: Mulai dengan 'A cinematic, heartwarming 3D animated scene in the style of **${visualStyle}**.' Lanjutkan dengan deskripsi setting dan aksi karakter dalam format skenario profesional yang detail, termasuk kapan ${characters.karakter_1.nama} berbicara (mouth movement, facial expressions) dan kapan ${characters.karakter_2.nama} berbicara. Di akhir paragraf, tambahkan: 'Cinematography: [minta AI untuk menentukan gerakan kamera, sudut, dan pencahayaan yang sesuai dengan gaya]. Aspect Ratio: **${aspectRatio}**.'",
+  "visual_prompt": "[String] WRITE IN ENGLISH ONLY. Start with 'A ${visualStyle} 3D animated scene.' Description of visuals, cinematography, setting, and character actions. In this description, name all the characters present in the scene (e.g., '${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama} are...' and use their initials for consistent character traits such as body, face, hair, height, and accessories). End with: 'Cinematography: [describe camera movement, angles, and lighting appropriate to the style]. Aspect Ratio: ${aspectRatio}.'",
   
-  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif, menggambarkan kualitas suara setara film animasi kelas dunia yang selaras dengan gaya referensi. Wajib meliputi: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction untuk ${characters.karakter_1.nama} (jelaskan karakteristik suara) dan ${characters.karakter_2.nama} (jelaskan karakteristik suara berbeda), ambient soundscape, foley effects, dynamic range, dan emotional musical themes.",
+  "audio_prompt": "[String] WRITE IN ENGLISH ONLY. Description of background music and sound effects. Include: modern cinematic orchestral music (avoid traditional instruments unless specifically requested), spatial audio design, character voice acting direction for all characters (describe voice characteristics), ambient soundscape, foley effects, dynamic range, and emotional musical themes. For modern 3D animation, use contemporary film scoring with electronic elements, hybrid orchestral arrangements, and modern sound design.",
   
-      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[${characters.karakter_1.nama}: (emotion), dialog]' dan '[${characters.karakter_2.nama}: (emotion), dialog]'.",
-      
-      "dialogue": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif ke ${getDialogLanguageByAccent(languageOptions.aksen)}). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
+  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.aksen)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, separated by spaces. Example for ${languageOptions.aksen === 'US' || languageOptions.aksen === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.aksen === 'US' || languageOptions.aksen === 'British' ? "'[Brian: (pleading), Mom, this is really delicious!] [Mom: (tired), Thank you. What do you see outside?] [Brian: (hopeful), There are people suffering. We should share.]'" : "'[${characters.karakter_1.nama}: (emotion), short dialogue] [${characters.karakter_2.nama}: (emotion), short response] [${characters.karakter_3.nama}: (emotion), another response]'"} Total 8 seconds - approximately 15-25 words total. Style: ${getDialogStyleByAccent(languageOptions.aksen)}",
   
-  "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over yang engaging, penuh dinamika, dan membangun atmosfer cerita. Gaya bahasa harus sesuai dengan genre, tidak monoton, serta efektif memperkuat mood cerita.",
-
-  "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi khusus untuk Gemini Veo3 dengan instruksi yang sangat spesifik tentang siapa yang berbicara kapan, mengintegrasikan elemen-elemen gaya dari **CONTOH REFERENSI GAYA**."
+  "narration": "[String] WRITE IN INDONESIAN ONLY. Script for the narrator. Engaging, dynamic narration that builds the story atmosphere. The language style should match the genre, not monotonous, and effectively strengthen the story mood.",
+  
+  "veo3_optimized_prompt": "[String] MIXED STRUCTURED LANGUAGE. Optimized prompt specifically for Gemini Veo3 with very specific instructions about who speaks when, integrating style elements from the reference."
 }
 
-**INSTRUKSI KHUSUS UNTUK VEO3_OPTIMIZED_PROMPT:**
-Buat prompt dengan pola berikut yang SANGAT SPESIFIK tentang character speaking dan mengintegrasikan gaya visual dari referensi:
+**SPECIAL INSTRUCTIONS FOR VEO3_OPTIMIZED_PROMPT:**
+Create a prompt with the following VERY SPECIFIC pattern about character speaking and integrating visual style:
 
-"LANGUAGE INSTRUCTION: Generate video with Indonesian dialog featuring alternating conversation between ${characters.karakter_1.nama} and ${characters.karakter_2.nama}.
+"LANGUAGE INSTRUCTION: Generate video with ${getDialogLanguageByAccent(languageOptions.aksen)} dialog featuring conversation between all characters.
 
-VISUAL SCENE: [visual description dengan detail kapan masing-masing karakter berbicara, mengadaptasi gaya visual dari **CONTOH REFERENSI GAYA**]
+VISUAL SCENE: [visual description with details of when each character speaks, adapting visual style from reference]
 
 CHARACTER SPEAKING INSTRUCTION:
-- FIRST SPEAKER: ${characters.karakter_1.nama} speaks with [karakteristik visual dan ekspresi]
-- SECOND SPEAKER: ${characters.karakter_2.nama} responds with [karakteristik visual dan ekspresi berbeda]
+[List all characters and their speaking visual cues]
 
-DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN INDONESIAN LANGUAGE:
-${characters.karakter_1.nama}: [Indonesian dialog line 1]
-${characters.karakter_2.nama}: [Indonesian dialog line 2]
+DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getDialogLanguageByAccent(languageOptions.aksen).toUpperCase()} LANGUAGE:
+[All character dialogues]
 
-AUDIO DESIGN: [audio description dengan voice characteristic untuk masing-masing karakter]
+AUDIO DESIGN: [audio description with voice characteristics for each character]
 
-CRITICAL INSTRUCTION: Ensure ${characters.karakter_1.nama} and ${characters.karakter_2.nama} take turns speaking. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in Indonesian language, NOT English."
+CRITICAL INSTRUCTION: Ensure all characters take turns speaking naturally. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in ${getDialogLanguageByAccent(languageOptions.aksen)} language, NOT English."
 
-**IDE CERITA YANG DIBERIKAN:**
+**GIVEN STORY IDEA:**
 ${userIdea}
 
-**BAHASA YANG DIMINTA UNTUK DIALOG:**
+**REQUESTED DIALOGUE LANGUAGE:**
 ${bahasa_dipilih}
 
-**GENRE/TONE YANG DIMINTA:**
+**REQUESTED ACCENT:**
+${languageOptions.aksen}
+
+**REQUESTED GENRE/TONE:**
 ${genre_tone}
 
-**DURASI VIDEO: 8 DETIK - Dialog harus singkat, efektif, dan memastikan kedua karakter berbicara**
+**VIDEO DURATION: 8 SECONDS - Dialogue must be short, effective, with multiple characters speaking**
 
-Hasilkan JSON dengan struktur di atas dan kualitas skenario serta produksi yang profesional, siap untuk rendering di Gemini Veo3.`;
+Generate JSON with the above structure and professional scenario and production quality, ready for rendering in Gemini Veo3.`;
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
@@ -410,7 +492,7 @@ function generateEnhancedVeo3OptimizedPrompt(
   audioPrompt: string,
   indonesianDialog: string,
   language: string,
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter }
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter }
 ): string {
   // Clean prompts
   const cleanVisual = visualPrompt.replace(/\[BAHASA:.*?\]/g, '').trim();
@@ -425,10 +507,13 @@ function generateEnhancedVeo3OptimizedPrompt(
     } else if (line.includes(characters.karakter_2.nama)) {
       return `${characters.karakter_2.nama} speaks: Show ${characters.karakter_2.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
     }
+      else if (line.includes(characters.karakter_3.nama)) {
+      return `${characters.karakter_3.nama} speaks: Show ${characters.karakter_3.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
+    }
     return '';
   }).filter(instruction => instruction);
 
-  return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog featuring conversation between ${characters.karakter_1.nama} and ${characters.karakter_2.nama}.
+  return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog featuring conversation between ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}.
 
 VISUAL SCENE:
 ${cleanVisual}
@@ -439,20 +524,21 @@ ${characterSpeakingInstructions.join('\n')}
 SPECIFIC CHARACTER VISUAL CUES:
 - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
 - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
+ ${characters.karakter_3.nama}: ${characters.karakter_3.deskripsi_fisik}
 
 DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${language.toUpperCase()} LANGUAGE:
 ${cleanDialog}
 
 AUDIO DESIGN:
 ${cleanAudio}
-- Distinct voice characteristics for ${characters.karakter_1.nama} and ${characters.karakter_2.nama}
+- Distinct voice characteristics for ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}
 - Clear audio separation when each character speaks
 
 CRITICAL INSTRUCTIONS: 
 1. Show ONLY the speaking character with mouth movements when they deliver their lines
 2. The non-speaking character should show listening expressions/reactions
 3. Ensure ALL spoken words are in ${language} language, NOT English
-4. Display clear turn-taking between ${characters.karakter_1.nama} and ${characters.karakter_2.nama}
+4. Display clear turn-taking between ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}
 5. Each character must have distinct facial expressions and voice when speaking`;
 }
 
@@ -474,20 +560,38 @@ export async function generateVideoPromptsFromImage(
   const bahasa_dipilih = languageOptions.bahasa;
   const genre_tone = "Cinematic, narrative-driven";
 
-  const dynamicPrompt = `
-**SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi untuk Gemini Veo3.
+  // Check if dialogue already exists in the user idea
+  const existingDialogue = detectExistingDialogue(userIdea);
+  
+  // Format existing dialogue for better preservation
+  const formattedExistingDialogue = existingDialogue.dialogues.map(d => {
+    const translatedSpeaker = translateCharacterName(d.speaker, languageOptions.aksen === 'British' || languageOptions.aksen === 'US');
+    return {
+      original: d.fullMatch,
+      formatted: `[${translatedSpeaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"]`
+    };
+  });
 
-**ATURAN KRITIS:**
+  const dialogueInstructions = existingDialogue.hasDialogue ? `
+**CRITICAL DIALOGUE PRESERVATION RULE:**
+"The story idea ALREADY CONTAINS DIALOGUE. You MUST:
+1. EXTRACT the existing dialogue EXACTLY as written from the story
+2. DO NOT create any new dialogue
+3. USE ONLY the dialogue found in the story idea
+4. Distribute the existing dialogue across the 8 scenes appropriately
+5. If a scene has no dialogue from the original, leave dialogue fields empty for that scene
+6. When using British or US accent, translate character names (e.g., "Ibu" → "Mother", "Anak" → "Child")
 
-1. **ANTI-HAK CIPTA (WAJIB):**
-   - DILARANG menggunakan karakter, nama, desain, atau elemen visual dari properti berhak cipta
-   - Semua elemen WAJIB 100% orisinal
+EXISTING DIALOGUE DETECTED (USE THESE EXACT DIALOGUES):
+${formattedExistingDialogue.map(d => d.formatted).join('\n')}
 
-2. **KONSISTENSI DIALOG:**
-   - Setiap scene HARUS memiliki minimal 2 karakter yang berbicara
-   - Format dialog harus konsisten: "NAMA_KARAKTER: (ekspresi) dialog"
-   - Dialog dalam bahasa Indonesia harus menggunakan format yang sama dengan dialog English
+MAPPING FOR YOUR REFERENCE:
+${formattedExistingDialogue.map(d => `Original: ${d.original} → Use: ${d.formatted}`).join('\n')}
+
+YOU ARE FORBIDDEN FROM CREATING NEW DIALOGUE. USE ONLY WHAT EXISTS ABOVE.
+DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW."` : `
+**DIALOGUE CREATION RULE:**
+"No existing dialogue was found in the story idea. You should CREATE appropriate dialogue for the characters based on the story context."
 
 **PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
 
@@ -504,7 +608,24 @@ Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi
     * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
     * Jumlah baris dialog HARUS SAMA PERSIS.
     * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).
+* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
+
+  const dynamicPrompt = `
+**SISTEM INSTRUKSI UTAMA:**
+Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi untuk Gemini Veo3.
+
+**ATURAN KRITIS:**
+
+1. **ANTI-HAK CIPTA (WAJIB):**
+   - DILARANG menggunakan karakter, nama, desain, atau elemen visual dari properti berhak cipta
+   - Semua elemen WAJIB 100% orisinal
+
+2. **KONSISTENSI DIALOG:**
+   - Setiap scene HARUS memiliki minimal 2 karakter yang berbicara
+   - Format dialog harus konsisten: "NAMA_KARAKTER: (ekspresi) dialog"
+   - Dialog dalam bahasa Indonesia harus menggunakan format yang sama dengan dialog English
+
+${dialogueInstructions}
 
 **TUGAS UTAMA:**
 Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
@@ -538,6 +659,7 @@ VISUAL SCENE: [scene description dengan detail mouth movement untuk setiap karak
 CHARACTER SPEAKING SEQUENCE:
 1. [KARAKTER_A] speaks first: [visual cues]
 2. [KARAKTER_B] responds: [visual cues]
+2. [KARAKTER_C] responds: [visual cues]
 
 DIALOG REQUIREMENT: [Indonesian dialog dengan nama karakter jelas]
 
@@ -911,6 +1033,7 @@ export async function translateText(text: string, targetLanguage: string): Promi
 export async function generateAnomalyCharacters(userIdea: string, apiSettings?: APISettings): Promise<{
   karakter_1: { nama: string; deskripsi_fisik: string };
   karakter_2: { nama: string; deskripsi_fisik: string };
+  karakter_3: { nama: string; deskripsi_fisik: string };
 }> {
   const prompt = `Kamu adalah seorang desainer konsep karakter profesional untuk film animasi 3D berkualitas tinggi. Berdasarkan ide cerita berikut: '${userIdea}'
 
@@ -920,35 +1043,60 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
 - Karakter WAJIB memiliki ciri fisik yang unik, orisinal, dan penuh imajinasi yang bisa divisualisasikan secara sinematik
 
 **TUGAS:**
-1. Identifikasi dan pilih 2 karakter utama yang paling ikonik dan potensial dari cerita yang diberikan
+1. Identifikasi dan pilih 3 karakter utama yang paling ikonik dan potensial dari cerita yang diberikan
 2. Buat deskripsi fisik karakter yang detail, surealis namun tetap fungsional untuk animasi, mencakup bentuk tubuh, tekstur, warna dominan, hingga ekspresi wajah yang mencolok dan khas
 3. Berikan nama panggilan yang kreatif, mudah diingat, dan mencerminkan kepribadian karakter sesuai cerita
 4. Pastikan hasil dalam format JSON yang rapi dan siap digunakan oleh tim modeling & animasi
 
 **FORMAT OUTPUT:**
-{"karakter_1": {"nama": "[Nama karakter pertama]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_2": {"nama": "[Nama karakter kedua]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}}
+{"karakter_1": {"nama": "[Nama karakter pertama]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_2": {"nama": "[Nama karakter kedua]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_3": {"nama": "[Nama karakter ketiga]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}}
 
 **CONTOH:**
-Jika cerita tentang "Kentongan tua yang bijaksana dan Tiang Listrik yang pendiam", maka hasil harus menggunakan "Kentongan" dan "Tiang Listrik" dengan deskripsi yang memperkaya visual seperti tekstur kayu tua penuh ukiran, atau kabel-kabel yang membentuk ekspresi wajah.
+Jika cerita tentang "Kentongan tua yang bijaksana, Tiang Listrik yang pendiam, dan Lampu Jalan yang ceria", maka hasil harus menggunakan ketiga karakter tersebut dengan deskripsi yang memperkaya visual seperti tekstur kayu tua penuh ukiran, kabel-kabel yang membentuk ekspresi wajah, atau cahaya yang berkedip-kedip membentuk senyuman.
 
-Analisis dalam-dalam ide cerita dan ciptakan karakter dengan fisik, mimik, dan aura yang kuat, seolah-olah mereka siap tampil dalam film animasi 3D kelas dunia.`;
+Analisis dalam-dalam ide cerita dan ciptakan 3 karakter dengan fisik, mimik, dan aura yang kuat, seolah-olah mereka siap tampil dalam film animasi 3D kelas dunia.`;
 
 const response = await callGeminiAPI(prompt, undefined, apiSettings);
 return JSON.parse(response);
 }
 
 export async function generateAnomalyStory(
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
   userIdea: string,
   apiSettings?: APISettings
 ): Promise<AnomalyStoryResponse> {
-  const prompt = `Given these two surreal characters:
+  // Check if dialogue already exists in the user idea
+  const existingDialogue = detectExistingDialogue(userIdea);
+  
+  const dialogueInstructions = existingDialogue.hasDialogue ? `
+**CRITICAL DIALOGUE PRESERVATION RULE:**
+The story idea ALREADY CONTAINS DIALOGUE. You MUST:
+1. PRESERVE all existing dialogue EXACTLY as written
+2. Include the dialogue in appropriate scenes within the synopsis
+3. DO NOT create any new dialogue
+4. DO NOT modify the existing dialogue
+5. Distribute the dialogue naturally across the 8 scenes
+
+EXISTING DIALOGUE TO PRESERVE:
+${existingDialogue.dialogues.map(d => `${d.speaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"`).join('\n')}
+` : '';
+
+  const prompt = `Given these three surreal characters:
     Character 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
     Character 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+    Character 3: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
 
     And this original story idea: "${userIdea}"
 
+    ${dialogueInstructions}
+
     Create a movie title and an 8-scene synopsis that combines these characters with the original idea.
+    
+    IMPORTANT: 
+    - If dialogue exists in the story idea, you MUST include it in the appropriate scenes
+    - Each scene description should be detailed and cinematic
+    - Preserve any existing dialogue EXACTLY as provided
+    
     Return ONLY a JSON object in this exact format, with no additional text:
     {
       "judul": "...",
@@ -991,7 +1139,7 @@ return await callGeminiAPI(prompt, undefined, apiSettings);
 
 export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }, apiSettings?: APISettings): Promise<string> {
   const idecerita = `Karakter: ${inputs.karakter}, Situasi: ${inputs.situasi}, Elemen Aneh: ${inputs.elemenAneh}`;
-  const genre_tone = "Modern, surreal, creative";
+  const genre_tone = "Modern, Surreal, Creative, Sci-fi, Dark Comedy, Mystery, Steampunk, Fantasy, Philosophical, Psychological Thriller";
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
