@@ -18,7 +18,9 @@ const ConceptVizMode: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [brainPromptError, setBrainPromptError] = useState<string>('');
   const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     loadApiSettings();
@@ -142,7 +144,7 @@ const ConceptVizMode: React.FC = () => {
     }
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (aspectRatio: string) => {
     if (!userIdea.trim()) {
       setError('Silakan masukkan ide terlebih dahulu');
       return;
@@ -159,10 +161,10 @@ const ConceptVizMode: React.FC = () => {
 
     try {
       const referencePrompt = await fetchBrainPrompt(selectedStyle);
-      // Combine user idea with reference prompt for better results
+      // Combine user idea with reference prompt and aspect ratio
       const enhancedIdea = referencePrompt
-        ? `${userIdea}\n\nStyle Reference: ${referencePrompt}`
-        : userIdea;
+        ? `${userIdea}\n\nStyle Reference: ${referencePrompt}\n\nAspect Ratio: ${aspectRatio}`
+        : `${userIdea}\n\nAspect Ratio: ${aspectRatio}`;
       const prompt = await generateKeyImagePrompt(enhancedIdea, apiSettings);
       setGeneratedImagePrompt(prompt);
     } catch (err) {
@@ -172,6 +174,7 @@ const ConceptVizMode: React.FC = () => {
       setIsLoading(false);
     }
   };
+
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -186,7 +189,7 @@ const ConceptVizMode: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleGenerateVideoPrompts = async () => {
+  const handleGenerateVideoPrompts = async (aspectRatio: string) => {
     if (!userIdea.trim() || !uploadedImage) {
       setError('Silakan masukkan ide dan upload gambar terlebih dahulu');
       return;
@@ -203,7 +206,8 @@ const ConceptVizMode: React.FC = () => {
 
     try {
       const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' };
-      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions, apiSettings);
+      const enhancedIdea = `${userIdea}\n\nAspect Ratio: ${aspectRatio}`;
+      const result = await generateVideoPromptsFromImage(enhancedIdea, uploadedImage, languageOptions, apiSettings);
       setVideoPrompts(result.video_prompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
@@ -212,6 +216,7 @@ const ConceptVizMode: React.FC = () => {
       setIsLoading(false);
     }
   };
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -260,15 +265,29 @@ const ConceptVizMode: React.FC = () => {
         />
       </div>
 
-      <button
-        onClick={handleGenerate}
-        disabled={isLoading || !apiSettings?.isActive}
-        className={`px-6 py-3 rounded-lg font-medium ${isLoading || !apiSettings?.isActive
-          ? 'bg-gray-400 cursor-not-allowed'
-          : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-      >
-        {isLoading ? 'Memproses...' : 'Generate Prompt Gambar Kunci'}
-      </button>
+      <div className="flex items-center gap-4 mb-6">
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Aspect Ratio:</label>
+          <select
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={aspectRatio}
+            onChange={(e) => setAspectRatio(e.target.value)}
+          >
+            <option value="16:9">16:9 (Landscape/YouTube)</option>
+            <option value="9:16">9:16 (Portrait/TikTok)</option>
+          </select>
+        </div>
+        <button
+          onClick={() => handleGenerate(aspectRatio)}
+          disabled={isLoading || !apiSettings?.isActive}
+          className={`px-6 py-3 rounded-lg font-medium ${isLoading || !apiSettings?.isActive
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+        >
+          {isLoading ? 'Memproses...' : 'Generate Prompt Gambar Kunci'}
+        </button>
+      </div>
+
 
       {isFetchingBrainPrompt && (
         <div className="mt-6 p-4 bg-purple-50 rounded-lg">
@@ -341,15 +360,29 @@ const ConceptVizMode: React.FC = () => {
             </div>
           )}
 
-          <button
-            onClick={handleGenerateVideoPrompts}
-            disabled={isLoading || !uploadedImage || !apiSettings?.isActive}
-            className={`px-6 py-3 rounded-lg font-medium ${isLoading || !uploadedImage || !apiSettings?.isActive
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
-          >
-            {isLoading ? 'Memproses...' : 'Generate Rangkaian Video Prompt'}
-          </button>
+          <div className="flex items-center gap-4 mb-6">
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">Aspect Ratio:</label>
+              <select
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={aspectRatio}
+                onChange={(e) => setAspectRatio(e.target.value)}
+              >
+                <option value="16:9">16:9 (Landscape/YouTube)</option>
+                <option value="9:16">9:16 (Portrait/TikTok)</option>
+              </select>
+            </div>
+            <button
+              onClick={() => handleGenerateVideoPrompts(aspectRatio)}
+              disabled={isLoading || !uploadedImage || !apiSettings?.isActive}
+              className={`px-6 py-3 rounded-lg font-medium ${isLoading || !uploadedImage || !apiSettings?.isActive
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+            >
+              {isLoading ? 'Memproses...' : 'Generate Rangkaian Video Prompt'}
+            </button>
+          </div>
+
 
           {videoPrompts.length > 0 && (
             <div className="mt-6">
