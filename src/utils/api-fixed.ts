@@ -224,6 +224,7 @@ export async function generateAnomalyScenePrompt(
   sceneNumber: number,
   totalScenes: number,
   languageOptions: LanguageOptions,
+  referencePrompt: string,
   apiSettings?: APISettings
 ): Promise<{
   visual_prompt: string;
@@ -233,13 +234,19 @@ export async function generateAnomalyScenePrompt(
   narasi: string;
   veo3_optimized_prompt: string;
 }> {
-  const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
+  const userIdea = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
   const bahasa_dipilih = languageOptions.bahasa;
   const genre_tone = "Realistic 3D Animation, Stylized 3D, Semi-realistic/stylized cartoon, DreamWorks Turbo, Pixar-Disney quality";
 
   const dynamicPrompt = `
-**SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional spesialis konten orisinal berkualitas tinggi untuk Gemini Veo3. Patuhi semua aturan berikut tanpa kompromi untuk menjamin hasil produksi animasi kelas dunia.
+**PERINTAH SISTEM (SANGAT PENTING):**
+"Anda adalah seorang penulis skenario profesional. Tugas Anda adalah membuat output JSON berdasarkan **TUGAS UTAMA**. Gunakan **CONTOH REFERENSI GAYA** di bawah ini sebagai panduan utama untuk gaya visual dan kualitas deskripsi."
+
+**CONTOH REFERENSI GAYA (PELAJARI INI):**
+"${referencePrompt}"
+
+**TUGAS UTAMA (KERJAKAN INI):**
+"Berdasarkan **Ide Cerita** dari pengguna: '${userIdea}', buatlah sebuah objek JSON baru yang meniru format dan kualitas kreatif dari **CONTOH REFERENSI GAYA** di atas."
 
 **KARAKTER YANG HARUS BERBICARA:**
 - KARAKTER 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
@@ -263,38 +270,50 @@ Anda adalah penulis skenario profesional spesialis konten orisinal berkualitas t
    - Format penulisan harus memastikan pemisahan antara instruksi visual, audio, dan dialog secara jelas
    - Rancang agar hasil render maksimal dengan kualitas audio-visual terbaik
 
-**STRUKTUR OUTPUT JSON:**
+4. **GAYA VISUAL BERDASARKAN REFERENSI:**
+   - Gunakan **CONTOH REFERENSI GAYA** sebagai panduan utama untuk kualitas visual dan deskripsi
+   - Tiru gaya penulisan, detail, dan pendekatan kreatif dari contoh referensi
+   - Adaptasi elemen-elemen visual yang kuat dari referensi ke dalam cerita pengguna
+
+**PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
+
+**Langkah 1: Ciptakan Dialog Master (Bahasa Inggris)**
+* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Bahasa Inggris."
+* **Tugas:** Buat sebuah dialog dalam format skenario standar. Dialog ini akan menjadi "sumber kebenaran" (source of truth).
+* **Format:** '${characters.karakter_1.nama}: (deskripsi nada/emosi) teks dialog' dan '${characters.karakter_2.nama}: (deskripsi nada/emosi) teks dialog'
+* **Aturan:** Kedua karakter HARUS berbicara dengan pergantian yang jelas. Maksimal 8 detik total durasi dialog.
+
+**Langkah 2: Adaptasi Kreatif ke Bahasa Indonesia Gaul**
+* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario untuk sitkom pergaulan anak muda Jakarta. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
+* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Bahasa Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
+* **ATURAN SINKRONISASI (SANGAT PENTING):**
+    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
+    * Jumlah baris dialog HARUS SAMA PERSIS.
+    * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
+* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).
+
+**STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
 
 {
-  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang sinematik, rinci, dan berstandar kualitas 3D animasi premium. WAJIB mencakup: 3D animation style (Pixar/Disney quality), detailed character modeling untuk ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}, advanced lighting, realistic textures, smooth character animation, cinematic camera work, cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces dengan facial animation yang jelas untuk setiap karakter, fluid motion, atmospheric effects. PENTING: Jelaskan dengan detail kapan ${characters.karakter_1.nama} berbicara (mouth movement, facial expressions) dan kapan ${characters.karakter_2.nama} berbicara.",
+  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang sinematik, rinci, dan berstandar kualitas 3D animasi premium yang mengikuti gaya dari **CONTOH REFERENSI GAYA**. WAJIB mencakup: 3D animation style (Pixar/Disney quality), detailed character modeling untuk ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}, advanced lighting, realistic textures, smooth character animation, cinematic camera work, cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces dengan facial animation yang jelas untuk setiap karakter, fluid motion, atmospheric effects. PENTING: Jelaskan dengan detail kapan ${characters.karakter_1.nama} berbicara (mouth movement, facial expressions) dan kapan ${characters.karakter_2.nama} berbicara.",
   
-  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif, menggambarkan kualitas suara setara film animasi kelas dunia. Wajib meliputi: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction untuk ${characters.karakter_1.nama} (jelaskan karakteristik suara) dan ${characters.karakter_2.nama} (jelaskan karakteristik suara berbeda), ambient soundscape, foley effects, dynamic range, dan emotional musical themes.",
+  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif, menggambarkan kualitas suara setara film animasi kelas dunia yang selaras dengan gaya referensi. Wajib meliputi: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction untuk ${characters.karakter_1.nama} (jelaskan karakteristik suara) dan ${characters.karakter_2.nama} (jelaskan karakteristik suara berbeda), ambient soundscape, foley effects, dynamic range, dan emotional musical themes.",
   
-  "dialog_en": "[BAHASA: INGGRIS] Dialog yang natural, mengalir seperti dalam skenario profesional. WAJIB menggunakan format: '${characters.karakter_1.nama}: (deskripsi nada/emosi) teks dialog' dan '${characters.karakter_2.nama}: (deskripsi nada/emosi) teks dialog'. PENTING: Kedua karakter HARUS berbicara dalam scene ini dengan pergantian yang jelas. Maksimal 8 detik total durasi dialog.",
-  
-  "dialog_id_gaul": "[BAHASA: INDONESIA] Dialog natural gaya anak muda Indonesia dengan format WAJIB: '${characters.karakter_1.nama}: (ekspresi/mood) dialog singkat' dan '${characters.karakter_2.nama}: (ekspresi/mood) dialog singkat'. ATURAN KETAT: Kedua karakter HARUS berbicara dalam scene ini. Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh). Dialog maksimal 8 detik total, masing-masing karakter berbicara 1-2 kalimat pendek.",
+      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[${characters.karakter_1.nama}: (emotion), dialog]' dan '[${characters.karakter_2.nama}: (emotion), dialog]'.",
+      
+      "dialogue": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Bahasa Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
   
   "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over yang engaging, penuh dinamika, dan membangun atmosfer cerita. Gaya bahasa harus sesuai dengan genre, tidak monoton, serta efektif memperkuat mood cerita.",
 
-  "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi khusus untuk Gemini Veo3 dengan instruksi yang sangat spesifik tentang siapa yang berbicara kapan."
+  "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi khusus untuk Gemini Veo3 dengan instruksi yang sangat spesifik tentang siapa yang berbicara kapan, mengintegrasikan elemen-elemen gaya dari **CONTOH REFERENSI GAYA**."
 }
 
-**CONTOH FORMAT DIALOG YANG BENAR:**
-
-**Dialog English:**
-"[${characters.karakter_1.nama}: (excited) Hey, what do you think about this?]
-[${characters.karakter_2.nama}: (skeptical) I'm not so sure about that idea...]"
-
-**Dialog Indonesia:**
-"[${characters.karakter_1.nama}: (semangat) Eh bro, gimana nih menurut lo?]
-[${characters.karakter_2.nama}: (ragu) Gue sih kurang yakin deh...]"
-
 **INSTRUKSI KHUSUS UNTUK VEO3_OPTIMIZED_PROMPT:**
-Buat prompt dengan pola berikut yang SANGAT SPESIFIK tentang character speaking:
+Buat prompt dengan pola berikut yang SANGAT SPESIFIK tentang character speaking dan mengintegrasikan gaya visual dari referensi:
 
 "LANGUAGE INSTRUCTION: Generate video with Indonesian dialog featuring alternating conversation between ${characters.karakter_1.nama} and ${characters.karakter_2.nama}.
 
-VISUAL SCENE: [visual description dengan detail kapan masing-masing karakter berbicara]
+VISUAL SCENE: [visual description dengan detail kapan masing-masing karakter berbicara, mengadaptasi gaya visual dari **CONTOH REFERENSI GAYA**]
 
 CHARACTER SPEAKING INSTRUCTION:
 - FIRST SPEAKER: ${characters.karakter_1.nama} speaks with [karakteristik visual dan ekspresi]
@@ -309,7 +328,7 @@ AUDIO DESIGN: [audio description dengan voice characteristic untuk masing-masing
 CRITICAL INSTRUCTION: Ensure ${characters.karakter_1.nama} and ${characters.karakter_2.nama} take turns speaking. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in Indonesian language, NOT English."
 
 **IDE CERITA YANG DIBERIKAN:**
-${idecerita}
+${userIdea}
 
 **BAHASA YANG DIMINTA UNTUK DIALOG:**
 ${bahasa_dipilih}
@@ -335,6 +354,11 @@ Hasilkan JSON dengan struktur di atas dan kualitas skenario serta produksi yang 
         bahasa_dipilih,
         characters
       );
+    }
+    
+    // Map dialogue to dialog_id_gaul for backward compatibility
+    if (result.dialogue && !result.dialog_id_gaul) {
+      result.dialog_id_gaul = result.dialogue;
     }
     
     return result as {
@@ -436,6 +460,23 @@ Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi
    - Format dialog harus konsisten: "NAMA_KARAKTER: (ekspresi) dialog"
    - Dialog dalam bahasa Indonesia harus menggunakan format yang sama dengan dialog English
 
+**PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
+
+**Langkah 1: Ciptakan Dialog Master (Bahasa Inggris)**
+* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Bahasa Inggris."
+* **Tugas:** Buat sebuah dialog dalam format skenario standar. Dialog ini akan menjadi "sumber kebenaran" (source of truth).
+* **Format:** 'KARAKTER_A: (deskripsi nada/emosi) teks dialog' dan 'KARAKTER_B: (deskripsi nada/emosi) teks dialog'
+* **Aturan:** Minimal 2 karakter HARUS berbicara dengan pergantian yang jelas.
+
+**Langkah 2: Adaptasi Kreatif ke Bahasa Indonesia Gaul**
+* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario untuk sitkom pergaulan anak muda Jakarta. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
+* **Tugas:** Ambil dialog Bahasa Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Bahasa Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
+* **ATURAN SINKRONISASI (SANGAT PENTING):**
+    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
+    * Jumlah baris dialog HARUS SAMA PERSIS.
+    * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
+* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).
+
 **TUGAS UTAMA:**
 Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
 
@@ -448,21 +489,15 @@ Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
       
       "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging.",
       
-      "dialog_en": "[BAHASA: INGGRIS] Dialog dalam format: 'KARAKTER_A: (ekspresi) dialog' dan 'KARAKTER_B: (ekspresi) dialog'. WAJIB ada pergantian speaker.",
+      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[KARAKTER_A: (emotion), dialog]' dan '[KARAKTER_B: (emotion), dialog]'.",
       
-      "dialog_id": "[BAHASA: INDONESIA] Dialog menggunakan format IDENTIK dengan dialog_en: 'KARAKTER_A: (ekspresi) dialog dalam bahasa Indonesia gaul' dan 'KARAKTER_B: (ekspresi) dialog dalam bahasa Indonesia gaul'. PENTING: Gunakan nama karakter yang SAMA dengan dialog_en dan pastikan ada pergantian speaker yang jelas.",
+      "dialog_id": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Bahasa Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
       
       "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan instruksi spesifik tentang character speaking assignment."
     }
     // ... total 8 scenes
   ]
 }
-
-**CONTOH FORMAT YANG BENAR:**
-
-Scene 1:
-- dialog_en: "[ANDI: (excited) This is amazing!] [BUDI: (skeptical) Are you sure about this?]"
-- dialog_id: "[ANDI: (semangat) Anjir, keren banget nih!] [BUDI: (ragu) Lo yakin gak sih?]"
 
 **INSTRUKSI UNTUK VEO3_OPTIMIZED_PROMPT:**
 Setiap scene WAJIB memiliki prompt dengan character assignment yang jelas:
@@ -488,7 +523,7 @@ ${bahasa_dipilih}
 **GENRE/TONE YANG DIMINTA:**
 ${genre_tone}
 
-Hasilkan JSON dengan 8 scene prompts yang memastikan dialog multi-karakter yang jelas.`;
+Hasilkan JSON dengan 8 scene prompts yang memastikan dialog multi-karakter yang jelas dengan sistem dialog sinkron.`;
 
   const response = await callGeminiAPI(dynamicPrompt, keyImage, apiSettings);
   const result = JSON.parse(response);
