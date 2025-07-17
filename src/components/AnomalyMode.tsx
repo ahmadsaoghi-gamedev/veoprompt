@@ -7,6 +7,7 @@ import {
   generateTwistedStoryIdea
 } from '../utils/api-fixed';
 import { getSettings } from '../utils/database';
+import { fetchBrainPrompt, getAvailableBrainStyles } from '../utils/storage';
 import { AnomalyScenePrompt, APISettings } from '../types';
 
 const AnomalyMode = () => {
@@ -16,13 +17,15 @@ const AnomalyMode = () => {
   const [elemenAnehInput, setElemenAnehInput] = useState('');
   const [languageOptions, setLanguageOptions] = useState({
     bahasa: 'Indonesia',
-    aksen: 'Jaksel'
+    aksen: 'Betawi'
   });
+  const [selectedStyle, setSelectedStyle] = useState('larva_tuba');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [generatedPrompts, setGeneratedPrompts] = useState<AnomalyScenePrompt[]>([]);
   const [error, setError] = useState('');
   const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
 
   useEffect(() => {
     loadApiSettings();
@@ -62,6 +65,31 @@ const AnomalyMode = () => {
     }
   };
 
+  const handleCopyForVeo = (sceneData: AnomalyScenePrompt) => {
+    // Ambil dialog bahasa Indonesia dari data
+    const rawDialog = sceneData.dialog_id_gaul || '';
+
+    // Hapus header seperti "DIALOGUE (Language...)" jika ada
+    let cleanedDialog = rawDialog.replace(/DIALOGUE \(.*\)\s*/, '');
+
+    // Format ulang menjadi format skenario
+    // Ganti ": " dengan baris baru untuk dialog
+    cleanedDialog = cleanedDialog.replace(/:\s\(/g, '\n('); // Parenthetical
+    cleanedDialog = cleanedDialog.replace(/:\s/g, '\n'); // Dialog
+
+    // Susun prompt final
+    const finalPrompt = `
+${sceneData.visual_prompt}
+
+${sceneData.audio_prompt}
+
+${cleanedDialog.trim()}
+    `;
+
+    navigator.clipboard.writeText(finalPrompt.trim());
+    alert('Prompt dengan format skenario profesional berhasil disalin!');
+  };
+
   const handleGenerate = async () => {
     if (!apiSettings || !apiSettings.isActive) {
       setError('Please configure and validate your API key in the API Settings first.');
@@ -73,6 +101,10 @@ const AnomalyMode = () => {
     setGeneratedPrompts([]);
     setError('');
     try {
+      // 1. Fetch brain prompt at the beginning
+      setLoadingMessage('Mengambil referensi gaya visual dari Brain Prompt...');
+      const referencePrompt = await fetchBrainPrompt(selectedStyle);
+
       setLoadingMessage('Menciptakan karakter anomali...');
       const characters = await generateAnomalyCharacters(userIdea, apiSettings);
 
@@ -81,14 +113,17 @@ const AnomalyMode = () => {
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
         setLoadingMessage(`Merangkai sinematografi & dialog untuk Adegan ${i + 1} dari ${story.sinopsis_per_adegan.length}...`);
+        // 2. Pass referencePrompt to the main API function
         const prompt: AnomalyScenePrompt = await generateAnomalyScenePrompt(
           story,
           characters,
           i + 1,
           story.sinopsis_per_adegan.length,
           languageOptions,
+          referencePrompt,
           apiSettings
         );
+
         setGeneratedPrompts(prev => [...prev, prompt]);
       }
     } catch (err) {
@@ -171,7 +206,7 @@ const AnomalyMode = () => {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-6">
         <div>
           <label className="block mb-2 font-medium">Bahasa:</label>
           <select
@@ -196,20 +231,49 @@ const AnomalyMode = () => {
               aksen: e.target.value
             }))}
           >
-            <option value="Jaksel">Jakarta Selatan</option>
             <option value="Betawi">Betawi</option>
+            <option value="Jawa">Jawa</option>
             <option value="Sunda">Sunda</option>
+            <option value="US">United States</option>
+            <option value="British">British</option>
+          </select>
+        </div>
+        <div>
+          <label className="block mb-2 font-medium">🧠 Gaya Visual (Brain Prompt):</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={selectedStyle}
+            onChange={(e) => setSelectedStyle(e.target.value)}
+          >
+            {getAvailableBrainStyles().map((style) => (
+              <option key={style.value} value={style.value}>
+                {style.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      <button
-        className={`px-4 py-2 rounded text-white ${isLoading || !apiSettings?.isActive ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-        onClick={handleGenerate}
-        disabled={isLoading || !apiSettings?.isActive}
-      >
-        {isLoading ? 'Memproses...' : 'Generate Anomaly Film'}
-      </button>
+      <div className="flex items-center gap-4 mb-6">
+        <div>
+          <label className="block mb-2 font-medium">Aspect Ratio:</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={aspectRatio}
+            onChange={(e) => setAspectRatio(e.target.value)}
+          >
+            <option value="16:9">16:9 (Landscape/YouTube)</option>
+            <option value="9:16">9:16 (Portrait/TikTok)</option>
+          </select>
+        </div>
+        <button
+          className={`px-4 py-2 rounded text-white ${isLoading || !apiSettings?.isActive ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+          onClick={handleGenerate}
+          disabled={isLoading || !apiSettings?.isActive}
+        >
+          {isLoading ? 'Memproses...' : 'Generate Anomaly Film'}
+        </button>
+      </div>
 
       {loadingMessage && (
         <div className="mt-4 p-2 bg-blue-100 text-blue-800 rounded">
@@ -269,11 +333,7 @@ const AnomalyMode = () => {
               <div className="mt-2 flex gap-2">
                 <button
                   className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                  onClick={() => {
-                    navigator.clipboard.writeText(prompt.veo3_optimized_prompt)
-                      .then(() => alert('Prompt Veo3 yang dioptimalkan telah disalin!'))
-                      .catch(() => alert('Gagal menyalin prompt.'));
-                  }}
+                  onClick={() => handleCopyForVeo(prompt)}
                 >
                   📋 Salin Prompt Veo3 Optimized
                 </button>
@@ -301,5 +361,4 @@ const AnomalyMode = () => {
     </div>
   );
 };
-
 export default AnomalyMode;

@@ -4,13 +4,19 @@ import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/
 import { getSettings } from '../utils/database';
 import { APISettings, VideoPromptWithOptimization } from '../types';
 
+// Cache for storing loaded brain prompts to avoid repeated file reads
+const brainPromptCache = new Map<string, string[]>();
+
 const ConceptVizMode: React.FC = () => {
   const [userIdea, setUserIdea] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState('pixar');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingBrainPrompt, setIsFetchingBrainPrompt] = useState(false);
   const [generatedImagePrompt, setGeneratedImagePrompt] = useState('');
   const [uploadedImage, setUploadedImage] = useState('');
   const [videoPrompts, setVideoPrompts] = useState<VideoPromptWithOptimization[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>('');
+  const [brainPromptError, setBrainPromptError] = useState<string>('');
   const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,6 +30,115 @@ const ConceptVizMode: React.FC = () => {
       setApiSettings(settings);
     } catch (error) {
       console.error('Failed to load API settings:', error);
+    }
+  };
+
+  const fetchBrainPrompt = async (style: string): Promise<string> => {
+    // Clear any previous brain prompt errors
+    setBrainPromptError('');
+    setIsFetchingBrainPrompt(true);
+
+    try {
+      // Check cache first
+      if (brainPromptCache.has(style)) {
+        const cachedPrompts = brainPromptCache.get(style)!;
+        const randomPrompt = cachedPrompts[Math.floor(Math.random() * cachedPrompts.length)];
+        console.log(`🧠 Using cached brain prompt for style: ${style}`);
+        return randomPrompt;
+      }
+
+      let filePath = '';
+
+      // Map styles to corresponding file paths
+      switch (style) {
+        case 'pixar':
+          filePath = '/brain/style_pixar.txt';
+          break;
+        case 'lionking':
+          filePath = '/brain/style_lionking_realistic.txt';
+          break;
+        case 'coraline':
+          filePath = '/brain/style_coraline_animation.txt';
+          break;
+        case 'dragonquest':
+          filePath = '/brain/style_dragon_quest_animation.txt';
+          break;
+        case 'illumination':
+          filePath = '/brain/style_illumination.txt';
+          break;
+        case 'japanese3d':
+          filePath = '/brain/style_japanese_3D_Anime.txt';
+          break;
+        case 'larva':
+          filePath = '/brain/style_larva_tuba_animation.txt';
+          break;
+        case 'lovedeath':
+          filePath = '/brain/style_Love_Death_Robots_animation.txt';
+          break;
+        case 'lovecraftian':
+          filePath = '/brain/style_lovecraftian_horror.txt';
+          break;
+        case 'standbyme':
+          filePath = '/brain/style_stand_by_me_doraemon_animation.txt';
+          break;
+        case 'lordoftherings':
+          filePath = '/brain/style_the_lord_of_the_ring_3danimation.txt';
+          break;
+        case 'vfx3d':
+          filePath = '/brain/style_vfx_3d_animation.txt';
+          break;
+        case 'videoclip':
+          filePath = '/brain/style_videoclip_song.txt';
+          break;
+        case 'effectshader':
+          filePath = '/brain/style_effect_shader_animation.txt';
+          break;
+        default:
+          console.warn(`⚠️ Unknown style: ${style}`);
+          return '';
+      }
+
+      if (filePath) {
+        console.log(`🧠 Fetching brain prompt from: ${filePath}`);
+
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const text = await response.text();
+
+        if (!text.trim()) {
+          throw new Error('File is empty');
+        }
+
+        // Split by '---' and filter out empty strings, then clean each prompt
+        const prompts = text
+          .split('---')
+          .map(prompt => prompt.trim())
+          .filter(prompt => prompt.length > 0);
+
+        if (prompts.length === 0) {
+          throw new Error('No valid prompts found in file');
+        }
+
+        // Cache the prompts for future use
+        brainPromptCache.set(style, prompts);
+        console.log(`✅ Successfully loaded ${prompts.length} prompts for style: ${style}`);
+
+        // Return a random prompt
+        const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+        return randomPrompt;
+      }
+
+      return '';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(`❌ Error fetching brain prompt for style "${style}":`, errorMessage);
+      setBrainPromptError(`Gagal memuat referensi gaya ${style}: ${errorMessage}`);
+      return '';
+    } finally {
+      setIsFetchingBrainPrompt(false);
     }
   };
 
@@ -43,7 +158,12 @@ const ConceptVizMode: React.FC = () => {
     setGeneratedImagePrompt('');
 
     try {
-      const prompt = await generateKeyImagePrompt(userIdea, apiSettings);
+      const referencePrompt = await fetchBrainPrompt(selectedStyle);
+      // Combine user idea with reference prompt for better results
+      const enhancedIdea = referencePrompt
+        ? `${userIdea}\n\nStyle Reference: ${referencePrompt}`
+        : userIdea;
+      const prompt = await generateKeyImagePrompt(enhancedIdea, apiSettings);
       setGeneratedImagePrompt(prompt);
     } catch (err) {
       setError('Gagal menghasilkan prompt. Silakan coba lagi.');
@@ -51,10 +171,6 @@ const ConceptVizMode: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedImagePrompt);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,8 +202,8 @@ const ConceptVizMode: React.FC = () => {
     setVideoPrompts([]);
 
     try {
-      const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' }; // Defined languageOptions with aksen
-      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions, apiSettings); // Passed languageOptions
+      const languageOptions = { bahasa: 'Indonesia Gaul', aksen: '' };
+      const result = await generateVideoPromptsFromImage(userIdea, uploadedImage, languageOptions, apiSettings);
       setVideoPrompts(result.video_prompts);
     } catch (err) {
       setError('Gagal menghasilkan prompt video. Silakan coba lagi.');
@@ -95,6 +211,12 @@ const ConceptVizMode: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+      .then(() => alert('Prompt telah disalin!'))
+      .catch(() => alert('Gagal menyalin prompt.'));
   };
 
   return (
@@ -106,6 +228,29 @@ const ConceptVizMode: React.FC = () => {
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mode Visualisasi Konsep</h2>
 
       <div className="mb-6">
+        <label htmlFor="style-select" className="block mb-2 font-medium text-gray-700">Pilih Gaya Visual</label>
+        <select
+          id="style-select"
+          value={selectedStyle}
+          onChange={(e) => setSelectedStyle(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+        >
+          <option value="pixar">Pixar</option>
+          <option value="lionking">Lion King</option>
+          <option value="coraline">Coraline</option>
+          <option value="dragonquest">Dragon Quest</option>
+          <option value="illumination">Illumination</option>
+          <option value="japanese3d">Japanese 3D Anime</option>
+          <option value="larva">Larva Tuba Animation</option>
+          <option value="lovedeath">Love Death Robots Animation</option>
+          <option value="lovecraftian">Lovecraftian Horror</option>
+          <option value="standbyme">Stand By Me Doraemon Animation</option>
+          <option value="lordoftherings">Lord of the Rings 3D Animation</option>
+          <option value="vfx3d">VFX 3D Animation</option>
+          <option value="videoclip">Videoclip Song</option>
+          <option value="effectshader">Effect Shader Animation</option>
+        </select>
+
         <textarea
           className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           rows={5}
@@ -125,9 +270,22 @@ const ConceptVizMode: React.FC = () => {
         {isLoading ? 'Memproses...' : 'Generate Prompt Gambar Kunci'}
       </button>
 
+      {isFetchingBrainPrompt && (
+        <div className="mt-6 p-4 bg-purple-50 rounded-lg">
+          <p className="text-purple-700">🧠 Memuat referensi gaya {selectedStyle}...</p>
+        </div>
+      )}
+
       {isLoading && (
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-blue-700">AI sedang merancang prompt gambar...</p>
+        </div>
+      )}
+
+      {brainPromptError && (
+        <div className="mt-6 p-4 bg-orange-50 rounded-lg">
+          <p className="text-orange-600">⚠️ {brainPromptError}</p>
+          <p className="text-orange-500 text-sm mt-1">Prompt akan dibuat tanpa referensi gaya khusus.</p>
         </div>
       )}
 
@@ -147,7 +305,7 @@ const ConceptVizMode: React.FC = () => {
             value={generatedImagePrompt}
           />
           <button
-            onClick={copyToClipboard}
+            onClick={() => copyToClipboard(generatedImagePrompt)}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-800 mr-4"
           >
             Salin Prompt
@@ -199,8 +357,6 @@ const ConceptVizMode: React.FC = () => {
               <ol className="list-decimal pl-6 space-y-2">
                 {videoPrompts.map((prompt, index) => (
                   <li key={index} className="text-gray-700 mb-6">
-
-                    {/* NEW: Veo3 Optimized Prompt Section - PRIORITIZED */}
                     <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-400">
                       <h4 className="font-bold text-green-800 mb-2">🎯 Prompt Veo3 yang Dioptimalkan (GUNAKAN INI!):</h4>
                       <textarea
@@ -220,13 +376,9 @@ const ConceptVizMode: React.FC = () => {
                         >
                           📋 Salin Prompt Veo3 Optimized
                         </button>
-                        <span className="text-sm text-green-700 self-center">
-                          ← Gunakan prompt ini untuk hasil bahasa Indonesia yang konsisten
-                        </span>
                       </div>
                     </div>
 
-                    {/* Original prompt sections - moved to secondary position */}
                     <details className="mb-4">
                       <summary className="cursor-pointer font-medium text-gray-600 hover:text-gray-800">
                         📋 Lihat Detail Prompt Terpisah (Opsional)

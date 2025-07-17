@@ -7,8 +7,8 @@ import { validateAPIKey } from '../utils/api';
 
 const APISettings: React.FC = () => {
   const [settings, setSettings] = useState<APISettingsType>({
-    usePrivateKey: false,
-    privateKey: 'AIzaSyDbmz0E5cSZWjw11bL8Z9dM4IZiUp0L6zw',
+    usePrivateKey: true,
+    privateKey: '',
     isActive: false,
     lastValidated: null
   });
