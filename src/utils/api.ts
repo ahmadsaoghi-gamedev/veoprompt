@@ -197,8 +197,8 @@ interface StoryContext {
 }
 
 interface LanguageOptions {
-  bahasa: string;
-  aksen: string;
+  Language: string;
+  Accent: string;
 }
 
 export async function generateKeyImagePrompt(
@@ -267,15 +267,15 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
 **STRUKTUR OUTPUT JSON:**
 
 {
-  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting. Gunakan terminologi film profesional.",
+  "visual_prompt": "[Language: INGGRIS] Deskripsi visual yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting. Gunakan terminologi film profesional.",
   
-  "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
+  "audio_prompt": "[Language: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
   
-  "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  "dialog_en": "[Language: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
   
-  "dialog_id_gaul": "**\`dialogue\` (String):**\n* **Instruksi Bahasa:** TULIS HANYA DALAM BAHASA INDONESIA DENGAN GAYA BAHASA GAUL JAKSEL DAN SEDIKIT LOGAT BETAWI.\n* **Peran AI:** Anda adalah penulis skenario yang ahli menciptakan dialog natural, penuh emosi, humor, dan celetukan khas anak muda.\n* **PRINSIP PENULISAN DIALOG (WAJIB DIIKUTI):\n    * **Gaya Bahasa:** Gunakan bahasa santai, gaul Jaksel (misal: 'beneran deh', 'gitu loh', 'anjir', 'parah'), dan selipkan logat Betawi jika natural (misal: 'iye', 'dah', 'nih').\n    * **Singkat & Cepat:** Setiap kalimat dialog HARUS singkat, maksimal 8 detik pengucapan. Hindari kalimat panjang atau bertele-tele.\n    * **Format Penulisan:** Gunakan format '[NAMA_KARAKTER: (Ekspresi/mood) Kalimat dialog]'. Contoh: '[TUNG-TUNG: (Sok jago) Tenang bro, gampang ini mah... gue udah pro soal ginian.]', '[KLETUK: (Ngegas) Pro pala lo! Lo mah jago ngomong doang!]\n    * **Humor & Celetukan:** Selipkan candaan, celetukan spontan, atau reaksi lucu yang sesuai dengan karakter dan situasi.\n    * **Emosi & Subteks:** Sampaikan emosi melalui ekspresi (dalam kurung) dan pilihan kata yang tidak selalu lugas.\n    * **Hindari Kaku:** Pastikan dialog terdengar otentik seperti obrolan anak muda zaman sekarang.\n\n* **Konten:** Berdasarkan PRINSIP di atas, tuliskan dialog untuk adegan ini dalam format skenario yang diminta.",
+  "dialog_id_gaul": "**\`dialogue\` (String):**\n* **Instruksi Language:** TULIS HANYA DALAM BAHASA INDONESIA DENGAN GAYA BAHASA GAUL JAKSEL DAN SEDIKIT LOGAT BETAWI.\n* **Peran AI:** Anda adalah penulis skenario yang ahli menciptakan dialog natural, penuh emosi, humor, dan celetukan khas anak muda.\n* **PRINSIP PENULISAN DIALOG (WAJIB DIIKUTI):\n    * **Gaya Language:** Gunakan bahasa santai, gaul Jaksel (misal: 'beneran deh', 'gitu loh', 'anjir', 'parah'), dan selipkan logat Betawi jika natural (misal: 'iye', 'dah', 'nih').\n    * **Singkat & Cepat:** Setiap kalimat dialog HARUS singkat, maksimal 8 detik pengucapan. Hindari kalimat panjang atau bertele-tele.\n    * **Format Penulisan:** Gunakan format '[NAMA_KARAKTER: (Ekspresi/mood) Kalimat dialog]'. Contoh: '[TUNG-TUNG: (Sok jago) Tenang bro, gampang ini mah... gue udah pro soal ginian.]', '[KLETUK: (Ngegas) Pro pala lo! Lo mah jago ngomong doang!]\n    * **Humor & Celetukan:** Selipkan candaan, celetukan spontan, atau reaksi lucu yang sesuai dengan karakter dan situasi.\n    * **Emosi & Subteks:** Sampaikan emosi melalui ekspresi (dalam kurung) dan pilihan kata yang tidak selalu lugas.\n    * **Hindari Kaku:** Pastikan dialog terdengar otentik seperti obrolan anak muda zaman sekarang.\n\n* **Konten:** Berdasarkan PRINSIP di atas, tuliskan dialog untuk adegan ini dalam format skenario yang diminta.",
   
-  "narasi": "[BAHASA: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita."
+  "narasi": "[Language: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita."
 }
 
 **PANDUAN KUALITAS:**
@@ -284,7 +284,7 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
 - Dialog: Gunakan bahasa sehari-hari yang autentik
 - Narasi: Buat engaging dan mendukung emosi scene
 
-**CONTOH ADAPTASI BAHASA:**
+**CONTOH ADAPTASI Language:**
 - Bahasa Indonesia: Natural, tidak formal berlebihan
 - Bahasa Sunda: Gunakan "nya", "teh", "mah" secara natural
 - Bahasa Jawa: Sesuaikan dengan tingkat kesopanan (ngoko/krama)
@@ -351,10 +351,10 @@ Berdasarkan **IDE CERITA** dan **GAMBAR KUNCI** yang diberikan, generate JSON de
 {
   "video_prompts": [
     {
-      "scenePrompt": "[BAHASA: INGGRIS] Deskripsi visual scene yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting.",
-      "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging dan mendukung atmosfer cerita.",
-      "dialog_en": "[BAHASA: INGGRIS] Dialog natural dalam format skenario.",
-      "dialog_id": "[BAHASA: ${bahasa_dipilih}] Dialog natural yang sama dalam bahasa lokal yang autentik."
+      "scenePrompt": "[Language: INGGRIS] Deskripsi visual scene yang detail dan sinematografis. Include: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan elemen visual penting.",
+      "narasi": "[Language: INDONESIA] Narasi voice-over yang engaging dan mendukung atmosfer cerita.",
+      "dialog_en": "[Language: INGGRIS] Dialog natural dalam format skenario.",
+      "dialog_id": "[Language: ${bahasa_dipilih}] Dialog natural yang sama dalam bahasa lokal yang autentik."
     }
     // ... 8 scenes total
   ]

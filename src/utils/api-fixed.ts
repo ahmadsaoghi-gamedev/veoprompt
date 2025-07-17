@@ -16,8 +16,8 @@ interface StoryContext {
 }
 
 interface LanguageOptions {
-  bahasa: string;
-  aksen: string;
+  Language: string;
+  Accent: string;
 }
 
 
@@ -495,9 +495,9 @@ function generateEnhancedVeo3OptimizedPrompt(
   characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter }
 ): string {
   // Clean prompts
-  const cleanVisual = visualPrompt.replace(/\[BAHASA:.*?\]/g, '').trim();
-  const cleanAudio = audioPrompt.replace(/\[BAHASA:.*?\]/g, '').trim();
-  const cleanDialog = indonesianDialog.replace(/\[BAHASA:.*?\]/g, '').trim();
+  const cleanVisual = visualPrompt.replace(/\[Language:.*?\]/g, '').trim();
+  const cleanAudio = audioPrompt.replace(/\[Language:.*?\]/g, '').trim();
+  const cleanDialog = indonesianDialog.replace(/\[Language:.*?\]/g, '').trim();
   
   // Parse dialog untuk mengidentifikasi siapa yang berbicara
   const dialogLines = cleanDialog.split('\n').filter(line => line.trim());
@@ -608,7 +608,7 @@ DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW.
     * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Bahasa Inggris.
     * Jumlah baris dialog HARUS SAMA PERSIS.
     * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Bahasa:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
+* **Gaya Language:** Gunakan bahasa gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
@@ -635,15 +635,15 @@ Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
 {
   "video_prompts": [
     {
-      "scenePrompt": "[BAHASA: INGGRIS] Deskripsi visual scene yang detail. WAJIB mencakup: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan PENTING: jelaskan dengan detail kapan setiap karakter berbicara dengan mouth movement dan facial expressions.",
+      "scenePrompt": "[Language: INGGRIS] Deskripsi visual scene yang detail. WAJIB mencakup: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan PENTING: jelaskan dengan detail kapan setiap karakter berbicara dengan mouth movement dan facial expressions.",
       
-      "narasi": "[BAHASA: INDONESIA] Narasi voice-over yang engaging.",
+      "narasi": "[Language: INDONESIA] Narasi voice-over yang engaging.",
       
       "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Bahasa Inggris). Format: '[KARAKTER_A: (emotion), dialog]' dan '[KARAKTER_B: (emotion), dialog]'.",
       
       "dialog_id": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Bahasa Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
       
-      "veo3_optimized_prompt": "[BAHASA: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan instruksi spesifik tentang character speaking assignment."
+      "veo3_optimized_prompt": "[Language: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan instruksi spesifik tentang character speaking assignment."
     }
     // ... total 8 scenes
   ]
@@ -1152,7 +1152,7 @@ Anda adalah penulis skenario profesional spesialis film pendek animasi 3D yang u
    - Semua elemen wajib 100% orisinal dari ide pengguna.
    - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru.
 
-2. **KONSISTENSI BAHASA:** 
+2. **KONSISTENSI Language:** 
    - Gunakan bahasa Indonesia yang natural, hidup, dan penuh imajinasi.
    - Hindari bahasa yang terlalu kaku atau formal.
 
