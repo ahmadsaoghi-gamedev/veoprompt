@@ -9,7 +9,8 @@ import {
   Moon,
   Sun,
   Zap,
-  Lightbulb
+  Lightbulb,
+  MessageSquare
 } from 'lucide-react';
 import { FaYoutube, FaTiktok, FaApple, FaHeart } from 'react-icons/fa';
 import { SiBuymeacoffee } from 'react-icons/si';
@@ -54,7 +55,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'bank', label: t('promptBank.title'), icon: Database },
     { id: 'api', label: t('apiSettings.title'), icon: Zap },
     { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb },
-    { id: 'concept-viz', label: 'Visualisasi Konsep', icon: Image }
+    { id: 'concept-viz', label: 'Visualisasi Konsep', icon: Image },
+    { id: 'dialogue-fixer', label: 'Dialogue Fixer', icon: MessageSquare }
   ];
 
   const [isChangingLanguage, setIsChangingLanguage] = useState(false);
@@ -95,7 +97,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${apiStatus === 'active' ? 'bg-green-500' :
-                  apiStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                apiStatus === 'error' ? 'bg-red-500' : 'bg-gray-400'
                 } shadow-lg`}>
                 <Video className="w-7 h-7 text-white" />
               </div>
@@ -153,10 +155,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
 
             <div className="flex items-center gap-4">
               <div className={`status-indicator ${apiStatus === 'active' ? 'status-active' :
-                  apiStatus === 'error' ? 'status-error' : 'status-inactive'
+                apiStatus === 'error' ? 'status-error' : 'status-inactive'
                 }`}>
                 <div className={`w-2 h-2 rounded-full ${apiStatus === 'active' ? 'bg-white' :
-                    apiStatus === 'error' ? 'bg-white' : 'bg-white'
+                  apiStatus === 'error' ? 'bg-white' : 'bg-white'
                   }`} />
                 {apiStatus === 'active' ? t('apiSettings.apiActive') :
                   apiStatus === 'error' ? t('apiSettings.apiError') : t('apiSettings.apiInactive')}
@@ -198,8 +200,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
                   key={tab.id}
                   onClick={() => onTabChange(tab.id)}
                   className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap border-b-3 transition-all ${activeTab === tab.id
-                      ? 'border-purple-500 text-purple-600 bg-purple-50'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'border-purple-500 text-purple-600 bg-purple-50'
+                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                 >
                   <Icon className="w-4 h-4" />
