@@ -225,6 +225,8 @@ export async function generateAnomalyScenePrompt(
   totalScenes: number,
   languageOptions: LanguageOptions,
   referencePrompt: string,
+  visualStyle: string,
+  aspectRatio: string,
   apiSettings?: APISettings
 ): Promise<{
   visual_prompt: string;
@@ -295,7 +297,7 @@ export async function generateAnomalyScenePrompt(
 **STRUKTUR OUTPUT JSON YANG WAJIB DIIKUTI:**
 
 {
-  "visual_prompt": "[BAHASA: INGGRIS] Deskripsi visual yang sinematik, rinci, dan berstandar kualitas 3D animasi premium yang mengikuti gaya dari **CONTOH REFERENSI GAYA**. WAJIB mencakup: 3D animation style (Pixar/Disney quality), detailed character modeling untuk ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}, advanced lighting, realistic textures, smooth character animation, cinematic camera work, cultural elements, vibrant color palette, high-quality rendering (4K, ray-traced), dynamic composition, expressive character faces dengan facial animation yang jelas untuk setiap karakter, fluid motion, atmospheric effects. PENTING: Jelaskan dengan detail kapan ${characters.karakter_1.nama} berbicara (mouth movement, facial expressions) dan kapan ${characters.karakter_2.nama} berbicara.",
+  "visual_prompt": "[String] TULIS BAGIAN INI HANYA DALAM BAHASA INGGRIS. Deskripsikan semua elemen visual dengan format: Mulai dengan 'A cinematic, heartwarming 3D animated scene in the style of **${visualStyle}**.' Lanjutkan dengan deskripsi setting dan aksi karakter dalam format skenario profesional yang detail, termasuk kapan ${characters.karakter_1.nama} berbicara (mouth movement, facial expressions) dan kapan ${characters.karakter_2.nama} berbicara. Di akhir paragraf, tambahkan: 'Cinematography: [minta AI untuk menentukan gerakan kamera, sudut, dan pencahayaan yang sesuai dengan gaya]. Aspect Ratio: **${aspectRatio}**.'",
   
   "audio_prompt": "[BAHASA: INGGRIS] Deskripsi audio yang komprehensif, menggambarkan kualitas suara setara film animasi kelas dunia yang selaras dengan gaya referensi. Wajib meliputi: orchestral/cinematic music dengan instrumen tradisional Indonesia, spatial audio design, character voice acting direction untuk ${characters.karakter_1.nama} (jelaskan karakteristik suara) dan ${characters.karakter_2.nama} (jelaskan karakteristik suara berbeda), ambient soundscape, foley effects, dynamic range, dan emotional musical themes.",
   
