@@ -229,7 +229,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
               <span>Love</span>
             </div>
             <a
-              href="https://saweria.co/ahmadsaoghi"
+              href="https://www.paypal.com/paypalme/oghiezr"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-medium transition-colors"
