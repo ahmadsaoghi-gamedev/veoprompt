@@ -121,6 +121,8 @@ ${cleanedDialog.trim()}
           story.sinopsis_per_adegan.length,
           languageOptions,
           referencePrompt,
+          selectedStyle,
+          aspectRatio,
           apiSettings
         );
 
