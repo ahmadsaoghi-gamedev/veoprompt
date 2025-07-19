@@ -9,6 +9,38 @@ import {
 import { getSettings } from '../utils/database';
 import { fetchBrainPrompt, getAvailableBrainStyles } from '../utils/storage';
 import { AnomalyScenePrompt, APISettings } from '../types';
+import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+
+// Preset character definitions
+const PRESET_CHARACTERS = [
+  { id: 'aye-aye', name: 'Aye-Aye', description: 'Mysterious nocturnal lemur with long fingers, large eyes that glow in the dark, and bat-like ears' },
+  { id: 'quokka', name: 'Quokka', description: 'The happiest animal on Earth with constant smile, round fluffy body, and tiny paws' },
+  { id: 'pink-fairy-armadillo', name: 'Pink Fairy Armadillo', description: 'Tiny armored creature with pink shell, silky white fur underneath, and powerful digging claws' },
+  { id: 'fennec-fox', name: 'Fennec Fox', description: 'Small desert fox with oversized ears, sandy fur, and bright curious eyes' },
+  { id: 'axolotl', name: 'Axolotl', description: 'Aquatic salamander with regenerative abilities, feathery gills, and perpetual smile' },
+  { id: 'pangolin', name: 'Pangolin', description: 'Scaly anteater that rolls into a ball, with armor-like scales and long sticky tongue' },
+  { id: 'saiga', name: 'Saiga', description: 'Antelope with distinctive inflated nose, translucent horns, and woolly coat' }
+];
+
+// Supporting character pool
+const SUPPORTING_CHARACTERS = [
+  { name: 'Wise Old Owl', description: 'Ancient owl with silver feathers, half-moon spectacles, and knowing golden eyes' },
+  { name: 'Chatty Parrot', description: 'Colorful parrot with rainbow feathers, always talking and mimicking sounds' },
+  { name: 'Grumpy Badger', description: 'Stocky badger with permanent frown, striped face, and surprisingly soft heart' },
+  { name: 'Cheerful Rabbit', description: 'Bouncy rabbit with floppy ears, cotton tail, and infectious enthusiasm' },
+  { name: 'Mysterious Cat', description: 'Sleek feline with mismatched eyes, silent paws, and enigmatic smile' },
+  { name: 'Friendly Dog', description: 'Loyal canine with wagging tail, warm brown eyes, and protective nature' },
+  { name: 'Curious Squirrel', description: 'Hyperactive squirrel with bushy tail, cheek pouches, and endless questions' },
+  { name: 'Gentle Elephant', description: 'Wise pachyderm with kind eyes, graceful trunk, and excellent memory' },
+  { name: 'Playful Monkey', description: 'Mischievous primate with nimble hands, expressive face, and acrobatic skills' },
+  { name: 'Calm Turtle', description: 'Ancient turtle with weathered shell, slow movements, and patient wisdom' }
+];
+
+interface SelectedCharacter {
+  name: string;
+  description: string;
+  type: 'preset' | 'custom' | 'supporting';
+}
 
 const AnomalyMode = () => {
   const [userIdea, setUserIdea] = useState('');
@@ -27,6 +59,15 @@ const AnomalyMode = () => {
   const [apiSettings, setApiSettings] = useState<APISettings | null>(null);
   const [aspectRatio, setAspectRatio] = useState('16:9');
 
+  // Character selection states
+  const [useCharacterSelection, setUseCharacterSelection] = useState(false);
+  const [selectedCharacters, setSelectedCharacters] = useState<SelectedCharacter[]>([]);
+  const [showPresetDropdown, setShowPresetDropdown] = useState(false);
+  const [customCharacterName, setCustomCharacterName] = useState('');
+  const [customCharacterDescription, setCustomCharacterDescription] = useState('');
+  const [needSupportingCharacters, setNeedSupportingCharacters] = useState(false);
+  const [showCharacterSection, setShowCharacterSection] = useState(false);
+
   useEffect(() => {
     loadApiSettings();
   }, []);
@@ -38,6 +79,49 @@ const AnomalyMode = () => {
     } catch (error) {
       console.error('Failed to load API settings:', error);
     }
+  };
+
+  // Character selection helper functions
+  const addPresetCharacter = (character: typeof PRESET_CHARACTERS[0]) => {
+    if (selectedCharacters.length >= 3) {
+      alert('Maximum 3 characters allowed');
+      return;
+    }
+    const newCharacter: SelectedCharacter = {
+      name: character.name,
+      description: character.description,
+      type: 'preset'
+    };
+    setSelectedCharacters([...selectedCharacters, newCharacter]);
+    setShowPresetDropdown(false);
+  };
+
+  const addCustomCharacter = () => {
+    if (!customCharacterName.trim() || !customCharacterDescription.trim()) {
+      alert('Please enter both character name and description');
+      return;
+    }
+    if (selectedCharacters.length >= 3) {
+      alert('Maximum 3 characters allowed');
+      return;
+    }
+    const newCharacter: SelectedCharacter = {
+      name: customCharacterName.trim(),
+      description: customCharacterDescription.trim(),
+      type: 'custom'
+    };
+    setSelectedCharacters([...selectedCharacters, newCharacter]);
+    setCustomCharacterName('');
+    setCustomCharacterDescription('');
+  };
+
+  const removeCharacter = (index: number) => {
+    setSelectedCharacters(selectedCharacters.filter((_, i) => i !== index));
+  };
+
+  const getRandomSupportingCharacter = () => {
+    const randomIndex = Math.floor(Math.random() * SUPPORTING_CHARACTERS.length);
+    return SUPPORTING_CHARACTERS[randomIndex];
   };
 
   const handleGenerateIdea = async () => {
@@ -101,8 +185,52 @@ ${dialogWithNewlines}
       setLoadingMessage('Fetching visual style references from Brain Prompt...');
       const referencePrompt = await fetchBrainPrompt(selectedStyle);
 
-      setLoadingMessage('Creating anomaly characters...');
-      const characters = await generateAnomalyCharacters(userIdea, apiSettings);
+      let characters;
+
+      if (useCharacterSelection && selectedCharacters.length > 0) {
+        // Use selected characters
+        setLoadingMessage('Preparing selected characters...');
+
+        // Fill up to 3 characters
+        const finalCharacters = [...selectedCharacters];
+
+        // Add supporting characters if needed
+        if (needSupportingCharacters) {
+          while (finalCharacters.length < 3) {
+            const supportingChar = getRandomSupportingCharacter();
+            finalCharacters.push({
+              name: supportingChar.name,
+              description: supportingChar.description,
+              type: 'supporting'
+            });
+          }
+        } else {
+          // If not enough characters selected and no supporting characters needed, show error
+          if (finalCharacters.length < 3) {
+            throw new Error(`Please select 3 characters or enable supporting characters. Currently selected: ${finalCharacters.length}`);
+          }
+        }
+
+        // Convert to expected format
+        characters = {
+          karakter_1: {
+            nama: finalCharacters[0].name,
+            deskripsi_fisik: finalCharacters[0].description
+          },
+          karakter_2: {
+            nama: finalCharacters[1].name,
+            deskripsi_fisik: finalCharacters[1].description
+          },
+          karakter_3: {
+            nama: finalCharacters[2].name,
+            deskripsi_fisik: finalCharacters[2].description
+          }
+        };
+      } else {
+        // Auto-generate characters as before
+        setLoadingMessage('Creating anomaly characters...');
+        characters = await generateAnomalyCharacters(userIdea, apiSettings);
+      }
 
       // Validate characters structure
       if (!characters || !characters.karakter_1 || !characters.karakter_2 || !characters.karakter_3) {
@@ -224,6 +352,147 @@ ${dialogWithNewlines}
           placeholder="Masukkan ide dasar film surealis Anda..."
         />
       </div>
+
+      {/* Character Selection Section */}
+      <fieldset className="mb-6 p-4 border rounded bg-purple-50">
+        <legend className="px-2 font-bold flex items-center gap-2">
+          <span>Character Selection (Optional)</span>
+          <button
+            type="button"
+            onClick={() => setShowCharacterSection(!showCharacterSection)}
+            className="text-purple-600 hover:text-purple-800"
+          >
+            {showCharacterSection ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </legend>
+
+        {showCharacterSection && (
+          <div className="space-y-4 mt-4">
+            {/* Toggle for using character selection */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="useCharacterSelection"
+                checked={useCharacterSelection}
+                onChange={(e) => setUseCharacterSelection(e.target.checked)}
+                className="w-4 h-4 text-purple-600 rounded"
+              />
+              <label htmlFor="useCharacterSelection" className="font-medium">
+                Use custom character selection instead of auto-generation
+              </label>
+            </div>
+
+            {useCharacterSelection && (
+              <>
+                {/* Selected Characters Display */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Selected Characters ({selectedCharacters.length}/3):</h4>
+                  {selectedCharacters.length === 0 ? (
+                    <p className="text-gray-500 italic">No characters selected yet</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedCharacters.map((char, index) => (
+                        <div key={index} className="flex items-start gap-2 p-3 bg-white rounded border">
+                          <div className="flex-1">
+                            <div className="font-medium">{char.name}</div>
+                            <div className="text-sm text-gray-600">{char.description}</div>
+                            <div className="text-xs text-purple-600 mt-1">Type: {char.type}</div>
+                          </div>
+                          <button
+                            onClick={() => removeCharacter(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Preset Character Selection */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetDropdown(!showPresetDropdown)}
+                    disabled={selectedCharacters.length >= 3}
+                    className={`w-full p-3 text-left border rounded flex items-center justify-between ${selectedCharacters.length >= 3 ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:bg-gray-50'
+                      }`}
+                  >
+                    <span>Select Preset Character</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+
+                  {showPresetDropdown && selectedCharacters.length < 3 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {PRESET_CHARACTERS.map((character) => (
+                        <button
+                          key={character.id}
+                          type="button"
+                          onClick={() => addPresetCharacter(character)}
+                          className="w-full p-3 text-left hover:bg-purple-50 border-b last:border-b-0"
+                        >
+                          <div className="font-medium">{character.name}</div>
+                          <div className="text-sm text-gray-600">{character.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Character Input */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Add Custom Character:</h4>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Character name"
+                      value={customCharacterName}
+                      onChange={(e) => setCustomCharacterName(e.target.value)}
+                      className="flex-1 p-2 border rounded"
+                      disabled={selectedCharacters.length >= 3}
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomCharacter}
+                      disabled={selectedCharacters.length >= 3 || !customCharacterName.trim() || !customCharacterDescription.trim()}
+                      className={`px-4 py-2 rounded flex items-center gap-2 ${selectedCharacters.length >= 3 || !customCharacterName.trim() || !customCharacterDescription.trim()
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                        }`}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
+                  <textarea
+                    placeholder="Character description (physical appearance, personality, etc.)"
+                    value={customCharacterDescription}
+                    onChange={(e) => setCustomCharacterDescription(e.target.value)}
+                    className="w-full p-2 border rounded"
+                    rows={2}
+                    disabled={selectedCharacters.length >= 3}
+                  />
+                </div>
+
+                {/* Supporting Characters Option */}
+                <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded">
+                  <input
+                    type="checkbox"
+                    id="needSupportingCharacters"
+                    checked={needSupportingCharacters}
+                    onChange={(e) => setNeedSupportingCharacters(e.target.checked)}
+                    className="w-4 h-4 text-yellow-600 rounded"
+                  />
+                  <label htmlFor="needSupportingCharacters" className="text-sm">
+                    Need additional supporting characters? (AI will auto-generate from pool: Wise Old Owl, Chatty Parrot, etc.)
+                  </label>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </fieldset>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div>
