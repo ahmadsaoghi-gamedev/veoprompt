@@ -29,7 +29,7 @@ const ANIMATION_STYLES = {
     technicalSpecs: 'subsurface scattering, advanced water physics, photogrammetry textures, volumetric lighting, realistic hair/fur simulation, micro-detail surface imperfections'
   },
   'stylized-comic-cel': {
-    name: 'Stylized Comic-Cel Shading (Spider-Verse Style)', 
+    name: 'Stylized Comic-Cel Shading (Spider-Verse Style)',
     description: '3D cel-shading combined with 2D frame-by-frame effects, comic book aesthetic with dynamic visual storytelling',
     technicalSpecs: 'cel-shading, halftone patterns, comic book line art, dynamic camera angles, mixed frame rates, stylized motion blur, pop-art color palette'
   },
@@ -74,7 +74,7 @@ export function generateAnimationStylePrompt(
 ): string {
   const styleSpecs = getAnimationStyleSpecs(animationStyle);
   const culturalIntegration = culturalTheme ? ` with ${culturalTheme} cultural elements` : '';
-  
+
   return `${basePrompt}
 
 **ANIMATION STYLE SPECIFICATION:**
@@ -96,42 +96,42 @@ function getStyleSpecificEnhancements(
 - Micro-detail environmental elements
 - Realistic lighting with global illumination
 - High-fidelity material properties`,
-    
+
     'stylized-comic-cel': `
 - Bold cel-shading with comic book line art
 - Dynamic halftone patterns and pop-art colors
 - Mixed frame rates for stylistic effect
 - Exaggerated perspective and camera angles
 - Comic book panel-inspired compositions`,
-    
+
     'pixar-stylized-realism': `
 - Exaggerated character proportions with realistic materials
 - Advanced fabric and hair simulation
 - Soft, warm lighting with emotional depth
 - Detailed texture work on surfaces
 - Expressive facial animation with squash-and-stretch`,
-    
+
     'dreamworks-cartoonish-realism': `
 - Vibrant, saturated color palette
 - Fluid dynamic animation for action sequences
 - Semi-realistic anatomy with cartoon expressiveness
 - Advanced particle effects and atmospheric elements
 - Dynamic lighting that supports storytelling`,
-    
+
     'photorealistic-cgi': `
 - Documentary-level animal and environmental realism
 - Natural lighting and color grading
 - Realistic animal behavior and movement
 - Environmental accuracy and detail
 - Cinematic composition with natural camera work`,
-    
+
     'abstract-mixed-media': `
 - Seamless blend of 2D and 3D elements
 - Abstract particle effects and artistic transitions
 - Non-photorealistic rendering techniques
 - Stylized color palettes for emotional impact
 - Mixed media textures and artistic overlays`,
-    
+
     'textured-stylization': `
 - Rich cultural pattern integration
 - Detailed textile and fabric simulation
@@ -139,14 +139,14 @@ function getStyleSpecificEnhancements(
 - Warm, culturally-appropriate color palettes
 - Environmental storytelling through cultural details`
   };
-  
+
   let enhancement = enhancements[styleKey];
-  
+
   if (culturalTheme) {
     enhancement += `\n\n**CULTURAL INTEGRATION (${culturalTheme.toUpperCase()}):**
 ${getCulturalIntegrationSpecs(culturalTheme)}`;
   }
-  
+
   return enhancement;
 }
 
@@ -220,28 +220,29 @@ export function getAvailableCulturalThemes(): string[] {
 // Helper function to get dialog style based on accent
 function getDialogStyleByAccent(accent: string): string {
   const accentStyles: Record<string, string> = {
-    'Betawi': '- Gunakan Language gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh)\n- Tambahkan logat Betawi seperti "iye", "kagak", "ape", "nih", "dah"\n- Gunakan struktur kalimat khas Betawi',
-    'Jawa': '- Gunakan Language Jawa yang natural dengan tingkat kesopanan yang sesuai (ngoko untuk teman sebaya, krama untuk yang lebih tua)\n- Gunakan kata-kata khas Jawa seperti "mas", "mbak", "pak", "bu", "iki", "kuwi", "opo", "piye"\n- Tambahkan partikel khas Jawa seperti "to", "ta", "kok", "lho"',
-    'Sunda': '- Gunakan Language Sunda yang natural dan lembut\n- Gunakan kata-kata khas Sunda seperti "teh", "mah", "nya", "euy", "atuh", "yeuh"\n- Struktur kalimat mengikuti pola Language Sunda',
+    'Betawi': '- Use natural Jakarta slang (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh)\n- Add Betawi dialect words like "iye", "kagak", "ape", "nih", "dah"\n- Use typical Betawi sentence structures',
+    'Jawa': '- Use natural Javanese language with appropriate politeness level (ngoko for peers, krama for elders)\n- Include typical Javanese words like "mas", "mbak", "pak", "bu", "iki", "kuwi", "opo", "piye"\n- Add Javanese particles like "to", "ta", "kok", "lho"',
+    'Sunda': '- Use natural and gentle Sundanese language\n- Include Sundanese words like "teh", "mah", "nya", "euy", "atuh", "yeuh"\n- Follow Sundanese sentence patterns',
     'US': '- Use natural American English with contemporary slang and idioms\n- Include contractions and casual expressions\n- Reflect modern American speech patterns',
     'British': '- Use British English with appropriate vocabulary and expressions\n- Include British slang and idioms where appropriate\n- Reflect British speech patterns and politeness conventions'
   };
-  
-  return accentStyles[accent] || '- Gunakan Language yang natural sesuai dengan Accent yang dipilih';
+
+  return accentStyles[accent] || '- Use natural language appropriate to the selected Accent';
 }
 
 // Helper function to get dialog language based on accent
 function getDialogLanguageByAccent(accent: string): string {
   const languageMap: Record<string, string> = {
-    'Betawi': 'Bahasa Indonesia Gaul dengan Logat Betawi',
-    'Jawa': 'Bahasa Jawa',
-    'Sunda': 'Bahasa Sunda',
+    'Betawi': 'Casual Indonesian with Betawi Dialect',
+    'Jawa': 'Javanese',
+    'Sunda': 'Sundanese',
     'US': 'American English',
     'British': 'British English'
   };
-  
-  return languageMap[accent] || 'Bahasa Indonesia';
+
+  return languageMap[accent] || 'Indonesian';
 }
+
 
 // Helper function to get correct language reference for instructions
 function getCorrectLanguageReference(language: string, accent: string): string {
@@ -263,55 +264,56 @@ function getCorrectLanguageReference(language: string, accent: string): string {
   return `${language} with authentic ${accent} accent`;
 }
 
+
 // Helper function to detect existing dialogue in text
-function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues: Array<{speaker: string; emotion?: string; text: string; fullMatch: string}> } {
-  const dialogues: Array<{speaker: string; emotion?: string; text: string; fullMatch: string}> = [];
-  
+function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string }> } {
+  const dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string }> = [];
+
   // Pattern 1: **Character:** "dialogue"
   const pattern1 = /\*\*([^:*]+):\*\*\s*"([^"]+)"/g;
   let match;
   while ((match = pattern1.exec(text)) !== null) {
-    dialogues.push({ 
-      speaker: match[1].trim(), 
+    dialogues.push({
+      speaker: match[1].trim(),
       text: match[2].trim(),
       fullMatch: match[0]
     });
   }
-  
+
   // Pattern 2: Character: "dialogue"
   const pattern2 = /^([^:*\n]+):\s*"([^"]+)"/gm;
   while ((match = pattern2.exec(text)) !== null) {
     if (!match[0].includes('**')) {
-      dialogues.push({ 
-        speaker: match[1].trim(), 
+      dialogues.push({
+        speaker: match[1].trim(),
         text: match[2].trim(),
         fullMatch: match[0]
       });
     }
   }
-  
+
   // Pattern 3: [Character: (emotion), dialogue]
   const pattern3 = /\[([^:]+):\s*\(([^)]+)\),\s*([^\]]+)\]/g;
   while ((match = pattern3.exec(text)) !== null) {
-    dialogues.push({ 
-      speaker: match[1].trim(), 
-      emotion: match[2].trim(), 
+    dialogues.push({
+      speaker: match[1].trim(),
+      emotion: match[2].trim(),
       text: match[3].trim(),
       fullMatch: match[0]
     });
   }
-  
+
   // Pattern 4: Character (emotion): "dialogue"
   const pattern4 = /([^(\n]+)\s*\(([^)]+)\):\s*"([^"]+)"/g;
   while ((match = pattern4.exec(text)) !== null) {
-    dialogues.push({ 
-      speaker: match[1].trim(), 
-      emotion: match[2].trim(), 
+    dialogues.push({
+      speaker: match[1].trim(),
+      emotion: match[2].trim(),
       text: match[3].trim(),
       fullMatch: match[0]
     });
   }
-  
+
   return {
     hasDialogue: dialogues.length > 0,
     dialogues: dialogues
@@ -321,7 +323,7 @@ function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues
 // Helper function to translate character names to English
 function translateCharacterName(name: string, toEnglish: boolean): string {
   if (!toEnglish) return name;
-  
+
   const translations: Record<string, string> = {
     'ibu': 'Mother',
     'mom': 'Mother',
@@ -342,7 +344,7 @@ function translateCharacterName(name: string, toEnglish: boolean): string {
     'pekerja lapangan': 'Field Worker',
     'field worker': 'Field Worker'
   };
-  
+
   const lowerName = name.toLowerCase();
   return translations[lowerName] || name;
 }
@@ -372,7 +374,7 @@ export async function generateAnomalyScenePrompt(
 
   // Check if dialogue already exists in the scene
   const existingDialogue = detectExistingDialogue(storyContext.sinopsis_per_adegan[sceneNumber - 1]);
-  
+
   const dialogueInstructions = existingDialogue.hasDialogue ? `
 **ABSOLUTE DIALOG PRESERVATION MANDATE:**
 "The scene description ALREADY CONTAINS DIALOGUE. You MUST:
@@ -440,71 +442,72 @@ ${dialogueInstructions}
   "veo3_optimized_prompt": "[String] MIXED STRUCTURED LANGUAGE. Optimized prompt specifically for Gemini Veo3 with very specific instructions about who speaks when, integrating style elements from the reference."
 }
 
-**SPECIAL INSTRUCTIONS FOR VEO3_OPTIMIZED_PROMPT:**
-Create a prompt with the following VERY SPECIFIC pattern about character speaking and integrating visual style:
+**ENHANCED SPECIAL INSTRUCTIONS FOR VEO3_OPTIMIZED_PROMPT:**
+Create a prompt with the following ADVANCED SPECIFIC pattern for character speaking integration and visual style adaptation:
 
-"${existingDialogue.hasDialogue ? 
-`ABSOLUTE DIALOG PRESERVATION MANDATE: Use the EXACT provided dialog without any word changes.
+"${existingDialogue.hasDialogue ?
+      `ABSOLUTE DIALOG PRESERVATION MANDATE: Utilize the EXACT provided dialog maintaining complete textual integrity without modifications, additions, or deletions.
 
-VISUAL SCENE: [Create visual narrative that SUPPORTS the existing dialog - describe scenes where ${characters.karakter_1.nama} plays the Mom character, ${characters.karakter_2.nama} plays Brian/Son character, ${characters.karakter_3.nama} plays the beggar character, with actions and settings that make the provided dialog work seamlessly]
+IMMERSIVE VISUAL SCENE CONSTRUCTION: [Engineer comprehensive visual narrative that seamlessly SUPPORTS and enhances the existing dialog - craft detailed scenes where ${characters.karakter_1.nama} embodies the maternal/nurturing character role, ${characters.karakter_2.nama} portrays the curious/energetic child character, ${characters.karakter_3.nama} represents the third-party/stranger character, with dynamic actions, environmental settings, character positioning, and emotional expressions that organically complement and validate the provided dialog flow]
 
-CHARACTER VISUAL MAPPING:
-- When dialog shows [Mom], visually show ${characters.karakter_1.nama}
-- When dialog shows [Brian] or [Son], visually show ${characters.karakter_2.nama}
-- When dialog shows [beggar], visually show ${characters.karakter_3.nama}
+PRECISION CHARACTER VISUAL MAPPING:
+- Dialog reference [Mom]/[Mother] → Visual representation: ${characters.karakter_1.nama} with maternal characteristics and nurturing body language
+- Dialog reference [Brian]/[Son]/[Child] → Visual representation: ${characters.karakter_2.nama} with youthful energy and curious expressions
+- Dialog reference [beggar]/[Stranger]/[Third Party] → Visual representation: ${characters.karakter_3.nama} with appropriate contextual appearance
 
-DIALOG REQUIREMENT - USE EXACTLY AS PROVIDED:
-[Copy the exact dialog from the scene with original character names in brackets]
+DIALOG EXECUTION REQUIREMENT - ABSOLUTE PRESERVATION PROTOCOL:
+[Execute complete copy-paste transfer of the exact dialog sequence from source material, maintaining original character naming conventions within brackets, preserving punctuation, emotional indicators, and conversational flow]
 
-AUDIO DESIGN: [Design audio that supports the preserved dialog, with voice characteristics matching the visual characters]
+COMPREHENSIVE AUDIO ARCHITECTURE: [Design sophisticated audio landscape supporting the preserved dialog integrity, incorporating character-specific voice characteristics that authentically match visual character representations, environmental soundscape enhancement, emotional musical scoring, and spatial audio positioning]
 
-CRITICAL: The dialog must be preserved EXACTLY as provided. Build the visual story AROUND the existing conversation.` 
-: 
-`LANGUAGE EXECUTION MANDATE: Generate video content with ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)} linguistic authenticity.
+PRODUCTION EXCELLENCE DIRECTIVE: The dialog content represents immutable source material requiring ABSOLUTE preservation. Construct ALL visual, auditory, and narrative elements to harmoniously support and enhance the existing conversational framework without compromising textual authenticity.`
+      :
+      `ADVANCED LANGUAGE EXECUTION MANDATE: Generate premium video content featuring authentic ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)} linguistic delivery with cultural accuracy and natural conversational flow.
 
-VISUAL SCENE: [visual description with details of when each character speaks, adapting visual style from reference]
+DYNAMIC VISUAL SCENE ORCHESTRATION: [Develop rich visual narrative incorporating detailed environmental context, character interaction choreography, emotional expression mapping, lighting transitions, camera movement patterns, and style-appropriate aesthetic elements that enhance storytelling impact while accommodating character speaking sequences]
 
-CHARACTER SPEAKING INSTRUCTION:
-${characters.karakter_1.nama}: [speaking actions and timing]
-${characters.karakter_2.nama}: [speaking actions and timing]
-${characters.karakter_3.nama}: [speaking actions and timing]
+COMPREHENSIVE CHARACTER PERFORMANCE INSTRUCTION:
+${characters.karakter_1.nama}: [Detailed speaking visual cues, facial animation requirements, body language synchronization, emotional expression timing, voice delivery characteristics, and scene positioning]
+${characters.karakter_2.nama}: [Comprehensive speaking performance guidelines, lip-sync precision, gestural coordination, personality expression markers, vocal tone characteristics, and interaction dynamics]
+${characters.karakter_3.nama}: [Complete speaking direction including facial movement precision, character-specific mannerisms, emotional authenticity, voice characteristics alignment, and scene integration]
 
-DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent).toUpperCase()}:
-[${characters.karakter_1.nama}: (emotion), dialogue]
-[${characters.karakter_2.nama}: (emotion), dialogue]
-[${characters.karakter_3.nama}: (emotion), dialogue]
+LINGUISTIC AUTHENTICITY REQUIREMENT - MANDATORY ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent).toUpperCase()} EXECUTION:
+[${characters.karakter_1.nama}: (precise_emotional_descriptor), culturally_authentic_dialogue_delivery]
+[${characters.karakter_2.nama}: (detailed_emotional_state), linguistically_accurate_speech_content]
+[${characters.karakter_3.nama}: (specific_emotional_context), accent_appropriate_dialogue_expression]
 
-AUDIO DESIGN: [audio description with voice characteristics for each character]
+SOPHISTICATED AUDIO DESIGN ARCHITECTURE: [Engineer multi-layered audio environment featuring character-specific voice profiling with accent authenticity, environmental soundscape design, emotional musical scoring with genre-appropriate instrumentation, spatial audio positioning, foley effects integration, and dynamic range optimization]
 
-CRITICAL INSTRUCTION: ALL spoken words must be in ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)}, with NO other language interference. MANDATORY: Use ONLY these exact character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}.`}"
+PRODUCTION EXCELLENCE PROTOCOL: ALL verbal communication must demonstrate ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)} linguistic precision with zero cross-language contamination. CHARACTER NAMING COMPLIANCE: Utilize EXCLUSIVELY these exact character designations: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama} throughout all content generation phases.`}"
 
-**GIVEN STORY IDEA:**
+**CREATIVE FOUNDATION PARAMETERS:**
 ${userIdea}
 
-**REQUESTED DIALOGUE LANGUAGE:**
+**LINGUISTIC TARGET SPECIFICATION:**
 ${Language_dipilih}
 
-**REQUESTED ACCENT:**
+**CULTURAL ACCENT AUTHENTICATION:**
 ${languageOptions.Accent}
 
-**REQUESTED GENRE/TONE:**
+**NARRATIVE GENRE/TONAL DIRECTION:**
 ${genre_tone}
 
-**VIDEO DURATION: 8 SECONDS - Dialogue must be short, effective, with multiple characters speaking**
+**PRODUCTION DURATION CONSTRAINT: 1 MINUTE - Dialog development must be comprehensive, character-driven, with strategic multi-character speaking distribution and natural conversational pacing**
 
-Generate JSON with the above structure and professional scenario and production quality, ready for rendering in Gemini Veo3.`;
+Execute JSON generation with enhanced structure specifications and cinema-grade scenario development with production-ready optimization for Gemini Veo3 rendering capabilities.`;
+
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
     // Use enhanced JSON parsing with fallback mechanisms
     const result = extractAndParseJson(response);
-    
+
     // Ensure dialogue field exists and is properly formatted
     if (result.dialogue) {
       // Ensure newlines are properly formatted
       result.dialogue = (result.dialogue as string).replace(/\]\s*\[/g, ']\n[');
     }
-    
+
     // Generate optimized Veo3 prompt dengan character-specific instructions
     if (!result.veo3_optimized_prompt) {
       result.veo3_optimized_prompt = generateEnhancedVeo3OptimizedPrompt(
@@ -516,10 +519,10 @@ Generate JSON with the above structure and professional scenario and production 
         languageOptions
       );
     }
-    
+
     // Map dialogue based on language selection for backward compatibility
     const isEnglishLanguage = languageOptions.Accent === 'US' || languageOptions.Accent === 'British';
-    
+
     // Set dialog_en and dialog_id_gaul based on language selection
     if (isEnglishLanguage) {
       result.dialog_en = result.dialogue || '';
@@ -528,7 +531,7 @@ Generate JSON with the above structure and professional scenario and production 
       result.dialog_id_gaul = result.dialogue || '';
       result.dialog_en = ''; // Empty for Indonesian
     }
-    
+
     return result as {
       visual_prompt: string;
       audio_prompt: string;
@@ -556,23 +559,24 @@ function generateEnhancedVeo3OptimizedPrompt(
   const cleanVisual = visualPrompt.replace(/\[Language:.*?\]/g, '').trim();
   const cleanAudio = audioPrompt.replace(/\[Language:.*?\]/g, '').trim();
   const cleanDialog = dialogue.replace(/\[Language:.*?\]/g, '').trim();
-  
+
   // Ensure proper newline formatting in dialog
   const formattedDialog = cleanDialog.replace(/\]\s*\[/g, ']\n[');
-  
+
   // Parse dialog untuk mengidentifikasi siapa yang berbicara dengan lebih akurat
   const dialogLines = formattedDialog.split('\n').filter(line => line.trim());
-  
+
   // Create detailed speaking order with explicit instructions
-  const speakingOrder: string[] = [];
-  const characterDialogueMap: { character: string; line: string; order: number }[] = [];
-  
+  const characterDialogueMap: { character: string; line: string; order: number; emotion?: string; dialogText?: string }[] = [];
+
   dialogLines.forEach((line, index) => {
-    // Extract character name more accurately
-    const match = line.match(/\[([^:]+):\s*(?:\([^)]+\),)?\s*([^\]]+)\]/);
+    // Extract character name, emotion, and dialogue text more accurately
+    const match = line.match(/\[([^:]+):\s*(?:\(([^)]+)\),)?\s*([^\]]+)\]/);
     if (match) {
       const speakerName = match[1].trim();
-      
+      const emotion = match[2]?.trim();
+      const dialogText = match[3]?.trim();
+
       // Determine which character is speaking
       let characterIdentified = '';
       if (speakerName === characters.karakter_1.nama || line.includes(characters.karakter_1.nama)) {
@@ -582,70 +586,99 @@ function generateEnhancedVeo3OptimizedPrompt(
       } else if (speakerName === characters.karakter_3.nama || line.includes(characters.karakter_3.nama)) {
         characterIdentified = characters.karakter_3.nama;
       }
-      
+
       if (characterIdentified) {
         characterDialogueMap.push({
           character: characterIdentified,
           line: line,
-          order: index + 1
+          order: index + 1,
+          emotion: emotion,
+          dialogText: dialogText
         });
       }
     }
   });
 
-  // Generate explicit speaking order instructions
+  // Calculate timing for 8-second scene
+  const totalDuration = 8; // seconds
+  const dialogueCount = characterDialogueMap.length;
+  const timePerDialogue = dialogueCount > 0 ? totalDuration / dialogueCount : totalDuration;
+
+  // Generate explicit speaking order instructions with professional film terminology
   const orderWords = ['FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH', 'EIGHTH'];
+  const professionalTimingInstructions: string[] = [];
+
   characterDialogueMap.forEach((item, index) => {
     const orderWord = orderWords[index] || `LINE ${index + 1}`;
     const otherCharacters = [characters.karakter_1.nama, characters.karakter_2.nama, characters.karakter_3.nama]
       .filter(name => name !== item.character);
-    
-    speakingOrder.push(`${orderWord}: ${item.character} speaks the line "${item.line}". 
-   - VISUAL: Show ${item.character} with active mouth movements and expressive gestures
-   - OTHER CHARACTERS: ${otherCharacters.join(' and ')} DO NOT SPEAK - show them listening/reacting only`);
+
+    const startTime = (index * timePerDialogue).toFixed(1);
+    const endTime = ((index + 1) * timePerDialogue).toFixed(1);
+    const emotionDirection = item.emotion ? ` with ${item.emotion.toUpperCase()} emotion` : '';
+
+    professionalTimingInstructions.push(`
+🎬 ${orderWord} SHOT (${startTime}s - ${endTime}s):
+SPEAKING CHARACTER: ${item.character}${emotionDirection}
+DIALOGUE: "${item.dialogText || item.line}"
+
+CINEMATOGRAPHY DIRECTION:
+- CAMERA: ${index === 0 ? 'ESTABLISHING SHOT then PUSH IN' : index % 2 === 0 ? 'MEDIUM CLOSE-UP' : 'OVER-THE-SHOULDER'} on ${item.character}
+- FOCUS: RACK FOCUS to ${item.character}, soft bokeh on background
+- LIGHTING: KEY LIGHT emphasizes ${item.character}'s face, practical motivated lighting
+
+CHARACTER BLOCKING:
+- ${item.character}: CENTER FRAME, animated speaking with clear lip-sync, ${item.emotion || 'engaged'} facial expression
+- ${otherCharacters[0]}: ${index % 2 === 0 ? 'FRAME LEFT' : 'FRAME RIGHT'}, reactive listening, subtle head nods
+- ${otherCharacters[1] || 'Background'}: ${otherCharacters[1] ? 'BACKGROUND or OFF-FRAME, environmental presence' : 'Environmental elements only'}
+
+AUDIO MIX:
+- DIALOGUE: ${item.character} voice PROMINENT (0dB), room tone ambience
+- FOLEY: Subtle cloth rustles, breathing, environmental sounds
+- MUSIC: Underscore at -12dB, emotional support without overwhelming dialogue`);
   });
 
   // Get the correct language reference based on the original language options
-  const languageRef = languageOptions 
+  const languageRef = languageOptions
     ? getCorrectLanguageReference(languageOptions.Language, languageOptions.Accent)
     : getCorrectLanguageReference(language, characters.karakter_1.nama.includes('Mother') || characters.karakter_1.nama.includes('Father') ? 'British' : 'Betawi');
-  
-  return `LANGUAGE EXECUTION MANDATE: Generate video content with ${languageRef} linguistic authenticity.
 
-VISUAL SCENE:
+  return `🎥 PROFESSIONAL FILM PRODUCTION DIRECTIVE 🎥
+LANGUAGE EXECUTION: ${languageRef} with authentic accent and natural delivery
+
+📋 SCENE BREAKDOWN:
 ${cleanVisual}
 
-⚠️ CRITICAL DIALOGUE ASSIGNMENT INSTRUCTIONS ⚠️
-THE FOLLOWING SPEAKING ORDER MUST BE FOLLOWED EXACTLY:
+⏱️ TIMING SHEET - 8 SECOND SCENE ⏱️
+${professionalTimingInstructions.join('\n')}
 
-${speakingOrder.join('\n\n')}
+🎭 CAST SHEET:
+- LEAD: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
+- SUPPORTING: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+- FEATURED: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
 
-CHARACTER IDENTIFICATION:
-- CHARACTER 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
-- CHARACTER 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
-- CHARACTER 3: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
-
-DIALOGUE LINES (MUST BE SPOKEN IN THIS EXACT ORDER):
+📝 DIALOGUE SCRIPT (LOCKED):
 ${formattedDialog}
 
-AUDIO DESIGN:
+🎵 AUDIO POST-PRODUCTION:
 ${cleanAudio}
 
-⚡ ABSOLUTE REQUIREMENTS FOR VEO3:
-1. DIALOGUE ASSIGNMENT: Each line MUST be spoken by the EXACT character specified in the speaking order above
-2. LIP SYNC: ONLY the currently speaking character shows mouth movements
-3. NON-SPEAKERS: Characters NOT speaking must ONLY show listening reactions (NO mouth movements)
-4. VOICE DISTINCTION: Each character MUST have a unique, distinguishable voice
-5. TURN-TAKING: Clear visual and audio separation between each speaker
-6. CHARACTER NAMES: Use ONLY these exact names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}
-7. NO DIALOGUE MIXING: Character 3's lines MUST be spoken by ${characters.karakter_3.nama} ONLY, NOT by ${characters.karakter_2.nama}
+🎬 DIRECTOR'S CRITICAL NOTES FOR VEO3:
+1. CHARACTER VOICE CASTING: Each character MUST have distinct voice timbre, age-appropriate, matching physical description
+2. LIP-SYNC PRECISION: Frame-accurate mouth movements ONLY during character's dialogue delivery
+3. REACTION SHOTS: Non-speaking characters maintain scene continuity with appropriate reactions
+4. DIALOGUE PACING: Natural conversation rhythm with micro-pauses between speakers
+5. SCENE CONTINUITY: Maintain 180-degree rule, consistent eye-lines, motivated blocking
+6. PERFORMANCE AUTHENTICITY: ${languageRef} delivery must sound native, not translated
+7. TECHNICAL SPECS: 24fps minimum, professional color grading, cinematic aspect ratio
 
-VERIFICATION CHECKLIST:
-✓ ${characters.karakter_1.nama} speaks ONLY their assigned lines
-✓ ${characters.karakter_2.nama} speaks ONLY their assigned lines  
-✓ ${characters.karakter_3.nama} speaks ONLY their assigned lines
-✓ No character speaks another character's dialogue
-✓ All dialogue is in ${languageRef}`;
+✅ FINAL QUALITY CHECK:
+□ ${characters.karakter_1.nama} delivers ONLY their scripted lines at designated times
+□ ${characters.karakter_2.nama} delivers ONLY their scripted lines at designated times
+□ ${characters.karakter_3.nama} delivers ONLY their scripted lines at designated times
+□ NO dialogue overlap or character voice confusion
+□ ALL dialogue in ${languageRef} with proper accent
+□ Professional film production quality matching industry standards`;
 }
 
 // FUNGSI UNTUK VIDEO PROMPTS FROM IMAGE - JUGA DIPERBAIKI
@@ -656,9 +689,9 @@ export async function generateVideoPromptsFromImage(
   apiSettings?: APISettings
 ): Promise<{
   video_prompts: {
-    scenePrompt: string; 
-    narasi: string; 
-    dialog_en: string; 
+    scenePrompt: string;
+    narasi: string;
+    dialog_en: string;
     dialog_id: string;
     veo3_optimized_prompt: string;
   }[]
@@ -668,7 +701,7 @@ export async function generateVideoPromptsFromImage(
 
   // Check if dialogue already exists in the user idea
   const existingDialogue = detectExistingDialogue(userIdea);
-  
+
   // Format existing dialogue for better preservation
   const formattedExistingDialogue = existingDialogue.dialogues.map(d => {
     const translatedSpeaker = translateCharacterName(d.speaker, languageOptions.Accent === 'British' || languageOptions.Accent === 'US');
@@ -699,92 +732,92 @@ DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW.
 **DIALOGUE CREATION RULE:**
 "No existing dialogue was found in the story idea. You should CREATE appropriate dialogue for the characters based on the story context."
 
-**PERINTAH PEMBUATAN DIALOG (IKUTI SECARA BERURUTAN):**
+**DIALOGUE CREATION COMMANDS (FOLLOW IN SEQUENCE):**
 
-**Langkah 1: Ciptakan Dialog Master (Language Inggris)**
-* **Peran AI:** "Anda adalah seorang penulis skenario film profesional. Tulis sebuah dialog yang natural, cerdas, dan penuh subteks dalam Language Inggris."
-* **Tugas:** Buat sebuah dialog dalam format skenario standar. Dialog ini akan menjadi "sumber kebenaran" (source of truth).
-* **Format:** 'KARAKTER_A: (deskripsi nada/emosi) teks dialog' dan 'KARAKTER_B: (deskripsi nada/emosi) teks dialog'
-* **Aturan:** Minimal 2 karakter HARUS berbicara dengan pergantian yang jelas.
+**Step 1: Create Master Dialogue (English Language)**
+* **AI Role:** "You are a professional film screenwriter. Write natural, intelligent dialogue with rich subtext in English Language."
+* **Task:** Create dialogue in standard screenplay format. This will serve as the "source of truth".
+* **Format:** 'CHARACTER_A: (tone/emotion description) dialogue text' and 'CHARACTER_B: (tone/emotion description) dialogue text'
+* **Rules:** Minimum 2 characters MUST speak with clear turn-taking.
 
-**Langkah 2: Adaptasi Kreatif ke Language Indonesia Gaul**
-* **Peran AI:** "Sekarang, Anda adalah seorang penerjemah dan penulis skenario untuk sitkom pergaulan anak muda Jakarta. Tugas Anda BUKAN menerjemahkan secara harfiah, tetapi **mengadaptasi** dialog dari Langkah 1."
-* **Tugas:** Ambil dialog Language Inggris yang baru saja Anda buat, dan tulis ulang ke dalam Language Indonesia Gaul yang 100% natural, seperti obrolan di tongkrongan.
-* **ATURAN SINKRONISASI (SANGAT PENTING):**
-    * Urutan karakter yang berbicara HARUS SAMA PERSIS dengan versi Language Inggris.
-    * Jumlah baris dialog HARUS SAMA PERSIS.
-    * Logika percakapan (siapa yang bertanya, siapa yang menjawab, siapa yang menyindir) HARUS SAMA PERSIS.
-* **Gaya Language:** Gunakan Language gaul Jakarta yang natural (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
+**Step 2: Creative Adaptation to Indonesian Slang**
+* **AI Role:** "Now you are a translator and screenwriter for Jakarta youth sitcoms. Your task is NOT literal translation, but creative adaptation of Step 1 dialogue."
+* **Task:** Take the English dialogue you just created and rewrite it in 100% natural Jakartan slang, like casual hangout talk.
+* **SYNC RULES (CRITICAL):**
+    * Speaking character order MUST MATCH EXACTLY the English version.
+    * Number of dialogue lines MUST MATCH EXACTLY.
+    * Conversation logic (who asks, who answers, who sarcastically remarks) MUST MATCH EXACTLY.
+* **Language Style:** Use natural Jakartan slang (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
 
   const dynamicPrompt = `
-**SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional spesialis animasi 3D berkualitas tinggi untuk Gemini Veo3.
+**MAIN SYSTEM INSTRUCTION:**
+You are a professional screenwriter specializing in high-quality 3D animation for Gemini Veo3.
 
-**ATURAN KRITIS:**
+**CRITICAL RULES:**
 
-1. **ANTI-HAK CIPTA (WAJIB):**
-   - DILARANG menggunakan karakter, nama, desain, atau elemen visual dari properti berhak cipta
-   - Semua elemen WAJIB 100% orisinal
+1. **COPYRIGHT-FREE (MANDATORY):**
+   - DO NOT use characters, names, designs, or visual elements from copyrighted properties
+   - All elements MUST be 100% original
 
-2. **KONSISTENSI DIALOG:**
-   - Setiap scene HARUS memiliki minimal 2 karakter yang berbicara
-   - Format dialog harus konsisten: "NAMA_KARAKTER: (ekspresi) dialog"
-   - Dialog dalam Language Indonesia harus menggunakan format yang sama dengan dialog English
+2. **DIALOG CONSISTENCY:**
+   - Each scene MUST have at least 2 speaking characters
+   - Dialogue format must be consistent: "CHARACTER_NAME: (expression) dialogue"
+   - Indonesian language dialogues must use the same format as English dialogues"
 
 ${dialogueInstructions}
 
-**TUGAS UTAMA:**
-Generate JSON dengan 8 scene prompts dengan dialog yang jelas antar karakter.
+**MAIN TASK:**
+Generate JSON with 8 scene prompts containing clear character dialogue.
 
 **STRUKTUR OUTPUT JSON:**
 
 {
   "video_prompts": [
     {
-      "scenePrompt": "[Language: INGGRIS] Deskripsi visual scene yang detail. WAJIB mencakup: setting, komposisi shot, pencahayaan, gerakan kamera, aksi karakter, dan PENTING: jelaskan dengan detail kapan setiap karakter berbicara dengan mouth movement dan facial expressions.",
-      
-      "narasi": "[Language: INDONESIA] Narasi voice-over yang engaging.",
-      
-      "dialog_en": "[String] Hasil dari **Langkah 1** (Dialog Master Language Inggris). Format: '[KARAKTER_A: (emotion), dialog]' dan '[KARAKTER_B: (emotion), dialog]'.",
-      
-      "dialog_id": "[String] Hasil dari **Langkah 2** (Adaptasi Kreatif Language Indonesia Gaul). Format HARUS identik dengan dialog_en dalam hal urutan speaker dan jumlah baris. Contoh: '[Karakter: (ekspresi), dialog]'",
-      
-      "veo3_optimized_prompt": "[Language: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan instruksi spesifik tentang character speaking assignment."
+      "scenePrompt": "[Language: ENGLISH] Detailed visual scene description. MUST include: setting, shot composition, lighting, camera movement, character action, and IMPORTANT: describe in detail when each character speaks with mouth movement and facial expressions.",
+
+"narasi": "[Language: INDONESIAN] Engaging voice-over narration.",
+
+"dialog_en": "[String] Result from **Step 1** (Master Language Dialogue in English). Format: '[CHARACTER_A: (emotion), dialogue]' and '[CHARACTER_B: (emotion), dialogue]'.",
+
+"dialog_id": "[String] Result from **Step 2** (Creative Adaptation in Slang Indonesian Language). Format MUST be identical to dialog_en in terms of speaker order and number of lines. Example: '[Character: (expression), dialogue]'",
+
+"veo3_optimized_prompt": "[Language: STRUCTURED MIX] Optimized prompt for Veo3 with specific instructions about character speaking assignment."
     }
     // ... total 8 scenes
   ]
 }
 
-**INSTRUKSI UNTUK VEO3_OPTIMIZED_PROMPT:**
-Setiap scene WAJIB memiliki prompt dengan character assignment yang jelas:
+**INSTRUCTION FOR VEO3_OPTIMIZED_PROMPT:**
+Each scene MUST include a prompt with clear character assignment:
 
 "LANGUAGE INSTRUCTION: Generate video with Indonesian dialog featuring conversation between [KARAKTER_A] and [KARAKTER_B].
 
-VISUAL SCENE: [scene description dengan detail mouth movement untuk setiap karakter]
+VISUAL SCENE: [scene description with detailed mouth movement for each character]
 
 CHARACTER SPEAKING SEQUENCE:
 1. [KARAKTER_A] speaks first: [visual cues]
 2. [KARAKTER_B] responds: [visual cues]
-2. [KARAKTER_C] responds: [visual cues]
+3. [KARAKTER_C] responds: [visual cues]
 
-DIALOG REQUIREMENT: [Indonesian dialog dengan nama karakter jelas]
+DIALOG REQUIREMENT: [Indonesian dialog with clear character names]
 
 CRITICAL INSTRUCTION: Show clear turn-taking between characters with distinct mouth movements and facial expressions for each speaker."
 
-**IDE CERITA:**
+**STORY IDEA:**
 ${userIdea}
 
-**Language DIALOG:**
+**SELECTED LANGUAGE FOR DIALOGUE:**
 ${Language_dipilih}
 
-**GENRE/TONE YANG DIMINTA:**
+**REQUESTED GENRE/TONE:**
 ${genre_tone}
 
-Hasilkan JSON dengan 8 scene prompts yang memastikan dialog multi-karakter yang jelas dengan sistem dialog sinkron.`;
+Generate JSON with 8 scene prompts ensuring clear multi-character dialogue with synchronized dialog system.`;
 
   const response = await callGeminiAPI(dynamicPrompt, keyImage, apiSettings);
   const result = JSON.parse(response);
-  
+
   // Generate enhanced Veo3 prompts untuk setiap scene
   result.video_prompts = result.video_prompts.map((prompt: VideoPromptWithOptimization, index: number) => {
     if (!prompt.veo3_optimized_prompt) {
@@ -797,7 +830,7 @@ Hasilkan JSON dengan 8 scene prompts yang memastikan dialog multi-karakter yang 
     }
     return prompt;
   });
-  
+
   return result;
 }
 
@@ -816,7 +849,7 @@ function generateSceneSpecificVeo3Prompt(
   }).filter(name => name);
 
   const uniqueCharacters = [...new Set(characters)];
-  
+
   return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog for Scene ${sceneNumber}.
 
 VISUAL SCENE:
@@ -840,16 +873,16 @@ CRITICAL INSTRUCTIONS:
 function cleanJsonString(text: string): string {
   // Remove common problematic characters and patterns
   let cleaned = text.trim();
-  
+
   // Remove markdown code blocks more aggressively
   cleaned = cleaned.replace(/^```(?:json)?\s*\n?/gm, '');
   cleaned = cleaned.replace(/\n?```\s*$/gm, '');
-  
+
   // Remove markdown formatting
   cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
   cleaned = cleaned.replace(/###\s*(.*?)$/gm, '$1'); // Remove heading markdown
   cleaned = cleaned.replace(/^\s*[-*]\s*/gm, ''); // Remove bullet points
-  
+
   // Fix common JSON issues - use proper Unicode ranges to avoid ESLint errors
   // eslint-disable-next-line no-control-regex
   cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
@@ -858,13 +891,13 @@ function cleanJsonString(text: string): string {
   cleaned = cleaned.replace(/\t/g, '\\t'); // Escape tabs
   cleaned = cleaned.replace(/\\/g, '\\\\'); // Escape backslashes
   cleaned = cleaned.replace(/"/g, '\\"'); // Escape quotes
-  
+
   // Try to extract JSON if the response contains other text
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     cleaned = jsonMatch[0];
   }
-  
+
   return cleaned;
 }
 
@@ -875,7 +908,7 @@ function extractAndParseJson(text: string): Record<string, unknown> {
   } catch {
     console.warn('Direct JSON parsing failed, attempting cleanup...');
   }
-  
+
   // Second attempt: with basic cleaning
   try {
     const cleaned = cleanJsonString(text);
@@ -883,16 +916,16 @@ function extractAndParseJson(text: string): Record<string, unknown> {
   } catch {
     console.warn('Cleaned JSON parsing failed, attempting manual extraction...');
   }
-  
+
   // Third attempt: manual JSON extraction and reconstruction
   try {
     // Find JSON boundaries
     const startIndex = text.indexOf('{');
     const lastIndex = text.lastIndexOf('}');
-    
+
     if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
       let jsonStr = text.substring(startIndex, lastIndex + 1);
-      
+
       // Clean up the extracted JSON string - use proper Unicode ranges
       // eslint-disable-next-line no-control-regex
       jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
@@ -900,56 +933,56 @@ function extractAndParseJson(text: string): Record<string, unknown> {
       jsonStr = jsonStr.replace(/\r/g, ' '); // Replace carriage returns with spaces
       jsonStr = jsonStr.replace(/\t/g, ' '); // Replace tabs with spaces
       jsonStr = jsonStr.replace(/\s+/g, ' '); // Normalize whitespace
-      
+
       return JSON.parse(jsonStr) as Record<string, unknown>;
     }
   } catch {
     console.warn('Manual JSON extraction failed...');
   }
-  
+
   // Fourth attempt: try to reconstruct basic JSON structure
   try {
     // Look for key-value patterns and reconstruct
     const result: Record<string, string> = {};
-    
+
     // Extract visual_prompt
     const visualMatch = text.match(/"visual_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (visualMatch) result.visual_prompt = visualMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     // Extract audio_prompt
     const audioMatch = text.match(/"audio_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (audioMatch) result.audio_prompt = audioMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     // Extract dialog_en
     const dialogEnMatch = text.match(/"dialog_en"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (dialogEnMatch) result.dialog_en = dialogEnMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     // Extract dialog_id_gaul
     const dialogIdMatch = text.match(/"dialog_id_gaul"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (dialogIdMatch) result.dialog_id_gaul = dialogIdMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     // Extract narasi
     const narasiMatch = text.match(/"narasi"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (narasiMatch) result.narasi = narasiMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     // Extract veo3_optimized_prompt
     const veo3Match = text.match(/"veo3_optimized_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (veo3Match) result.veo3_optimized_prompt = veo3Match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-    
+
     if (Object.keys(result).length > 0) {
       return result;
     }
   } catch {
     console.warn('JSON reconstruction failed...');
   }
-  
+
   throw new Error('Unable to parse JSON response after multiple attempts');
 }
 
 // Keep all other existing functions unchanged...
 export async function callGeminiAPI(
-  prompt: string, 
-  imageBase64?: string, 
+  prompt: string,
+  imageBase64?: string,
   apiSettings?: APISettings
 ): Promise<string> {
   const apiKey = apiSettings?.privateKey;
@@ -958,7 +991,7 @@ export async function callGeminiAPI(
     throw new Error('API key is required. Please configure your Google Generative Language API key in the API Settings.');
   }
 
-  const parts: Array<{text: string} | {inlineData: {mimeType: string, data: string}}> = [{ text: prompt }];
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string, data: string } }> = [{ text: prompt }];
   if (imageBase64) {
     parts.push({
       inlineData: {
@@ -1014,11 +1047,11 @@ export async function callGeminiAPI(
           // If error response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;
         }
-        
+
         if (response.status === 400 && errorMessage.includes('API_KEY_INVALID')) {
           throw new Error('Invalid API key. Please check your Google Generative Language API key in the API Settings and ensure it has the correct permissions.');
         }
-        
+
         if (response.status === 403) {
           if (errorMessage.includes('quota')) {
             throw new Error('API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.');
@@ -1027,39 +1060,39 @@ export async function callGeminiAPI(
             throw new Error('API key access denied. Please ensure the Generative Language API is enabled in your Google Cloud Console.');
           }
         }
-        
+
         if (response.status === 429) {
           throw new Error('Rate limit exceeded. Please wait a moment before making another request.');
         }
-        
+
         throw new Error(`API Error (${response.status}): ${errorMessage}`);
       }
 
       const result = await response.json();
       if (result.candidates?.[0]?.content?.parts?.[0]) {
         let text = result.candidates[0].content.parts[0].text;
-        
+
         // Enhanced text cleaning for better JSON extraction
         text = text.trim();
-        
+
         // Remove markdown code blocks more aggressively
         text = text.replace(/^```(?:json)?\s*\n?/gm, '');
         text = text.replace(/\n?```\s*$/gm, '');
-        
+
         // Remove markdown formatting
         text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
         text = text.replace(/###\s*(.*?)$/gm, '$1'); // Remove heading markdown
         text = text.replace(/^\s*[-*]\s*/gm, ''); // Remove bullet points
-        
+
         // Try to extract JSON if the response contains other text
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           text = jsonMatch[0];
         }
-        
+
         // Final cleanup
         text = text.trim();
-        
+
         return text;
       } else {
         console.error('Unexpected API response structure:', result);
@@ -1071,7 +1104,7 @@ export async function callGeminiAPI(
       if (error instanceof Error && error.message.includes('503') && attempt < MAX_RETRIES) {
         // This error will be caught by the loop's `continue` logic if it's a 503.
         // If it's another error, it will fall through to the outer catch.
-        throw error; 
+        throw error;
       } else {
         // For any other error, or if it's the last retry for 503, re-throw to be caught by the outer catch.
         throw error;
@@ -1098,11 +1131,11 @@ export async function validateAPIKey(apiKey: string): Promise<{ isValid: boolean
     }
 
     const testPrompt = "Say 'API key is valid' in one sentence.";
-    await callGeminiAPI(testPrompt, undefined, { 
-      usePrivateKey: true, 
-      privateKey: apiKey, 
-      isActive: true, 
-      lastValidated: null 
+    await callGeminiAPI(testPrompt, undefined, {
+      usePrivateKey: true,
+      privateKey: apiKey,
+      isActive: true,
+      lastValidated: null
     });
     return { isValid: true };
   } catch (error) {
@@ -1122,7 +1155,7 @@ export async function generateVideo(prompt: string, apiSettings?: APISettings): 
 
   // Simulate video generation delay
   await new Promise(resolve => setTimeout(resolve, 3000));
-  
+
   // Return a mock video URL - in production this would be the actual video URL from Veo 3
   return `data:video/mp4;base64,${btoa('mock-video-data-' + Date.now())}`;
 }
@@ -1141,29 +1174,29 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
   karakter_2: { nama: string; deskripsi_fisik: string };
   karakter_3: { nama: string; deskripsi_fisik: string };
 }> {
-  const prompt = `Kamu adalah seorang desainer konsep karakter profesional untuk film animasi 3D berkualitas tinggi. Berdasarkan ide cerita berikut: '${userIdea}'
+  const prompt = `You are a professional character concept designer for high-quality 3D animated films. Based on the following story idea: '${userIdea}'
 
-**INSTRUKSI PENTING:**
-- DILARANG menggunakan karakter generik, klise, atau tanpa jiwa seperti "Rice Cooker" atau "Spons"
-- HARUS menciptakan karakter yang relevan dengan tema dan alur cerita yang diberikan
-- Karakter WAJIB memiliki ciri fisik yang unik, orisinal, dan penuh imajinasi yang bisa divisualisasikan secara sinematik
+**IMPORTANT INSTRUCTIONS:**
+- DO NOT use generic, clichéd, or soulless characters like "Rice Cooker" or "Sponge"
+- MUST create characters that are relevant to the given theme and storyline
+- Characters MUST have unique, original, and highly imaginative physical features that can be visualized cinematically
 
-**TUGAS:**
-1. Identifikasi dan pilih 3 karakter utama yang paling ikonik dan potensial dari cerita yang diberikan
-2. Buat deskripsi fisik karakter yang detail, surealis namun tetap fungsional untuk animasi, mencakup bentuk tubuh, tekstur, warna dominan, hingga ekspresi wajah yang mencolok dan khas
-3. Berikan nama panggilan yang kreatif, mudah diingat, dan mencerminkan kepribadian karakter sesuai cerita
-4. Pastikan hasil dalam format JSON yang rapi dan siap digunakan oleh tim modeling & animasi
+**TASKS:**
+1. Identify and select the 3 most iconic and potential main characters from the given story
+2. Provide a detailed physical description of each character, surreal yet functional for animation, including body shape, texture, dominant colors, and distinctive facial expressions
+3. Assign a creative and memorable nickname that reflects the character's personality in the story
+4. Ensure the output is in clean JSON format, ready for the modeling & animation team
 
-**FORMAT OUTPUT:**
-{"karakter_1": {"nama": "[Nama karakter pertama]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_2": {"nama": "[Nama karakter kedua]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}, "karakter_3": {"nama": "[Nama karakter ketiga]", "deskripsi_fisik": "[Deskripsi surealis dan ekspresif]"}}
+**OUTPUT FORMAT:**
+{"character_1": {"name": "[First character name]", "physical_description": "[Surreal and expressive description]"}, "character_2": {"name": "[Second character name]", "physical_description": "[Surreal and expressive description]"}, "character_3": {"name": "[Third character name]", "physical_description": "[Surreal and expressive description]"}}
 
-**CONTOH:**
-Jika cerita tentang "Kentongan tua yang bijaksana, Tiang Listrik yang pendiam, dan Lampu Jalan yang ceria", maka hasil harus menggunakan ketiga karakter tersebut dengan deskripsi yang memperkaya visual seperti tekstur kayu tua penuh ukiran, kabel-kabel yang membentuk ekspresi wajah, atau cahaya yang berkedip-kedip membentuk senyuman.
+**EXAMPLE:**
+If the story is about "A wise old wooden drum, a quiet Electric Pole, and a cheerful Street Lamp," the output must use these three characters with enriched visual descriptions like aged wood textures with intricate carvings, cables forming facial expressions, or flickering lights creating a smiling face.
 
-Analisis dalam-dalam ide cerita dan ciptakan 3 karakter dengan fisik, mimik, dan aura yang kuat, seolah-olah mereka siap tampil dalam film animasi 3D kelas dunia.`;
+Analyze the story idea deeply and create 3 characters with strong physicality, expressions, and aura, as if they are ready to star in a world-class 3D animated film.`;
 
-const response = await callGeminiAPI(prompt, undefined, apiSettings);
-return JSON.parse(response);
+  const response = await callGeminiAPI(prompt, undefined, apiSettings);
+  return JSON.parse(response);
 }
 
 export async function generateAnomalyStory(
@@ -1173,7 +1206,7 @@ export async function generateAnomalyStory(
 ): Promise<AnomalyStoryResponse> {
   // Check if dialogue already exists in the user idea
   const existingDialogue = detectExistingDialogue(userIdea);
-  
+
   const dialogueInstructions = existingDialogue.hasDialogue ? `
 **CRITICAL DIALOGUE PRESERVATION RULE:**
 The story idea ALREADY CONTAINS DIALOGUE. You MUST:
@@ -1226,7 +1259,7 @@ export async function generateKeyImagePrompt(
   userIdea: string,
   apiSettings?: APISettings
 ): Promise<string> {
- const prompt = `Act as an elite AI prompt engineer specialized in cinematic 3D animations. Craft a highly vivid and evocative image prompt based on this idea: "${userIdea}"
+  const prompt = `Act as an elite AI prompt engineer specialized in cinematic 3D animations. Craft a highly vivid and evocative image prompt based on this idea: "${userIdea}"
 
 The prompt must include these elements:
 1. Main Subject: Describe the main character or object in rich detail, including dynamic pose, expressive face, unique attire, and striking features.
@@ -1240,7 +1273,7 @@ Return ONLY the final image prompt text without any commentary or formatting.
 **CRITICAL RULE:** 
 "Final image prompt must be under 800 characters. Use concise, impactful language that maximizes visual clarity and cinematic impression."`;
 
-return await callGeminiAPI(prompt, undefined, apiSettings);
+  return await callGeminiAPI(prompt, undefined, apiSettings);
 }
 
 export async function generateTwistedStoryIdea(inputs: { karakter: string; situasi: string; elemenAneh: string; }, apiSettings?: APISettings): Promise<string> {
@@ -1248,33 +1281,33 @@ export async function generateTwistedStoryIdea(inputs: { karakter: string; situa
   const genre_tone = "Modern, Surreal, Creative, Sci-fi, Dark Comedy, Mystery, Steampunk, Fantasy, Philosophical, Psychological Thriller";
 
   const dynamicPrompt = `
-**SISTEM INSTRUKSI UTAMA:**
-Anda adalah penulis skenario profesional spesialis film pendek animasi 3D yang unik dan memikat. Patuhi semua aturan berikut tanpa pengecualian.
+**MAIN SYSTEM INSTRUCTION:**  
+You are a professional screenwriter specializing in unique and captivating 3D animated short films. Follow all the rules below without exception.  
 
-**ATURAN KRITIS:**
+**CRITICAL RULES:**  
 
-1. **ANTI-HAK CIPTA:** 
-   - DILARANG menggunakan karakter/nama/desain dari IP yang ada.
-   - Semua elemen wajib 100% orisinal dari ide pengguna.
-   - Ciptakan nama karakter, lokasi, dan konsep yang benar-benar baru.
+1. **ANTI-COPYRIGHT:**  
+   - DO NOT use characters/names/designs from existing IPs.  
+   - All elements must be 100% original from the user's idea.  
+   - Create completely new character names, locations, and concepts.  
 
-2. **KONSISTENSI Language:** 
-   - Gunakan Language Indonesia yang natural, hidup, dan penuh imajinasi.
-   - Hindari Language yang terlalu kaku atau formal.
+2. **LANGUAGE CONSISTENCY:**  
+   - Use natural, lively, and imaginative Indonesian language.  
+   - Avoid overly rigid or formal language.  
 
-3. **GAYA CERITA:** 
-   - Sesuaikan tone dengan genre modern, surealis, dan kreatif.
-   - Premis harus menarik dengan hook kuat dan sentuhan visual sinematik.
+3. **STORY STYLE:**  
+   - Match the tone to a modern, surreal, and creative genre.  
+   - The premise must be engaging with a strong hook and cinematic visual touches.  
 
-**TUGAS UTAMA:**
-Berdasarkan **ELEMEN CERITA** berikut:
-${idecerita}
+**MAIN TASK:**  
+Based on the following **STORY ELEMENTS**:  
+${idecerita}  
 
-Buatlah premis cerita film pendek yang orisinal, modern, surealis, dan terasa sinematik. Hanya kembalikan satu paragraf singkat tanpa teks tambahan.
+Create an original, modern, surreal, and cinematic short film premise. Return only one concise paragraph without additional text.  
 
-**GENRE/TONE YANG DIMINTA:**
+**REQUESTED GENRE/TONE:**  
 ${genre_tone}`;
 
-const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
-return response.trim();
+  const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
+  return response.trim();
 }
