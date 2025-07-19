@@ -5,7 +5,7 @@ import {
   generateAnomalyStory,
   generateAnomalyScenePrompt,
   generateTwistedStoryIdea
-} from '../utils/api-fixed';
+} from '../utils/api-optimized';
 import { getSettings } from '../utils/database';
 import { fetchBrainPrompt, getAvailableBrainStyles } from '../utils/storage';
 import { AnomalyScenePrompt, APISettings } from '../types';
@@ -158,7 +158,7 @@ const AnomalyMode = () => {
     const dialogWithNewlines = rawDialog ? rawDialog.replace(/\]\s*\[/g, ']\n[') : '';
 
     // Compose the final prompt with the veo3_optimized_prompt
-    const finalPrompt = sceneData.veo3_optimized_prompt || `
+    const basePrompt = sceneData.veo3_optimized_prompt || `
 ${sceneData.visual_prompt}
 
 ${sceneData.audio_prompt}
@@ -166,8 +166,13 @@ ${sceneData.audio_prompt}
 ${dialogWithNewlines}
     `.trim();
 
+    // Add "Visual force (Brain Prompt):" prefix
+    const finalPrompt = `Visual force (Brain Prompt):
+
+${basePrompt}`;
+
     navigator.clipboard.writeText(finalPrompt);
-    alert('Professional scenario format prompt successfully copied!');
+    alert('Professional scenario format prompt successfully copied with Visual force (Brain Prompt)!');
   };
 
   const handleGenerate = async () => {
@@ -614,9 +619,9 @@ ${dialogWithNewlines}
               <strong className="text-green-800">🎯Optimized VeO3 Prompt (Use this!):</strong>
               <textarea
                 className="w-full p-2 bg-white border rounded mt-2"
-                value={prompt.veo3_optimized_prompt}
+                value={`Visual force (Brain Prompt):\n\n${prompt.veo3_optimized_prompt}`}
                 readOnly
-                rows={6}
+                rows={8}
               />
               <div className="mt-2 flex gap-2">
                 <button
