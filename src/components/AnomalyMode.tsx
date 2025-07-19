@@ -66,28 +66,24 @@ const AnomalyMode = () => {
   };
 
   const handleCopyForVeo = (sceneData: AnomalyScenePrompt) => {
-    // Ambil dialog bahasa Indonesia dari data
-    const rawDialog = sceneData.dialog_id_gaul || '';
+    // Get the appropriate dialog based on language selection
+    const isEnglishLanguage = languageOptions.Accent === 'US' || languageOptions.Accent === 'British';
+    const rawDialog = isEnglishLanguage ? sceneData.dialog_en : sceneData.dialog_id_gaul;
 
-    // Hapus header seperti "DIALOGUE (Language...)" jika ada
-    let cleanedDialog = rawDialog.replace(/DIALOGUE \(.*\)\s*/, '');
+    // Ensure dialog has proper newlines between characters
+    const dialogWithNewlines = rawDialog ? rawDialog.replace(/\]\s*\[/g, ']\n[') : '';
 
-    // Format ulang menjadi format skenario
-    // Ganti ": " dengan baris baru untuk dialog
-    cleanedDialog = cleanedDialog.replace(/:\s\(/g, '\n('); // Parenthetical
-    cleanedDialog = cleanedDialog.replace(/:\s/g, '\n'); // Dialog
-
-    // Susun prompt final
-    const finalPrompt = `
+    // Compose the final prompt with the veo3_optimized_prompt
+    const finalPrompt = sceneData.veo3_optimized_prompt || `
 ${sceneData.visual_prompt}
 
 ${sceneData.audio_prompt}
 
-${cleanedDialog.trim()}
-    `;
+${dialogWithNewlines}
+    `.trim();
 
-    navigator.clipboard.writeText(finalPrompt.trim());
-    alert('Prompt dengan format skenario profesional berhasil disalin!');
+    navigator.clipboard.writeText(finalPrompt);
+    alert('Professional scenario format prompt successfully copied!');
   };
 
   const handleGenerate = async () => {
@@ -108,8 +104,28 @@ ${cleanedDialog.trim()}
       setLoadingMessage('Creating anomaly characters...');
       const characters = await generateAnomalyCharacters(userIdea, apiSettings);
 
+      // Validate characters structure
+      if (!characters || !characters.karakter_1 || !characters.karakter_2 || !characters.karakter_3) {
+        throw new Error('Invalid characters response from API. Please try again.');
+      }
+
+      // Validate each character has required properties
+      const requiredProps = ['nama', 'deskripsi_fisik'];
+      for (const key of ['karakter_1', 'karakter_2', 'karakter_3'] as const) {
+        for (const prop of requiredProps) {
+          if (!characters[key][prop as keyof typeof characters[typeof key]]) {
+            throw new Error(`Character ${key} is missing required property: ${prop}`);
+          }
+        }
+      }
+
       setLoadingMessage('Designing storyline & title...');
       const story = await generateAnomalyStory(characters, userIdea, apiSettings);
+
+      // Validate story structure
+      if (!story || !story.judul || !story.sinopsis_per_adegan || !Array.isArray(story.sinopsis_per_adegan)) {
+        throw new Error('Invalid story response from API. Please try again.');
+      }
 
       for (let i = 0; i < story.sinopsis_per_adegan.length; i++) {
         setLoadingMessage(`Crafting cinematography & dialogue for Scene ${i + 1} of ${story.sinopsis_per_adegan.length}...`);
@@ -214,7 +230,7 @@ ${cleanedDialog.trim()}
           <label className="block mb-2 font-medium">Language:</label>
           <select
             className="w-full p-2 border rounded"
-            value={languageOptions.bahasa}
+            value={languageOptions.Language}
             onChange={(e) => setLanguageOptions(prev => ({
               ...prev,
               Language: e.target.value
@@ -228,7 +244,7 @@ ${cleanedDialog.trim()}
           <label className="block mb-2 font-medium">Accent:</label>
           <select
             className="w-full p-2 border rounded"
-            value={languageOptions.aksen}
+            value={languageOptions.Accent}
             onChange={(e) => setLanguageOptions(prev => ({
               ...prev,
               Accent: e.target.value
@@ -299,12 +315,12 @@ ${cleanedDialog.trim()}
               <p>{prompt.narasi}</p>
             </div>
             <div className="mb-2">
-              <strong>Dialog Bahasa Indonesia (Gaul):</strong>
-              <p>{prompt.dialog_id_gaul}</p>
-            </div>
-            <div className="mb-2">
-              <strong>Dialog Bahasa Inggris:</strong>
-              <p>{prompt.dialog_en}</p>
+              <strong>Dialog ({languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}):</strong>
+              <pre className="whitespace-pre-wrap font-mono text-sm bg-gray-50 p-2 rounded">
+                {languageOptions.Accent === 'US' || languageOptions.Accent === 'British'
+                  ? prompt.dialog_en
+                  : prompt.dialog_id_gaul}
+              </pre>
             </div>
             <div className="mb-2">
               <strong>Prompt Visual:</strong>

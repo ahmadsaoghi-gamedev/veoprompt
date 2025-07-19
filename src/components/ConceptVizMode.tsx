@@ -224,6 +224,29 @@ const ConceptVizMode: React.FC = () => {
       .catch(() => alert('Gagal menyalin prompt.'));
   };
 
+  const handleCopyForVeo = (sceneData: VideoPromptWithOptimization) => {
+    // Get the raw dialog from the data - use English dialog for this mode
+    const rawDialog = sceneData.dialog_en || '';
+
+    // **New Logic for Formatting Dialog**
+    // Change the format [Character: (Action) "Speech"] to the standard scenario format
+    const formattedDialog = rawDialog
+      .replace(/\[/g, '') // Remove the opening bracket
+      .replace(/\]\s*/g, '\n\n') // Replace the closing bracket with two newlines
+      .replace(/:\s\(/g, '\n(') // Move the parenthetical to a new line
+      .replace(/\),\s/g, ')\n'); // Move the speech to a new line
+
+    // Compose the final prompt
+    const finalPrompt = `
+${sceneData.scenePrompt}
+
+${formattedDialog.trim()}
+    `;
+
+    navigator.clipboard.writeText(finalPrompt.trim());
+    alert('Professional scenario format prompt successfully copied!');
+  };
+
   return (
     <div className="concept-viz-mode p-6 max-w-4xl mx-auto">
       <Helmet>
@@ -402,14 +425,13 @@ const ConceptVizMode: React.FC = () => {
                       <div className="mt-2 flex gap-2">
                         <button
                           className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                          onClick={() => {
-                            navigator.clipboard.writeText(prompt.veo3_optimized_prompt)
-                              .then(() => alert('Prompt Veo3 yang dioptimalkan telah disalin!'))
-                              .catch(() => alert('Gagal menyalin prompt.'));
-                          }}
+                          onClick={() => handleCopyForVeo(prompt)}
                         >
                           📋 Salin Prompt Veo3 Optimized
                         </button>
+                        <span className="text-sm text-green-700 self-center">
+                          ← Professional scenario format for Veo3
+                        </span>
                       </div>
                     </div>
 
