@@ -390,8 +390,9 @@ ${dialogueInstructions}
 - Total word count for ALL dialogue combined: 15-25 words maximum
 - Each character should speak 1-2 short sentences (5-15 words per character)
 - MANDATORY FORMAT: Each character's line MUST be wrapped in brackets
-- Multiple character lines MUST be separated by a space
-- Example: '[Budi: (excited), Wah, lihat itu!] [Siti: (amazed), Keren banget ya!] [Andi: (laughing), Gila, parah!]'"
+- Multiple character lines MUST be separated by NEWLINES (\\n)
+- MUST use the exact character names provided: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}
+- Example format: '[${characters.karakter_1.nama}: (excited), Dialogue here!]\\n[${characters.karakter_2.nama}: (amazed), Response here!]\\n[${characters.karakter_3.nama}: (happy), Another response!]'"
 
 **MAIN TASK:**
 "Based on the user's **Story Idea**: '${userIdea}', create a new JSON object that follows the structure below:"
@@ -411,7 +412,7 @@ ${dialogueInstructions}
   
   "audio_prompt": "[String] WRITE IN ENGLISH ONLY. Description of background music and sound effects. Include: modern cinematic orchestral music (avoid traditional instruments unless specifically requested), spatial audio design, character voice acting direction for all characters (describe voice characteristics), ambient soundscape, foley effects, dynamic range, and emotional musical themes. For modern 3D animation, use contemporary film scoring with electronic elements, hybrid orchestral arrangements, and modern sound design.",
   
-  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, separated by spaces. Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[Brian: (pleading), Mom, this is really delicious!] [Mom: (tired), Thank you. What do you see outside?] [Brian: (hopeful), There are people suffering. We should share.]'" : "'[${characters.karakter_1.nama}: (emotion), short dialogue] [${characters.karakter_2.nama}: (emotion), short response] [${characters.karakter_3.nama}: (emotion), another response]'"} Total 8 seconds - approximately 15-25 words total. Style: ${getDialogStyleByAccent(languageOptions.Accent)}",
+  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, SEPARATED BY NEWLINES (\\n). Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[${characters.karakter_1.nama}: (excited), This is amazing!]\\n[${characters.karakter_2.nama}: (surprised), I can\\'t believe it!]\\n[${characters.karakter_3.nama}: (happy), Let\\'s do this together!]'" : "'[${characters.karakter_1.nama}: (senang), Wah, keren banget!]\\n[${characters.karakter_2.nama}: (terkejut), Gila, gak nyangka!]\\n[${characters.karakter_3.nama}: (semangat), Yuk, kita lakukan bareng!]'"} Total 8 seconds - approximately 15-25 words total. MUST use character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}. Style: ${getDialogStyleByAccent(languageOptions.Accent)}",
   
   "narration": "[String] WRITE IN INDONESIAN ONLY. Script for the narrator. Engaging, dynamic narration that builds the story atmosphere. The language style should match the genre, not monotonous, and effectively strengthen the story mood.",
   
@@ -456,20 +457,33 @@ Generate JSON with the above structure and professional scenario and production 
     // Use enhanced JSON parsing with fallback mechanisms
     const result = extractAndParseJson(response);
     
+    // Ensure dialogue field exists and is properly formatted
+    if (result.dialogue) {
+      // Ensure newlines are properly formatted
+      result.dialogue = (result.dialogue as string).replace(/\]\s*\[/g, ']\n[');
+    }
+    
     // Generate optimized Veo3 prompt dengan character-specific instructions
     if (!result.veo3_optimized_prompt) {
       result.veo3_optimized_prompt = generateEnhancedVeo3OptimizedPrompt(
         result.visual_prompt as string,
         result.audio_prompt as string,
-        result.dialog_id_gaul as string,
+        result.dialogue as string || '',
         Language_dipilih,
         characters
       );
     }
     
-    // Map dialogue to dialog_id_gaul for backward compatibility
-    if (result.dialogue && !result.dialog_id_gaul) {
-      result.dialog_id_gaul = result.dialogue;
+    // Map dialogue based on language selection for backward compatibility
+    const isEnglishLanguage = languageOptions.Accent === 'US' || languageOptions.Accent === 'British';
+    
+    // Set dialog_en and dialog_id_gaul based on language selection
+    if (isEnglishLanguage) {
+      result.dialog_en = result.dialogue || '';
+      result.dialog_id_gaul = ''; // Empty for English
+    } else {
+      result.dialog_id_gaul = result.dialogue || '';
+      result.dialog_en = ''; // Empty for Indonesian
     }
     
     return result as {
@@ -490,30 +504,32 @@ Generate JSON with the above structure and professional scenario and production 
 function generateEnhancedVeo3OptimizedPrompt(
   visualPrompt: string,
   audioPrompt: string,
-  indonesianDialog: string,
+  dialogue: string,
   language: string,
   characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter }
 ): string {
   // Clean prompts
   const cleanVisual = visualPrompt.replace(/\[Language:.*?\]/g, '').trim();
   const cleanAudio = audioPrompt.replace(/\[Language:.*?\]/g, '').trim();
-  const cleanDialog = indonesianDialog.replace(/\[Language:.*?\]/g, '').trim();
+  const cleanDialog = dialogue.replace(/\[Language:.*?\]/g, '').trim();
+  
+  // Ensure proper newline formatting in dialog
+  const formattedDialog = cleanDialog.replace(/\]\s*\[/g, ']\n[');
   
   // Parse dialog untuk mengidentifikasi siapa yang berbicara
-  const dialogLines = cleanDialog.split('\n').filter(line => line.trim());
+  const dialogLines = formattedDialog.split('\n').filter(line => line.trim());
   const characterSpeakingInstructions = dialogLines.map(line => {
     if (line.includes(characters.karakter_1.nama)) {
       return `${characters.karakter_1.nama} speaks: Show ${characters.karakter_1.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
     } else if (line.includes(characters.karakter_2.nama)) {
       return `${characters.karakter_2.nama} speaks: Show ${characters.karakter_2.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
-    }
-      else if (line.includes(characters.karakter_3.nama)) {
+    } else if (line.includes(characters.karakter_3.nama)) {
       return `${characters.karakter_3.nama} speaks: Show ${characters.karakter_3.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
     }
     return '';
   }).filter(instruction => instruction);
 
-  return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog featuring conversation between ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}.
+  return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog featuring conversation between ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}.
 
 VISUAL SCENE:
 ${cleanVisual}
@@ -524,21 +540,21 @@ ${characterSpeakingInstructions.join('\n')}
 SPECIFIC CHARACTER VISUAL CUES:
 - ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
 - ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
- ${characters.karakter_3.nama}: ${characters.karakter_3.deskripsi_fisik}
+- ${characters.karakter_3.nama}: ${characters.karakter_3.deskripsi_fisik}
 
 DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${language.toUpperCase()} LANGUAGE:
-${cleanDialog}
+${formattedDialog}
 
 AUDIO DESIGN:
 ${cleanAudio}
-- Distinct voice characteristics for ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}
+- Distinct voice characteristics for ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}
 - Clear audio separation when each character speaks
 
 CRITICAL INSTRUCTIONS: 
 1. Show ONLY the speaking character with mouth movements when they deliver their lines
-2. The non-speaking character should show listening expressions/reactions
+2. The non-speaking characters should show listening expressions/reactions
 3. Ensure ALL spoken words are in ${language} language, NOT English
-4. Display clear turn-taking between ${characters.karakter_1.nama} and ${characters.karakter_2.nama} and ${characters.karakter_3.nama}
+4. Display clear turn-taking between ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}
 5. Each character must have distinct facial expressions and voice when speaking`;
 }
 

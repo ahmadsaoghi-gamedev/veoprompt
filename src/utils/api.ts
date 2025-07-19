@@ -1,5 +1,3 @@
-
-
 import { APISettings } from '../types';
 
 export async function callGeminiAPI(
@@ -237,8 +235,20 @@ export async function generateAnomalyScenePrompt(
   narasi: string;
 }> {
   const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
-  const bahasa_dipilih = languageOptions.bahasa;
+  const bahasa_dipilih = languageOptions.Language;
   const genre_tone = "Surreal, absurd, philosophical";
+  
+  // Helper function to get dialog language based on accent
+  const getDialogLanguageByAccent = (accent: string): string => {
+    const languageMap: Record<string, string> = {
+      'Betawi': 'Bahasa Indonesia Gaul dengan Logat Betawi',
+      'Jawa': 'Bahasa Jawa',
+      'Sunda': 'Bahasa Sunda',
+      'US': 'American English',
+      'British': 'British English'
+    };
+    return languageMap[accent] || 'Bahasa Indonesia';
+  };
 
   const dynamicPrompt = `
 **SISTEM INSTRUKSI UTAMA:**
@@ -271,9 +281,9 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
   
   "audio_prompt": "[Language: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
   
-  "dialog_en": "[Language: INGGRIS] Dialog natural dalam format skenario. Format: 'NAMA_KARAKTER: (deskripsi nada/emosi) teks dialog'. Gunakan bahasa yang sangat natural, tidak kaku, dengan idiom dan ekspresi yang sesuai budaya lokal.",
+  "dialog_en": "[Language: INGGRIS] Dialog dalam format bracket dengan newlines. Format: '[${characters.karakter_1.nama}: (emotion), dialogue]\\n[${characters.karakter_2.nama}: (emotion), response]'. Total 8 detik - 15-25 kata.",
   
-  "dialog_id_gaul": "**\`dialogue\` (String):**\n* **Instruksi Language:** TULIS HANYA DALAM BAHASA INDONESIA DENGAN GAYA BAHASA GAUL JAKSEL DAN SEDIKIT LOGAT BETAWI.\n* **Peran AI:** Anda adalah penulis skenario yang ahli menciptakan dialog natural, penuh emosi, humor, dan celetukan khas anak muda.\n* **PRINSIP PENULISAN DIALOG (WAJIB DIIKUTI):\n    * **Gaya Language:** Gunakan bahasa santai, gaul Jaksel (misal: 'beneran deh', 'gitu loh', 'anjir', 'parah'), dan selipkan logat Betawi jika natural (misal: 'iye', 'dah', 'nih').\n    * **Singkat & Cepat:** Setiap kalimat dialog HARUS singkat, maksimal 8 detik pengucapan. Hindari kalimat panjang atau bertele-tele.\n    * **Format Penulisan:** Gunakan format '[NAMA_KARAKTER: (Ekspresi/mood) Kalimat dialog]'. Contoh: '[TUNG-TUNG: (Sok jago) Tenang bro, gampang ini mah... gue udah pro soal ginian.]', '[KLETUK: (Ngegas) Pro pala lo! Lo mah jago ngomong doang!]\n    * **Humor & Celetukan:** Selipkan candaan, celetukan spontan, atau reaksi lucu yang sesuai dengan karakter dan situasi.\n    * **Emosi & Subteks:** Sampaikan emosi melalui ekspresi (dalam kurung) dan pilihan kata yang tidak selalu lugas.\n    * **Hindari Kaku:** Pastikan dialog terdengar otentik seperti obrolan anak muda zaman sekarang.\n\n* **Konten:** Berdasarkan PRINSIP di atas, tuliskan dialog untuk adegan ini dalam format skenario yang diminta.",
+  "dialog_id_gaul": "[Language: ${getDialogLanguageByAccent(languageOptions.Accent)}] Dialog dalam format bracket dengan newlines. Format: '[${characters.karakter_1.nama}: (emosi), dialog]\\n[${characters.karakter_2.nama}: (emosi), respon]'. Total 8 detik - 15-25 kata. HARUS menggunakan nama karakter: ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}.",
   
   "narasi": "[Language: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita."
 }
@@ -306,6 +316,15 @@ Hasilkan JSON yang mengikuti struktur di atas dengan kualitas profesional.`;
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
     const result = JSON.parse(response);
+    
+    // Ensure dialog fields have proper newline formatting
+    if (result.dialog_en) {
+      result.dialog_en = result.dialog_en.replace(/\]\s*\[/g, ']\n[');
+    }
+    if (result.dialog_id_gaul) {
+      result.dialog_id_gaul = result.dialog_id_gaul.replace(/\]\s*\[/g, ']\n[');
+    }
+    
     return result;
   } catch (error) {
     console.error('Failed to parse JSON response:', error);
@@ -319,7 +338,7 @@ export async function generateVideoPromptsFromImage(
   languageOptions: LanguageOptions,
   apiSettings?: APISettings
 ): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> {
-  const bahasa_dipilih = languageOptions.bahasa;
+  const bahasa_dipilih = languageOptions.Language;
   const genre_tone = "Cinematic, narrative-driven";
 
   const dynamicPrompt = `
