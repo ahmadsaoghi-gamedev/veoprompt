@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api-optimized';
+import { generateKeyImagePrompt, generateVideoPromptsFromImage } from '../utils/api-fixed';
 import { getSettings } from '../utils/database';
 import { APISettings, VideoPromptWithOptimization } from '../types';
 
