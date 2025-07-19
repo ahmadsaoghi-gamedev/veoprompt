@@ -233,14 +233,34 @@ function getDialogStyleByAccent(accent: string): string {
 // Helper function to get dialog language based on accent
 function getDialogLanguageByAccent(accent: string): string {
   const languageMap: Record<string, string> = {
-    'Betawi': 'Language Indonesia Gaul dengan Logat Betawi',
-    'Jawa': 'Language Jawa',
-    'Sunda': 'Language Sunda',
+    'Betawi': 'Bahasa Indonesia Gaul dengan Logat Betawi',
+    'Jawa': 'Bahasa Jawa',
+    'Sunda': 'Bahasa Sunda',
     'US': 'American English',
     'British': 'British English'
   };
   
-  return languageMap[accent] || 'Language Indonesia';
+  return languageMap[accent] || 'Bahasa Indonesia';
+}
+
+// Helper function to get correct language reference for instructions
+function getCorrectLanguageReference(language: string, accent: string): string {
+  if (language === 'Inggris' && accent === 'British') {
+    return 'British English with authentic British accent';
+  }
+  if (language === 'Inggris' && accent === 'US') {
+    return 'American English with authentic American accent';
+  }
+  if (language === 'Indonesia' && accent === 'Betawi') {
+    return 'Indonesian with authentic Betawi accent';
+  }
+  if (language === 'Indonesia' && accent === 'Sunda') {
+    return 'Indonesian with authentic Sundanese accent';
+  }
+  if (language === 'Indonesia' && accent === 'Jawa') {
+    return 'Indonesian with authentic Javanese accent';
+  }
+  return `${language} with authentic ${accent} accent`;
 }
 
 // Helper function to detect existing dialogue in text
@@ -353,25 +373,26 @@ export async function generateAnomalyScenePrompt(
   // Check if dialogue already exists in the scene
   const existingDialogue = detectExistingDialogue(storyContext.sinopsis_per_adegan[sceneNumber - 1]);
   
-  // Translate character names if using British accent
-  const isEnglishAccent = languageOptions.Accent === 'British' || languageOptions.Accent === 'US';
-  
   const dialogueInstructions = existingDialogue.hasDialogue ? `
-**CRITICAL DIALOGUE PRESERVATION RULE:**
+**ABSOLUTE DIALOG PRESERVATION MANDATE:**
 "The scene description ALREADY CONTAINS DIALOGUE. You MUST:
-1. EXTRACT the existing dialogue EXACTLY as written
-2. DO NOT create any new dialogue
-3. USE ONLY the dialogue found in the scene description
-4. Format the existing dialogue according to the required structure
-5. If accent is British or US, translate character names to English (e.g., "Ibu" → "Mother", "Anak" → "Child")
+1. COPY the existing dialogue EXACTLY as written - ZERO TOLERANCE FOR MODIFICATION
+2. DO NOT change any words, punctuation, or sentence structure
+3. DO NOT fix apparent inconsistencies (like [Son] vs [Brian])
+4. DO NOT translate or rephrase any dialogue
+5. DO NOT add or remove any dialogue lines
+6. DO NOT translate character names - keep them EXACTLY as provided in brackets
+7. PRESERVE the original character labels in the dialog brackets
 
-EXISTING DIALOGUE DETECTED:
-${existingDialogue.dialogues.map(d => {
-  const translatedSpeaker = translateCharacterName(d.speaker, isEnglishAccent);
-  return `${translatedSpeaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"`;
-}).join('\n')}
+EXISTING DIALOGUE TO PRESERVE EXACTLY:
+${storyContext.sinopsis_per_adegan[sceneNumber - 1]}
 
-YOU ARE FORBIDDEN FROM CREATING NEW DIALOGUE. USE ONLY WHAT EXISTS ABOVE."` : `
+CHARACTER NAME MAPPING FOR VISUAL DESCRIPTIONS ONLY:
+- [Mom] = ${characters.karakter_1.nama} (use in visual/audio descriptions)
+- [Brian]/[Son] = ${characters.karakter_2.nama} (use in visual/audio descriptions)
+- [beggar] = ${characters.karakter_3.nama} (use in visual/audio descriptions)
+
+YOU ARE FORBIDDEN FROM MODIFYING THE DIALOGUE. COPY-PASTE IT EXACTLY."` : `
 **DIALOGUE CREATION RULE:**
 "No existing dialogue was found in the scene description. You should CREATE appropriate dialogue for the characters based on the scene context."`;
 
@@ -412,7 +433,7 @@ ${dialogueInstructions}
   
   "audio_prompt": "[String] WRITE IN ENGLISH ONLY. Description of background music and sound effects. Include: modern cinematic orchestral music (avoid traditional instruments unless specifically requested), spatial audio design, character voice acting direction for all characters (describe voice characteristics), ambient soundscape, foley effects, dynamic range, and emotional musical themes. For modern 3D animation, use contemporary film scoring with electronic elements, hybrid orchestral arrangements, and modern sound design.",
   
-  "dialogue": "[String] WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. ${existingDialogue.hasDialogue ? 'USE THE EXISTING DIALOGUE PROVIDED. DO NOT CREATE NEW DIALOGUE.' : 'Create dialogue with MANDATORY bracket format.'} Each character's line in brackets, SEPARATED BY NEWLINES (\\n). Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[${characters.karakter_1.nama}: (excited), This is amazing!]\\n[${characters.karakter_2.nama}: (surprised), I can\\'t believe it!]\\n[${characters.karakter_3.nama}: (happy), Let\\'s do this together!]'" : "'[${characters.karakter_1.nama}: (senang), Wah, keren banget!]\\n[${characters.karakter_2.nama}: (terkejut), Gila, gak nyangka!]\\n[${characters.karakter_3.nama}: (semangat), Yuk, kita lakukan bareng!]'"} Total 8 seconds - approximately 15-25 words total. MUST use character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}. Style: ${getDialogStyleByAccent(languageOptions.Accent)}",
+  "dialogue": "[String] ${existingDialogue.hasDialogue ? 'EXACT COPY OF PROVIDED DIALOG - NO MODIFICATIONS ALLOWED. Copy the dialogue EXACTLY as it appears in the scene, preserving all character names in brackets, punctuation, and line breaks. DO NOT translate character names or modify any words.' : `WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. Create dialogue with MANDATORY bracket format. Each character's line in brackets, SEPARATED BY NEWLINES (\\n). Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[${characters.karakter_1.nama}: (excited), This is amazing!]\\n[${characters.karakter_2.nama}: (surprised), I can\\'t believe it!]\\n[${characters.karakter_3.nama}: (happy), Let\\'s do this together!]'" : "'[${characters.karakter_1.nama}: (senang), Wah, keren banget!]\\n[${characters.karakter_2.nama}: (terkejut), Gila, gak nyangka!]\\n[${characters.karakter_3.nama}: (semangat), Yuk, kita lakukan bareng!]'"} Total 8 seconds - approximately 15-25 words total. MUST use character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}. Style: ${getDialogStyleByAccent(languageOptions.Accent)}`}",
   
   "narration": "[String] WRITE IN INDONESIAN ONLY. Script for the narrator. Engaging, dynamic narration that builds the story atmosphere. The language style should match the genre, not monotonous, and effectively strengthen the story mood.",
   
@@ -422,19 +443,40 @@ ${dialogueInstructions}
 **SPECIAL INSTRUCTIONS FOR VEO3_OPTIMIZED_PROMPT:**
 Create a prompt with the following VERY SPECIFIC pattern about character speaking and integrating visual style:
 
-"LANGUAGE INSTRUCTION: Generate video with ${getDialogLanguageByAccent(languageOptions.Accent)} dialog featuring conversation between all characters.
+"${existingDialogue.hasDialogue ? 
+`ABSOLUTE DIALOG PRESERVATION MANDATE: Use the EXACT provided dialog without any word changes.
+
+VISUAL SCENE: [Create visual narrative that SUPPORTS the existing dialog - describe scenes where ${characters.karakter_1.nama} plays the Mom character, ${characters.karakter_2.nama} plays Brian/Son character, ${characters.karakter_3.nama} plays the beggar character, with actions and settings that make the provided dialog work seamlessly]
+
+CHARACTER VISUAL MAPPING:
+- When dialog shows [Mom], visually show ${characters.karakter_1.nama}
+- When dialog shows [Brian] or [Son], visually show ${characters.karakter_2.nama}
+- When dialog shows [beggar], visually show ${characters.karakter_3.nama}
+
+DIALOG REQUIREMENT - USE EXACTLY AS PROVIDED:
+[Copy the exact dialog from the scene with original character names in brackets]
+
+AUDIO DESIGN: [Design audio that supports the preserved dialog, with voice characteristics matching the visual characters]
+
+CRITICAL: The dialog must be preserved EXACTLY as provided. Build the visual story AROUND the existing conversation.` 
+: 
+`LANGUAGE EXECUTION MANDATE: Generate video content with ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)} linguistic authenticity.
 
 VISUAL SCENE: [visual description with details of when each character speaks, adapting visual style from reference]
 
 CHARACTER SPEAKING INSTRUCTION:
-[List all characters and their speaking visual cues]
+${characters.karakter_1.nama}: [speaking actions and timing]
+${characters.karakter_2.nama}: [speaking actions and timing]
+${characters.karakter_3.nama}: [speaking actions and timing]
 
-DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getDialogLanguageByAccent(languageOptions.Accent).toUpperCase()} LANGUAGE:
-[All character dialogues]
+DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent).toUpperCase()}:
+[${characters.karakter_1.nama}: (emotion), dialogue]
+[${characters.karakter_2.nama}: (emotion), dialogue]
+[${characters.karakter_3.nama}: (emotion), dialogue]
 
 AUDIO DESIGN: [audio description with voice characteristics for each character]
 
-CRITICAL INSTRUCTION: Ensure all characters take turns speaking naturally. Show clear mouth movements and facial expressions for each character when they speak. ALL spoken words must be in ${getDialogLanguageByAccent(languageOptions.Accent)} language, NOT English."
+CRITICAL INSTRUCTION: ALL spoken words must be in ${getCorrectLanguageReference(Language_dipilih, languageOptions.Accent)}, with NO other language interference. MANDATORY: Use ONLY these exact character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}.`}"
 
 **GIVEN STORY IDEA:**
 ${userIdea}
@@ -470,7 +512,8 @@ Generate JSON with the above structure and professional scenario and production 
         result.audio_prompt as string,
         result.dialogue as string || '',
         Language_dipilih,
-        characters
+        characters,
+        languageOptions
       );
     }
     
@@ -506,7 +549,8 @@ function generateEnhancedVeo3OptimizedPrompt(
   audioPrompt: string,
   dialogue: string,
   language: string,
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter }
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
+  languageOptions?: LanguageOptions
 ): string {
   // Clean prompts
   const cleanVisual = visualPrompt.replace(/\[Language:.*?\]/g, '').trim();
@@ -516,46 +560,92 @@ function generateEnhancedVeo3OptimizedPrompt(
   // Ensure proper newline formatting in dialog
   const formattedDialog = cleanDialog.replace(/\]\s*\[/g, ']\n[');
   
-  // Parse dialog untuk mengidentifikasi siapa yang berbicara
+  // Parse dialog untuk mengidentifikasi siapa yang berbicara dengan lebih akurat
   const dialogLines = formattedDialog.split('\n').filter(line => line.trim());
-  const characterSpeakingInstructions = dialogLines.map(line => {
-    if (line.includes(characters.karakter_1.nama)) {
-      return `${characters.karakter_1.nama} speaks: Show ${characters.karakter_1.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
-    } else if (line.includes(characters.karakter_2.nama)) {
-      return `${characters.karakter_2.nama} speaks: Show ${characters.karakter_2.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
-    } else if (line.includes(characters.karakter_3.nama)) {
-      return `${characters.karakter_3.nama} speaks: Show ${characters.karakter_3.nama} with mouth movements, facial expressions, and body language matching the dialog.`;
+  
+  // Create detailed speaking order with explicit instructions
+  const speakingOrder: string[] = [];
+  const characterDialogueMap: { character: string; line: string; order: number }[] = [];
+  
+  dialogLines.forEach((line, index) => {
+    // Extract character name more accurately
+    const match = line.match(/\[([^:]+):\s*(?:\([^)]+\),)?\s*([^\]]+)\]/);
+    if (match) {
+      const speakerName = match[1].trim();
+      
+      // Determine which character is speaking
+      let characterIdentified = '';
+      if (speakerName === characters.karakter_1.nama || line.includes(characters.karakter_1.nama)) {
+        characterIdentified = characters.karakter_1.nama;
+      } else if (speakerName === characters.karakter_2.nama || line.includes(characters.karakter_2.nama)) {
+        characterIdentified = characters.karakter_2.nama;
+      } else if (speakerName === characters.karakter_3.nama || line.includes(characters.karakter_3.nama)) {
+        characterIdentified = characters.karakter_3.nama;
+      }
+      
+      if (characterIdentified) {
+        characterDialogueMap.push({
+          character: characterIdentified,
+          line: line,
+          order: index + 1
+        });
+      }
     }
-    return '';
-  }).filter(instruction => instruction);
+  });
 
-  return `LANGUAGE INSTRUCTION: Generate video with ${language} dialog featuring conversation between ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}.
+  // Generate explicit speaking order instructions
+  const orderWords = ['FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH', 'EIGHTH'];
+  characterDialogueMap.forEach((item, index) => {
+    const orderWord = orderWords[index] || `LINE ${index + 1}`;
+    const otherCharacters = [characters.karakter_1.nama, characters.karakter_2.nama, characters.karakter_3.nama]
+      .filter(name => name !== item.character);
+    
+    speakingOrder.push(`${orderWord}: ${item.character} speaks the line "${item.line}". 
+   - VISUAL: Show ${item.character} with active mouth movements and expressive gestures
+   - OTHER CHARACTERS: ${otherCharacters.join(' and ')} DO NOT SPEAK - show them listening/reacting only`);
+  });
+
+  // Get the correct language reference based on the original language options
+  const languageRef = languageOptions 
+    ? getCorrectLanguageReference(languageOptions.Language, languageOptions.Accent)
+    : getCorrectLanguageReference(language, characters.karakter_1.nama.includes('Mother') || characters.karakter_1.nama.includes('Father') ? 'British' : 'Betawi');
+  
+  return `LANGUAGE EXECUTION MANDATE: Generate video content with ${languageRef} linguistic authenticity.
 
 VISUAL SCENE:
 ${cleanVisual}
 
-CHARACTER ANIMATION REQUIREMENTS:
-${characterSpeakingInstructions.join('\n')}
+⚠️ CRITICAL DIALOGUE ASSIGNMENT INSTRUCTIONS ⚠️
+THE FOLLOWING SPEAKING ORDER MUST BE FOLLOWED EXACTLY:
 
-SPECIFIC CHARACTER VISUAL CUES:
-- ${characters.karakter_1.nama}: ${characters.karakter_1.deskripsi_fisik}
-- ${characters.karakter_2.nama}: ${characters.karakter_2.deskripsi_fisik}
-- ${characters.karakter_3.nama}: ${characters.karakter_3.deskripsi_fisik}
+${speakingOrder.join('\n\n')}
 
-DIALOG REQUIREMENT - CHARACTERS MUST SPEAK IN ${language.toUpperCase()} LANGUAGE:
+CHARACTER IDENTIFICATION:
+- CHARACTER 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
+- CHARACTER 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+- CHARACTER 3: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
+
+DIALOGUE LINES (MUST BE SPOKEN IN THIS EXACT ORDER):
 ${formattedDialog}
 
 AUDIO DESIGN:
 ${cleanAudio}
-- Distinct voice characteristics for ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}
-- Clear audio separation when each character speaks
 
-CRITICAL INSTRUCTIONS: 
-1. Show ONLY the speaking character with mouth movements when they deliver their lines
-2. The non-speaking characters should show listening expressions/reactions
-3. Ensure ALL spoken words are in ${language} language, NOT English
-4. Display clear turn-taking between ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama}
-5. Each character must have distinct facial expressions and voice when speaking`;
+⚡ ABSOLUTE REQUIREMENTS FOR VEO3:
+1. DIALOGUE ASSIGNMENT: Each line MUST be spoken by the EXACT character specified in the speaking order above
+2. LIP SYNC: ONLY the currently speaking character shows mouth movements
+3. NON-SPEAKERS: Characters NOT speaking must ONLY show listening reactions (NO mouth movements)
+4. VOICE DISTINCTION: Each character MUST have a unique, distinguishable voice
+5. TURN-TAKING: Clear visual and audio separation between each speaker
+6. CHARACTER NAMES: Use ONLY these exact names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}
+7. NO DIALOGUE MIXING: Character 3's lines MUST be spoken by ${characters.karakter_3.nama} ONLY, NOT by ${characters.karakter_2.nama}
+
+VERIFICATION CHECKLIST:
+✓ ${characters.karakter_1.nama} speaks ONLY their assigned lines
+✓ ${characters.karakter_2.nama} speaks ONLY their assigned lines  
+✓ ${characters.karakter_3.nama} speaks ONLY their assigned lines
+✓ No character speaks another character's dialogue
+✓ All dialogue is in ${languageRef}`;
 }
 
 // FUNGSI UNTUK VIDEO PROMPTS FROM IMAGE - JUGA DIPERBAIKI
