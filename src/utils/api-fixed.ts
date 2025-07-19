@@ -1,4 +1,5 @@
 import { APISettings, VideoPromptWithOptimization } from '../types';
+import { rateLimiter } from './rateLimiter';
 
 interface AnomalyCharacter {
   nama: string;
@@ -761,48 +762,82 @@ You are a professional screenwriter specializing in high-quality 3D animation fo
 
 2. **DIALOG CONSISTENCY:**
    - Each scene MUST have at least 2 speaking characters
-   - Dialogue format must be consistent: "CHARACTER_NAME: (expression) dialogue"
-   - Indonesian language dialogues must use the same format as English dialogues"
+   - Dialogue format must be consistent: "[CHARACTER_NAME: (expression), dialogue]"
+   - Indonesian language dialogues must use the same format as English dialogues
 
 ${dialogueInstructions}
 
 **MAIN TASK:**
-Generate JSON with 8 scene prompts containing clear character dialogue.
+Generate a valid JSON object with EXACTLY this structure. Return ONLY the JSON, no other text before or after.
 
-**STRUKTUR OUTPUT JSON:**
-
+**EXACT JSON STRUCTURE TO FOLLOW:**
 {
   "video_prompts": [
     {
-      "scenePrompt": "[Language: ENGLISH] Detailed visual scene description. MUST include: setting, shot composition, lighting, camera movement, character action, and IMPORTANT: describe in detail when each character speaks with mouth movement and facial expressions.",
-
-"narasi": "[Language: INDONESIAN] Engaging voice-over narration.",
-
-"dialog_en": "[String] Result from **Step 1** (Master Language Dialogue in English). Format: '[CHARACTER_A: (emotion), dialogue]' and '[CHARACTER_B: (emotion), dialogue]'.",
-
-"dialog_id": "[String] Result from **Step 2** (Creative Adaptation in Slang Indonesian Language). Format MUST be identical to dialog_en in terms of speaker order and number of lines. Example: '[Character: (expression), dialogue]'",
-
-"veo3_optimized_prompt": "[Language: STRUCTURED MIX] Optimized prompt for Veo3 with specific instructions about character speaking assignment."
+      "scenePrompt": "A cinematic 3D animated scene showing...",
+      "narasi": "Narasi dalam bahasa Indonesia...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 2 description...",
+      "narasi": "Narasi scene 2...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 3 description...",
+      "narasi": "Narasi scene 3...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 4 description...",
+      "narasi": "Narasi scene 4...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 5 description...",
+      "narasi": "Narasi scene 5...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 6 description...",
+      "narasi": "Narasi scene 6...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 7 description...",
+      "narasi": "Narasi scene 7...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
+    },
+    {
+      "scenePrompt": "Scene 8 description...",
+      "narasi": "Narasi scene 8...",
+      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
+      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
+      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
     }
-    // ... total 8 scenes
   ]
 }
 
-**INSTRUCTION FOR VEO3_OPTIMIZED_PROMPT:**
-Each scene MUST include a prompt with clear character assignment:
-
-"LANGUAGE INSTRUCTION: Generate video with Indonesian dialog featuring conversation between [KARAKTER_A] and [KARAKTER_B].
-
-VISUAL SCENE: [scene description with detailed mouth movement for each character]
-
-CHARACTER SPEAKING SEQUENCE:
-1. [KARAKTER_A] speaks first: [visual cues]
-2. [KARAKTER_B] responds: [visual cues]
-3. [KARAKTER_C] responds: [visual cues]
-
-DIALOG REQUIREMENT: [Indonesian dialog with clear character names]
-
-CRITICAL INSTRUCTION: Show clear turn-taking between characters with distinct mouth movements and facial expressions for each speaker."
+**FIELD DESCRIPTIONS:**
+- scenePrompt: Detailed visual scene description in ENGLISH. Include setting, shot composition, lighting, camera movement, character actions, and facial expressions.
+- narasi: Voice-over narration in INDONESIAN language.
+- dialog_en: English dialogue in bracket format with emotions. Use \\n to separate speakers.
+- dialog_id: Indonesian dialogue matching the English version. Use \\n to separate speakers.
+- veo3_optimized_prompt: Optimized instructions for Veo3 video generation.
 
 **STORY IDEA:**
 ${userIdea}
@@ -813,25 +848,104 @@ ${Language_dipilih}
 **REQUESTED GENRE/TONE:**
 ${genre_tone}
 
-Generate JSON with 8 scene prompts ensuring clear multi-character dialogue with synchronized dialog system.`;
+IMPORTANT: Return ONLY the JSON object. Do not include any explanatory text, markdown formatting, or code blocks. The response should start with { and end with }`;
 
+  console.log('Sending request to Gemini API for video prompts...');
   const response = await callGeminiAPI(dynamicPrompt, keyImage, apiSettings);
-  const result = JSON.parse(response);
+  console.log('Raw API response:', response);
 
-  // Generate enhanced Veo3 prompts untuk setiap scene
-  result.video_prompts = result.video_prompts.map((prompt: VideoPromptWithOptimization, index: number) => {
-    if (!prompt.veo3_optimized_prompt) {
-      prompt.veo3_optimized_prompt = generateSceneSpecificVeo3Prompt(
-        prompt.scenePrompt,
-        prompt.dialog_id,
-        Language_dipilih,
-        index + 1
-      );
+  try {
+    // Use enhanced JSON parsing with fallback mechanisms
+    const result = extractAndParseJson(response);
+    console.log('Parsed result:', JSON.stringify(result, null, 2));
+
+    // Ensure video_prompts exists and is an array
+    if (!result.video_prompts || !Array.isArray(result.video_prompts)) {
+      console.error('Response structure:', result);
+      console.error('Looking for video_prompts array but found:', Object.keys(result));
+
+      // Try to create a fallback structure if possible
+      if (result && typeof result === 'object') {
+        // Check if the response has scene data in a different format
+        const scenes: VideoPromptWithOptimization[] = [];
+
+        // Try to extract scenes from numbered keys or other patterns
+        for (let i = 1; i <= 8; i++) {
+          const sceneKey = `scene${i}`;
+          const promptKey = `prompt${i}`;
+          const videoPromptKey = `video_prompt_${i}`;
+
+          if (result[sceneKey] || result[promptKey] || result[videoPromptKey]) {
+            const sceneData = result[sceneKey] || result[promptKey] || result[videoPromptKey];
+            const sceneObj = sceneData as Record<string, unknown>;
+            scenes.push({
+              scenePrompt: (sceneObj.scenePrompt as string) || (sceneObj.visual_prompt as string) || '',
+              narasi: (sceneObj.narasi as string) || (sceneObj.narration as string) || '',
+              dialog_en: (sceneObj.dialog_en as string) || (sceneObj.dialogue_en as string) || '',
+              dialog_id: (sceneObj.dialog_id as string) || (sceneObj.dialogue_id as string) || '',
+              veo3_optimized_prompt: ''
+            });
+          }
+        }
+
+        // Also check if the entire result is an array (maybe the API returned just the array)
+        if (Array.isArray(result) && result.length > 0) {
+          console.log('Result is an array, treating it as video_prompts');
+          result.video_prompts = result;
+        } else if (scenes.length > 0) {
+          console.log(`Found ${scenes.length} scenes using fallback extraction`);
+          result.video_prompts = scenes;
+        } else {
+          // Last resort: check if there's any array property in the result
+          const arrayProps = Object.entries(result).filter(([, value]) => Array.isArray(value));
+          if (arrayProps.length > 0) {
+            console.log(`Found array property: ${arrayProps[0][0]}`);
+            result.video_prompts = arrayProps[0][1];
+          } else {
+            throw new Error('Invalid response structure: missing video_prompts array');
+          }
+        }
+      } else {
+        throw new Error('Invalid response structure: response is not an object');
+      }
     }
-    return prompt;
-  });
 
-  return result;
+    // Validate and fix each prompt in the array
+    const validatedPrompts = (result.video_prompts as unknown[]).map((prompt: unknown, index: number) => {
+      const promptObj = prompt as Record<string, unknown>;
+      // Ensure all required fields exist
+      const validatedPrompt: VideoPromptWithOptimization = {
+        scenePrompt: (promptObj.scenePrompt as string) || (promptObj.visual_prompt as string) || '',
+        narasi: (promptObj.narasi as string) || (promptObj.narration as string) || '',
+        dialog_en: (promptObj.dialog_en as string) || (promptObj.dialogue_en as string) || '',
+        dialog_id: (promptObj.dialog_id as string) || (promptObj.dialogue_id as string) || '',
+        veo3_optimized_prompt: (promptObj.veo3_optimized_prompt as string) || ''
+      };
+
+      // Generate Veo3 optimized prompt if missing
+      if (!validatedPrompt.veo3_optimized_prompt) {
+        validatedPrompt.veo3_optimized_prompt = generateSceneSpecificVeo3Prompt(
+          validatedPrompt.scenePrompt,
+          validatedPrompt.dialog_id || validatedPrompt.dialog_en,
+          Language_dipilih,
+          index + 1
+        );
+      }
+
+      return validatedPrompt;
+    });
+
+    return {
+      video_prompts: validatedPrompts
+    };
+  } catch (error) {
+    console.error('Failed to parse JSON response:', error);
+    console.error('Raw response:', response);
+
+    // Create a more detailed error message
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to generate video prompts: ${errorMessage}. Please try again.`);
+  }
 }
 
 // FUNGSI HELPER UNTUK SCENE-SPECIFIC VEO3 PROMPTS
@@ -886,11 +1000,6 @@ function cleanJsonString(text: string): string {
   // Fix common JSON issues - use proper Unicode ranges to avoid ESLint errors
   // eslint-disable-next-line no-control-regex
   cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
-  cleaned = cleaned.replace(/\n/g, '\\n'); // Escape newlines in strings
-  cleaned = cleaned.replace(/\r/g, '\\r'); // Escape carriage returns
-  cleaned = cleaned.replace(/\t/g, '\\t'); // Escape tabs
-  cleaned = cleaned.replace(/\\/g, '\\\\'); // Escape backslashes
-  cleaned = cleaned.replace(/"/g, '\\"'); // Escape quotes
 
   // Try to extract JSON if the response contains other text
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
@@ -929,21 +1038,23 @@ function extractAndParseJson(text: string): Record<string, unknown> {
       // Clean up the extracted JSON string - use proper Unicode ranges
       // eslint-disable-next-line no-control-regex
       jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Remove control characters
-      jsonStr = jsonStr.replace(/\n/g, ' '); // Replace newlines with spaces
+
+      // Don't escape quotes and newlines here as they might already be escaped
+      jsonStr = jsonStr.replace(/\n(?!["\]}])/g, ' '); // Replace unescaped newlines with spaces
       jsonStr = jsonStr.replace(/\r/g, ' '); // Replace carriage returns with spaces
       jsonStr = jsonStr.replace(/\t/g, ' '); // Replace tabs with spaces
       jsonStr = jsonStr.replace(/\s+/g, ' '); // Normalize whitespace
 
       return JSON.parse(jsonStr) as Record<string, unknown>;
     }
-  } catch {
-    console.warn('Manual JSON extraction failed...');
+  } catch (error) {
+    console.warn('Manual JSON extraction failed:', error);
   }
 
   // Fourth attempt: try to reconstruct basic JSON structure
   try {
     // Look for key-value patterns and reconstruct
-    const result: Record<string, string> = {};
+    const result: Record<string, unknown> = {};
 
     // Extract visual_prompt
     const visualMatch = text.match(/"visual_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
@@ -969,11 +1080,55 @@ function extractAndParseJson(text: string): Record<string, unknown> {
     const veo3Match = text.match(/"veo3_optimized_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (veo3Match) result.veo3_optimized_prompt = veo3Match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
 
+    // Special handling for video_prompts array
+    const videoPromptsMatch = text.match(/"video_prompts"\s*:\s*\[([\s\S]*?)\]/);
+    if (videoPromptsMatch) {
+      try {
+        // Extract individual prompt objects
+        const promptsArray: unknown[] = [];
+        const promptsContent = videoPromptsMatch[1];
+
+        // Find all scene prompt objects
+        const sceneMatches = promptsContent.matchAll(/\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g);
+
+        for (const match of sceneMatches) {
+          const sceneObj: Record<string, string> = {};
+          const sceneContent = match[1];
+
+          // Extract fields from each scene
+          const scenePromptMatch = sceneContent.match(/"scenePrompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (scenePromptMatch) sceneObj.scenePrompt = scenePromptMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+          const narasiMatch = sceneContent.match(/"narasi"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (narasiMatch) sceneObj.narasi = narasiMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+          const dialogEnMatch = sceneContent.match(/"dialog_en"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (dialogEnMatch) sceneObj.dialog_en = dialogEnMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+          const dialogIdMatch = sceneContent.match(/"dialog_id"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (dialogIdMatch) sceneObj.dialog_id = dialogIdMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+          const veo3Match = sceneContent.match(/"veo3_optimized_prompt"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (veo3Match) sceneObj.veo3_optimized_prompt = veo3Match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+
+          if (Object.keys(sceneObj).length > 0) {
+            promptsArray.push(sceneObj);
+          }
+        }
+
+        if (promptsArray.length > 0) {
+          result.video_prompts = promptsArray;
+        }
+      } catch (error) {
+        console.warn('Failed to parse video_prompts array:', error);
+      }
+    }
+
     if (Object.keys(result).length > 0) {
       return result;
     }
-  } catch {
-    console.warn('JSON reconstruction failed...');
+  } catch (error) {
+    console.warn('JSON reconstruction failed:', error);
   }
 
   throw new Error('Unable to parse JSON response after multiple attempts');
@@ -991,132 +1146,85 @@ export async function callGeminiAPI(
     throw new Error('API key is required. Please configure your Google Generative Language API key in the API Settings.');
   }
 
-  const parts: Array<{ text: string } | { inlineData: { mimeType: string, data: string } }> = [{ text: prompt }];
-  if (imageBase64) {
-    parts.push({
-      inlineData: {
-        mimeType: "image/png",
-        data: imageBase64.split(',')[1]
-      }
-    });
-  }
+  const apiCall = async () => {
+    const parts: Array<{ text: string } | { inlineData: { mimeType: string, data: string } }> = [{ text: prompt }];
+    if (imageBase64) {
+      parts.push({
+        inlineData: {
+          mimeType: "image/png",
+          data: imageBase64.split(',')[1]
+        }
+      });
+    }
 
-  const payload = {
-    contents: [{
-      role: "user",
-      parts: parts
-    }],
-    generationConfig: {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 2048,
+    const payload = {
+      contents: [{
+        role: "user",
+        parts: parts
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      }
+    };
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    if (!response.ok) {
+      let errorMessage = 'API request failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+
+      if (response.status === 400 && errorMessage.includes('API_KEY_INVALID')) {
+        throw new Error('Invalid API key. Please check your Google Generative Language API key in the API Settings and ensure it has the correct permissions.');
+      }
+
+      if (response.status === 403) {
+        if (errorMessage.includes('quota')) {
+          throw new Error('API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.');
+        }
+        if (errorMessage.includes('API key')) {
+          throw new Error('API key access denied. Please ensure the Generative Language API is enabled in your Google Cloud Console.');
+        }
+      }
+
+      // Let the rate limiter handle 429 errors
+      if (response.status === 429) {
+        const error = new Error('Rate limit exceeded. Please wait a moment before making another request.');
+        (error as Error & { status: number }).status = 429;
+        throw error;
+      }
+
+      throw new Error(`API Error (${response.status}): ${errorMessage}`);
+    }
+
+    const result = await response.json();
+    if (result.candidates?.[0]?.content?.parts?.[0]) {
+      let text = result.candidates[0].content.parts[0].text;
+      text = text.trim().replace(/^```(?:json)?\s*\n?/gm, '').replace(/\n?```\s*$/gm, '');
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      return jsonMatch ? jsonMatch[0].trim() : text.trim();
+    } else {
+      console.error('Unexpected API response structure:', result);
+      throw new Error('Unexpected API response format');
     }
   };
 
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY_MS = 1000; // 1 second
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      if (response.status === 503) {
-        if (attempt < MAX_RETRIES) {
-          console.warn(`Attempt ${attempt}: Received 503 Service Unavailable. Retrying in ${RETRY_DELAY_MS}ms...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
-          continue; // Retry the loop
-        } else {
-          throw new Error(`API Error (503): Service Unavailable after ${MAX_RETRIES} retries.`);
-        }
-      }
-
-      if (!response.ok) {
-        let errorMessage = 'API request failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error?.message || errorMessage;
-        } catch {
-          // If error response is not JSON, use status text
-          errorMessage = response.statusText || errorMessage;
-        }
-
-        if (response.status === 400 && errorMessage.includes('API_KEY_INVALID')) {
-          throw new Error('Invalid API key. Please check your Google Generative Language API key in the API Settings and ensure it has the correct permissions.');
-        }
-
-        if (response.status === 403) {
-          if (errorMessage.includes('quota')) {
-            throw new Error('API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.');
-          }
-          if (errorMessage.includes('API key')) {
-            throw new Error('API key access denied. Please ensure the Generative Language API is enabled in your Google Cloud Console.');
-          }
-        }
-
-        if (response.status === 429) {
-          throw new Error('Rate limit exceeded. Please wait a moment before making another request.');
-        }
-
-        throw new Error(`API Error (${response.status}): ${errorMessage}`);
-      }
-
-      const result = await response.json();
-      if (result.candidates?.[0]?.content?.parts?.[0]) {
-        let text = result.candidates[0].content.parts[0].text;
-
-        // Enhanced text cleaning for better JSON extraction
-        text = text.trim();
-
-        // Remove markdown code blocks more aggressively
-        text = text.replace(/^```(?:json)?\s*\n?/gm, '');
-        text = text.replace(/\n?```\s*$/gm, '');
-
-        // Remove markdown formatting
-        text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Remove bold markdown
-        text = text.replace(/###\s*(.*?)$/gm, '$1'); // Remove heading markdown
-        text = text.replace(/^\s*[-*]\s*/gm, ''); // Remove bullet points
-
-        // Try to extract JSON if the response contains other text
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          text = jsonMatch[0];
-        }
-
-        // Final cleanup
-        text = text.trim();
-
-        return text;
-      } else {
-        console.error('Unexpected API response structure:', result);
-        throw new Error('Unexpected API response format');
-      }
-    } catch (error) {
-      // If the error is not a 503 and we are not at the last attempt, re-throw to be caught by the loop.
-      // If it is the last attempt or not a 503, let the outer catch handle it.
-      if (error instanceof Error && error.message.includes('503') && attempt < MAX_RETRIES) {
-        // This error will be caught by the loop's `continue` logic if it's a 503.
-        // If it's another error, it will fall through to the outer catch.
-        throw error;
-      } else {
-        // For any other error, or if it's the last retry for 503, re-throw to be caught by the outer catch.
-        throw error;
-      }
-    }
-  }
-  // If the loop finishes without returning, it means all retries failed or a non-retryable error occurred.
-  // The last thrown error will be caught by the outer catch block.
-  // This part of the code should ideally not be reached if an error is thrown.
-  // However, to satisfy TypeScript, we might need a return or throw here.
-  // Let's ensure the error is thrown if the loop completes without success.
-  throw new Error(`Failed to call Gemini API after ${MAX_RETRIES} attempts.`);
+  // Use the rate limiter to make the request
+  return await rateLimiter.makeRequest(apiCall);
 }
 
 export async function validateAPIKey(apiKey: string): Promise<{ isValid: boolean; error?: string }> {
@@ -1187,16 +1295,93 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
 3. Assign a creative and memorable nickname that reflects the character's personality in the story
 4. Ensure the output is in clean JSON format, ready for the modeling & animation team
 
-**OUTPUT FORMAT:**
-{"character_1": {"name": "[First character name]", "physical_description": "[Surreal and expressive description]"}, "character_2": {"name": "[Second character name]", "physical_description": "[Surreal and expressive description]"}, "character_3": {"name": "[Third character name]", "physical_description": "[Surreal and expressive description]"}}
+**CRITICAL OUTPUT FORMAT - MUST USE EXACT FIELD NAMES:**
+{
+  "karakter_1": {
+    "nama": "[First character name]",
+    "deskripsi_fisik": "[Surreal and expressive description]"
+  },
+  "karakter_2": {
+    "nama": "[Second character name]",
+    "deskripsi_fisik": "[Surreal and expressive description]"
+  },
+  "karakter_3": {
+    "nama": "[Third character name]",
+    "deskripsi_fisik": "[Surreal and expressive description]"
+  }
+}
+
+**IMPORTANT:** Return ONLY the JSON object. Do not include any explanatory text, markdown formatting, or code blocks. The response should start with { and end with }
 
 **EXAMPLE:**
-If the story is about "A wise old wooden drum, a quiet Electric Pole, and a cheerful Street Lamp," the output must use these three characters with enriched visual descriptions like aged wood textures with intricate carvings, cables forming facial expressions, or flickering lights creating a smiling face.
+If the story is about "A wise old wooden drum, a quiet Electric Pole, and a cheerful Street Lamp," the output must be:
+{
+  "karakter_1": {
+    "nama": "Gendang Tua",
+    "deskripsi_fisik": "Ancient wooden drum with weathered mahogany surface covered in intricate hand-carved patterns that glow softly when speaking. Has wise, half-closed eyes made from brass cymbals and a gentle smile formed by the drum's rim. Moves by rolling gracefully, leaving trails of golden dust"
+  },
+  "karakter_2": {
+    "nama": "Tiang Listrik",
+    "deskripsi_fisik": "Tall metallic pole with cables forming expressive eyebrows and a mustache. Body wrapped in ivy that lights up like neural pathways when thinking. Has transformer box chest that opens to reveal a glowing heart. Arms made of power lines that spark with emotion"
+  },
+  "karakter_3": {
+    "nama": "Lampu Jalan",
+    "deskripsi_fisik": "Cheerful street lamp with bulb head that changes color based on mood. Flexible metal neck allows expressive movements. Base has tiny wheels hidden under decorative iron scrollwork. Emits warm golden particles when happy, blue when sad"
+  }
+}
 
 Analyze the story idea deeply and create 3 characters with strong physicality, expressions, and aura, as if they are ready to star in a world-class 3D animated film.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
-  return JSON.parse(response);
+  try {
+    const result = extractAndParseJson(response);
+
+    // Validate the structure
+    if (!result.karakter_1 || !result.karakter_2 || !result.karakter_3) {
+      console.error('Invalid character response structure:', result);
+
+      // Try to map from alternative field names
+      if (result.character_1 && result.character_2 && result.character_3) {
+        return {
+          karakter_1: {
+            nama: (result.character_1 as any).name || (result.character_1 as any).nama || '',
+            deskripsi_fisik: (result.character_1 as any).physical_description || (result.character_1 as any).deskripsi_fisik || ''
+          },
+          karakter_2: {
+            nama: (result.character_2 as any).name || (result.character_2 as any).nama || '',
+            deskripsi_fisik: (result.character_2 as any).physical_description || (result.character_2 as any).deskripsi_fisik || ''
+          },
+          karakter_3: {
+            nama: (result.character_3 as any).name || (result.character_3 as any).nama || '',
+            deskripsi_fisik: (result.character_3 as any).physical_description || (result.character_3 as any).deskripsi_fisik || ''
+          }
+        };
+      }
+
+      throw new Error('Invalid character response structure from API');
+    }
+
+    // Ensure all required fields exist
+    const characters = result as {
+      karakter_1: { nama: string; deskripsi_fisik: string };
+      karakter_2: { nama: string; deskripsi_fisik: string };
+      karakter_3: { nama: string; deskripsi_fisik: string };
+    };
+
+    // Validate each character has the required fields
+    for (const key of ['karakter_1', 'karakter_2', 'karakter_3'] as const) {
+      if (!characters[key].nama || !characters[key].deskripsi_fisik) {
+        console.error(`Character ${key} is missing required fields:`, characters[key]);
+        throw new Error(`Character ${key} is missing required fields`);
+      }
+    }
+
+    return characters;
+  } catch (error) {
+    console.error('Failed to parse anomaly characters JSON:', error);
+    console.error('Raw response:', response);
+    throw new Error('Invalid characters response from API. Please try again.');
+  }
 }
 
 export async function generateAnomalyStory(
@@ -1252,7 +1437,40 @@ ${existingDialogue.dialogues.map(d => `${d.speaker}${d.emotion ? ` (${d.emotion}
     }`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
-  return JSON.parse(response);
+  try {
+    const result = extractAndParseJson(response);
+
+    // Validate the structure
+    if (!result.judul || !result.sinopsis_per_adegan || !Array.isArray(result.sinopsis_per_adegan)) {
+      console.error('Invalid story response structure:', result);
+      throw new Error('Invalid story response structure from API');
+    }
+
+    // Map the result to match the expected format
+    const mappedResult: AnomalyStoryResponse = {
+      judul: result.judul as string,
+      sinopsis_per_adegan: result.sinopsis_per_adegan as string[]
+    };
+
+    // Handle alternative field names
+    if (!mappedResult.judul && result.title) {
+      mappedResult.judul = result.title as string;
+    }
+
+    if (!mappedResult.sinopsis_per_adegan || mappedResult.sinopsis_per_adegan.length === 0) {
+      if (result.scenes && Array.isArray(result.scenes)) {
+        mappedResult.sinopsis_per_adegan = result.scenes as string[];
+      } else if (result.synopsis && Array.isArray(result.synopsis)) {
+        mappedResult.sinopsis_per_adegan = result.synopsis as string[];
+      }
+    }
+
+    return mappedResult;
+  } catch (error) {
+    console.error('Failed to parse anomaly story JSON:', error);
+    console.error('Raw response:', response);
+    throw new Error('Invalid story response from API. Please try again.');
+  }
 }
 
 export async function generateKeyImagePrompt(
