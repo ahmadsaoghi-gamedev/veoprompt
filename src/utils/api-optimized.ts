@@ -8,6 +8,9 @@ import { rateLimiter, RateLimitUIHelper, RateLimitErrorHandler } from './rateLim
 // Re-export all functions from api-fixed.ts
 export * from './api-fixed';
 
+// Explicitly re-export the generateTwistedStoryIdea function to ensure it's available
+export { generateTwistedStoryIdea } from './api-fixed';
+
 // Import the original callGeminiAPI to wrap it
 import { callGeminiAPI as originalCallGeminiAPI } from './api-fixed';
 

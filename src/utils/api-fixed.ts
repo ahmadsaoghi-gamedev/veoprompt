@@ -266,9 +266,9 @@ function getCorrectLanguageReference(language: string, accent: string): string {
 }
 
 
-// Helper function to detect existing dialogue in text
-function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string }> } {
-  const dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string }> = [];
+// Helper function to detect existing dialogue in text with enhanced timestamp and narrative support
+function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string; timestamp?: string }> } {
+  const dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string; timestamp?: string }> = [];
 
   // Pattern 1: **Character:** "dialogue"
   const pattern1 = /\*\*([^:*]+):\*\*\s*"([^"]+)"/g;
@@ -315,10 +315,197 @@ function detectExistingDialogue(text: string): { hasDialogue: boolean; dialogues
     });
   }
 
+  // Pattern 5: Indonesian dialogue patterns - Character berkata/mengatakan/berteriak: "dialogue"
+  const pattern5 = /([A-Za-z\s]+)\s+(berkata|mengatakan|berteriak|berbisik|menjawab|bertanya|berucap|berseru):\s*"([^"]+)"/gi;
+  while ((match = pattern5.exec(text)) !== null) {
+    dialogues.push({
+      speaker: match[1].trim(),
+      text: match[3].trim(),
+      fullMatch: match[0]
+    });
+  }
+
+  // Pattern 6: Indonesian dialogue with emotions - Character (emotion) berkata: "dialogue"
+  const pattern6 = /([A-Za-z\s]+)\s*\(([^)]+)\)\s+(berkata|mengatakan|berteriak|berbisik|menjawab|bertanya|berucap|berseru):\s*"([^"]+)"/gi;
+  while ((match = pattern6.exec(text)) !== null) {
+    dialogues.push({
+      speaker: match[1].trim(),
+      emotion: match[2].trim(),
+      text: match[4].trim(),
+      fullMatch: match[0]
+    });
+  }
+
+  // Pattern 7: Direct dialogue without quotes - Character: dialogue text
+  const pattern7 = /^([A-Za-z\s]+):\s*([^"\n]+)$/gm;
+  while ((match = pattern7.exec(text)) !== null) {
+    // Skip if it looks like a time marker or scene description
+    if (!match[1].includes('detik') && !match[1].includes('menit') && !match[1].includes('jam') &&
+      !match[1].includes('scene') && !match[1].includes('adegan') && match[1].length < 50) {
+      dialogues.push({
+        speaker: match[1].trim(),
+        text: match[2].trim(),
+        fullMatch: match[0]
+      });
+    }
+  }
+
+  // Pattern 8: Narrative dialogue - "dialogue text," kata Character
+  const pattern8 = /"([^"]+)",?\s+(kata|ucap|teriak|bisik|jawab|tanya)\s+([A-Za-z\s]+)/gi;
+  while ((match = pattern8.exec(text)) !== null) {
+    dialogues.push({
+      speaker: match[3].trim(),
+      text: match[1].trim(),
+      fullMatch: match[0]
+    });
+  }
+
+  // NEW Pattern 9: Timestamp-based dialogue format (e.g., "00:00:01.439 Mom, this is really delicious.")
+  const timestampPattern = /(\d{2}:\d{2}:\d{2}\.\d{3})\s+([A-Za-z]+),?\s*([^.!?]*[.!?])/g;
+  while ((match = timestampPattern.exec(text)) !== null) {
+    dialogues.push({
+      speaker: match[2].trim(),
+      text: match[3].trim(),
+      fullMatch: match[0],
+      timestamp: match[1].trim()
+    });
+  }
+
+  // NEW Pattern 10: Enhanced narrative dialogue detection for complex conversations
+  const narrativePattern = /([A-Za-z\s]+)\s+(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|responded|responds|called|calls|told|tells|mentioned|mentions)\s*[,:]\s*([^.!?]*[.!?])/gi;
+  while ((match = narrativePattern.exec(text)) !== null) {
+    if (match[1].length < 30) { // Reasonable character name length
+      dialogues.push({
+        speaker: match[1].trim(),
+        text: match[3].trim(),
+        fullMatch: match[0]
+      });
+    }
+  }
+
+  // NEW Pattern 11: Conversational flow detection (multiple sentences with character interactions)
+  const conversationPattern = /([A-Za-z\s]+)\s+(menangis|berteriak|berbicara|berkata|menjawab|bertanya|berseru|mengucapkan|said|asked|replied|shouted|whispered|exclaimed|responded|called|told)\s+[^.!?]*[.!?]/gi;
+  const conversationMatches = text.match(conversationPattern);
+  if (conversationMatches && conversationMatches.length >= 2) {
+    conversationMatches.forEach((conversationMatch) => {
+      const conversationDialogMatch = conversationMatch.match(/([A-Za-z\s]+)\s+(menangis|berteriak|berbicara|berkata|menjawab|bertanya|berseru|mengucapkan|said|asked|replied|shouted|whispered|exclaimed|responded|called|told)\s+(.+)/i);
+      if (conversationDialogMatch && conversationDialogMatch[1].length < 30) {
+        dialogues.push({
+          speaker: conversationDialogMatch[1].trim(),
+          text: conversationDialogMatch[3].trim(),
+          fullMatch: conversationMatch
+        });
+      }
+    });
+  }
+
+  // NEW Pattern 12: Direct speech in narrative format (looking for quoted speech)
+  const directSpeechPattern = /"([^"]+)"/g;
+  const directSpeechMatches = [];
+  while ((match = directSpeechPattern.exec(text)) !== null) {
+    directSpeechMatches.push(match[1]);
+  }
+
+  // If we found multiple quoted speeches, it's likely dialogue
+  if (directSpeechMatches.length >= 3) {
+    // Try to find speakers for these quotes by looking at surrounding context
+    directSpeechMatches.forEach((quote) => {
+      const quoteIndex = text.indexOf(`"${quote}"`);
+      const beforeQuote = text.substring(Math.max(0, quoteIndex - 100), quoteIndex);
+      const afterQuote = text.substring(quoteIndex + quote.length + 2, Math.min(text.length, quoteIndex + quote.length + 102));
+
+      // Look for character names before or after the quote
+      const speakerMatch = beforeQuote.match(/([A-Za-z\s]+)\s+(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|responded|responds|called|calls|told|tells|berkata|mengatakan|bertanya|menjawab|berteriak|berbisik|berseru|mengucapkan)\s*[,:]*\s*$/i) ||
+        afterQuote.match(/^\s*[,:]*\s*(said|says|asked|asks|replied|replies|shouted|shouts|whispered|whispers|exclaimed|exclaims|responded|responds|called|calls|told|tells|berkata|mengatakan|bertanya|menjawab|berteriak|berbisik|berseru|mengucapkan)\s+([A-Za-z\s]+)/i);
+
+      if (speakerMatch) {
+        const speaker = speakerMatch[1] || speakerMatch[2];
+        if (speaker && speaker.length < 30) {
+          dialogues.push({
+            speaker: speaker.trim(),
+            text: quote.trim(),
+            fullMatch: `"${quote}"`
+          });
+        }
+      }
+    });
+  }
+
   return {
     hasDialogue: dialogues.length > 0,
     dialogues: dialogues
   };
+}
+
+// Enhanced function to calculate intelligent scene count based on dialogue complexity
+function calculateIntelligentSceneCount(dialogues: Array<{ speaker: string; emotion?: string; text: string; fullMatch: string; timestamp?: string }>): number {
+  if (dialogues.length === 0) {
+    return 8; // Default for no dialogue
+  }
+
+  // Count unique speakers
+  const uniqueSpeakers = new Set(dialogues.map(d => d.speaker.toLowerCase())).size;
+
+  // Count dialogue exchanges (back-and-forth conversations)
+  let exchanges = 0;
+  let lastSpeaker = '';
+  dialogues.forEach(dialogue => {
+    if (dialogue.speaker.toLowerCase() !== lastSpeaker) {
+      exchanges++;
+      lastSpeaker = dialogue.speaker.toLowerCase();
+    }
+  });
+
+  // Calculate total word count in dialogues
+  const totalWords = dialogues.reduce((sum, dialogue) => {
+    return sum + dialogue.text.split(/\s+/).length;
+  }, 0);
+
+  // Analyze dialogue complexity factors
+  const complexityFactors = {
+    dialogueCount: dialogues.length,
+    uniqueSpeakers: uniqueSpeakers,
+    exchanges: exchanges,
+    totalWords: totalWords,
+    hasTimestamps: dialogues.some(d => d.timestamp),
+    hasEmotions: dialogues.some(d => d.emotion)
+  };
+
+  // Intelligent scene count calculation
+  let sceneCount = 3; // Minimum scenes
+
+  // Base calculation: 1 scene per 2-3 dialogue exchanges
+  sceneCount = Math.max(sceneCount, Math.ceil(exchanges / 2.5));
+
+  // Adjust for dialogue density
+  if (totalWords > 150) {
+    sceneCount = Math.max(sceneCount, Math.ceil(totalWords / 25)); // ~25 words per scene
+  }
+
+  // Adjust for speaker complexity
+  if (uniqueSpeakers >= 3) {
+    sceneCount = Math.max(sceneCount, uniqueSpeakers + 2);
+  }
+
+  // Adjust for timestamp presence (indicates detailed scene breakdown)
+  if (complexityFactors.hasTimestamps) {
+    sceneCount = Math.max(sceneCount, Math.ceil(dialogues.length / 1.5));
+  }
+
+  // Adjust for emotional complexity
+  if (complexityFactors.hasEmotions) {
+    sceneCount = Math.max(sceneCount, dialogues.length);
+  }
+
+  // Cap at reasonable maximum
+  sceneCount = Math.min(sceneCount, 8);
+
+  console.log('Scene count calculation:', {
+    ...complexityFactors,
+    calculatedScenes: sceneCount
+  });
+
+  return sceneCount;
 }
 
 // Helper function to translate character names to English
@@ -433,13 +620,13 @@ ${dialogueInstructions}
 
 {
   "visual_prompt": "[String] WRITE IN ENGLISH ONLY. Start with 'A ${visualStyle} 3D animated scene.' Description of visuals, cinematography, setting, and character actions. In this description, name all the characters present in the scene (e.g., '${characters.karakter_1.nama}, ${characters.karakter_2.nama}, and ${characters.karakter_3.nama} are...' and use their initials for consistent character traits such as body, face, hair, height, and accessories). End with: 'Cinematography: [describe camera movement, angles, and lighting appropriate to the style]. Aspect Ratio: ${aspectRatio}.'",
-  
+
   "audio_prompt": "[String] WRITE IN ENGLISH ONLY. Description of background music and sound effects. Include: modern cinematic orchestral music (avoid traditional instruments unless specifically requested), spatial audio design, character voice acting direction for all characters (describe voice characteristics), ambient soundscape, foley effects, dynamic range, and emotional musical themes. For modern 3D animation, use contemporary film scoring with electronic elements, hybrid orchestral arrangements, and modern sound design.",
-  
+
   "dialogue": "[String] ${existingDialogue.hasDialogue ? 'EXACT COPY OF PROVIDED DIALOG - NO MODIFICATIONS ALLOWED. Copy the dialogue EXACTLY as it appears in the scene, preserving all character names in brackets, punctuation, and line breaks. DO NOT translate character names or modify any words.' : `WRITE IN ${getDialogLanguageByAccent(languageOptions.Accent)} ONLY. Create dialogue with MANDATORY bracket format. Each character's line in brackets, SEPARATED BY NEWLINES (\\n). Example for ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? 'English' : 'Indonesian'}: ${languageOptions.Accent === 'US' || languageOptions.Accent === 'British' ? "'[${characters.karakter_1.nama}: (excited), This is amazing!]\\n[${characters.karakter_2.nama}: (surprised), I can\\'t believe it!]\\n[${characters.karakter_3.nama}: (happy), Let\\'s do this together!]'" : "'[${characters.karakter_1.nama}: (senang), Wah, keren banget!]\\n[${characters.karakter_2.nama}: (terkejut), Gila, gak nyangka!]\\n[${characters.karakter_3.nama}: (semangat), Yuk, kita lakukan bareng!]'"} Total 8 seconds - approximately 15-25 words total. MUST use character names: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}. Style: ${getDialogStyleByAccent(languageOptions.Accent)}`}",
-  
+
   "narration": "[String] WRITE IN INDONESIAN ONLY. Script for the narrator. Engaging, dynamic narration that builds the story atmosphere. The language style should match the genre, not monotonous, and effectively strengthen the story mood.",
-  
+
   "veo3_optimized_prompt": "[String] MIXED STRUCTURED LANGUAGE. Optimized prompt specifically for Gemini Veo3 with very specific instructions about who speaks when, integrating style elements from the reference."
 }
 
@@ -554,7 +741,8 @@ function generateEnhancedVeo3OptimizedPrompt(
   dialogue: string,
   language: string,
   characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
-  languageOptions?: LanguageOptions
+  languageOptions?: LanguageOptions,
+  characterPositions?: { character: string; position: 'left' | 'center' | 'right'; speakingColor?: string }[]
 ): string {
   // Clean prompts
   const cleanVisual = visualPrompt.replace(/\[Language:.*?\]/g, '').trim();
@@ -568,118 +756,322 @@ function generateEnhancedVeo3OptimizedPrompt(
   const dialogLines = formattedDialog.split('\n').filter(line => line.trim());
 
   // Create detailed speaking order with explicit instructions
-  const characterDialogueMap: { character: string; line: string; order: number; emotion?: string; dialogText?: string }[] = [];
+  const characterDialogueMap: {
+    character: string;
+    line: string;
+    order: number;
+    emotion?: string;
+    dialogText?: string;
+    wordCount: number;
+    estimatedDuration: number;
+  }[] = [];
 
+  // Enhanced dialogue parsing with better character matching
   dialogLines.forEach((line, index) => {
-    // Extract character name, emotion, and dialogue text more accurately
-    const match = line.match(/\[([^:]+):\s*(?:\(([^)]+)\),)?\s*([^\]]+)\]/);
-    if (match) {
-      const speakerName = match[1].trim();
-      const emotion = match[2]?.trim();
-      const dialogText = match[3]?.trim();
+    // Multiple regex patterns to catch different dialogue formats
+    const patterns = [
+      /\[([^:]+):\s*(?:\(([^)]+)\),)?\s*([^\]]+)\]/,  // [Character: (emotion), dialogue]
+      /\[([^:]+):\s*([^\]]+)\]/,                       // [Character: dialogue]
+      /([^:]+):\s*(?:\(([^)]+)\))?\s*"([^"]+)"/,      // Character (emotion): "dialogue"
+      /([^:]+):\s*"([^"]+)"/                           // Character: "dialogue"
+    ];
 
-      // Determine which character is speaking
-      let characterIdentified = '';
-      if (speakerName === characters.karakter_1.nama || line.includes(characters.karakter_1.nama)) {
-        characterIdentified = characters.karakter_1.nama;
-      } else if (speakerName === characters.karakter_2.nama || line.includes(characters.karakter_2.nama)) {
-        characterIdentified = characters.karakter_2.nama;
-      } else if (speakerName === characters.karakter_3.nama || line.includes(characters.karakter_3.nama)) {
-        characterIdentified = characters.karakter_3.nama;
-      }
+    let matched = false;
+    for (const pattern of patterns) {
+      const match = line.match(pattern);
+      if (match) {
+        const speakerName = match[1].trim();
+        const emotion = match[2]?.trim() || undefined;
+        const dialogText = (match[3] || match[2])?.trim();
 
-      if (characterIdentified) {
-        characterDialogueMap.push({
-          character: characterIdentified,
-          line: line,
-          order: index + 1,
-          emotion: emotion,
-          dialogText: dialogText
-        });
+        // Enhanced character identification with fuzzy matching
+        let characterIdentified = '';
+
+        // Check exact matches first
+        if (speakerName === characters.karakter_1.nama) {
+          characterIdentified = characters.karakter_1.nama;
+        } else if (speakerName === characters.karakter_2.nama) {
+          characterIdentified = characters.karakter_2.nama;
+        } else if (speakerName === characters.karakter_3.nama) {
+          characterIdentified = characters.karakter_3.nama;
+        } else {
+          // Fuzzy matching for partial names or variations
+          const lowerSpeaker = speakerName.toLowerCase();
+          const chars = [
+            { name: characters.karakter_1.nama, obj: characters.karakter_1 },
+            { name: characters.karakter_2.nama, obj: characters.karakter_2 },
+            { name: characters.karakter_3.nama, obj: characters.karakter_3 }
+          ];
+
+          for (const char of chars) {
+            const lowerCharName = char.name.toLowerCase();
+            // Check if speaker name contains character name or vice versa
+            if (lowerSpeaker.includes(lowerCharName) || lowerCharName.includes(lowerSpeaker)) {
+              characterIdentified = char.name;
+              break;
+            }
+            // Check first word match
+            if (lowerSpeaker.split(' ')[0] === lowerCharName.split(' ')[0]) {
+              characterIdentified = char.name;
+              break;
+            }
+          }
+        }
+
+        if (characterIdentified && dialogText) {
+          const wordCount = dialogText.split(/\s+/).length;
+          const estimatedDuration = Math.max(0.5, wordCount / 3); // ~3 words per second
+
+          characterDialogueMap.push({
+            character: characterIdentified,
+            line: line,
+            order: index + 1,
+            emotion: emotion,
+            dialogText: dialogText,
+            wordCount: wordCount,
+            estimatedDuration: estimatedDuration
+          });
+          matched = true;
+          break;
+        }
       }
+    }
+
+    if (!matched) {
+      console.warn(`Could not parse dialogue line: ${line}`);
     }
   });
 
-  // Calculate timing for 8-second scene
-  const totalDuration = 8; // seconds
-  const dialogueCount = characterDialogueMap.length;
-  const timePerDialogue = dialogueCount > 0 ? totalDuration / dialogueCount : totalDuration;
+  // Enhanced character positions with more distinctive visual indicators
+  interface EnhancedPosition {
+    character: string;
+    position: 'left' | 'center' | 'right';
+    speakingColor: string;
+    visualIndicator: string;
+  }
 
-  // Generate explicit speaking order instructions with professional film terminology
-  const orderWords = ['FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH', 'EIGHTH'];
-  const professionalTimingInstructions: string[] = [];
+  const enhancedPositions: EnhancedPosition[] = characterPositions?.every(pos => 'visualIndicator' in pos) 
+  ? characterPositions as EnhancedPosition[]
+  : [
+      {
+        character: characters.karakter_1.nama,
+        position: 'left' as const,
+        speakingColor: 'warm orange',
+        visualIndicator: 'ORANGE CIRCULAR GLOW + UPWARD LIGHT RAYS'
+      },
+      {
+        character: characters.karakter_2.nama,
+        position: 'center' as const,
+        speakingColor: 'bright blue',
+        visualIndicator: 'BLUE DIAMOND-SHAPED AURA + PULSING RINGS'
+      },
+      {
+        character: characters.karakter_3.nama,
+        position: 'right' as const,
+        speakingColor: 'vibrant green',
+        visualIndicator: 'GREEN HEXAGONAL SHIELD + PARTICLE EFFECTS'
+      }
+    ];
+  // Create enhanced position mapping
+  const positionMap: Record<string, {
+    position: string;
+    color: string;
+    indicator: string;
+    voiceProfile: string;
+  }> = {};
 
-  characterDialogueMap.forEach((item, index) => {
-    const orderWord = orderWords[index] || `LINE ${index + 1}`;
-    const otherCharacters = [characters.karakter_1.nama, characters.karakter_2.nama, characters.karakter_3.nama]
-      .filter(name => name !== item.character);
-
-    const startTime = (index * timePerDialogue).toFixed(1);
-    const endTime = ((index + 1) * timePerDialogue).toFixed(1);
-    const emotionDirection = item.emotion ? ` with ${item.emotion.toUpperCase()} emotion` : '';
-
-    professionalTimingInstructions.push(`
-🎬 ${orderWord} SHOT (${startTime}s - ${endTime}s):
-SPEAKING CHARACTER: ${item.character}${emotionDirection}
-DIALOGUE: "${item.dialogText || item.line}"
-
-CINEMATOGRAPHY DIRECTION:
-- CAMERA: ${index === 0 ? 'ESTABLISHING SHOT then PUSH IN' : index % 2 === 0 ? 'MEDIUM CLOSE-UP' : 'OVER-THE-SHOULDER'} on ${item.character}
-- FOCUS: RACK FOCUS to ${item.character}, soft bokeh on background
-- LIGHTING: KEY LIGHT emphasizes ${item.character}'s face, practical motivated lighting
-
-CHARACTER BLOCKING:
-- ${item.character}: CENTER FRAME, animated speaking with clear lip-sync, ${item.emotion || 'engaged'} facial expression
-- ${otherCharacters[0]}: ${index % 2 === 0 ? 'FRAME LEFT' : 'FRAME RIGHT'}, reactive listening, subtle head nods
-- ${otherCharacters[1] || 'Background'}: ${otherCharacters[1] ? 'BACKGROUND or OFF-FRAME, environmental presence' : 'Environmental elements only'}
-
-AUDIO MIX:
-- DIALOGUE: ${item.character} voice PROMINENT (0dB), room tone ambience
-- FOLEY: Subtle cloth rustles, breathing, environmental sounds
-- MUSIC: Underscore at -12dB, emotional support without overwhelming dialogue`);
+  enhancedPositions.forEach((pos, idx) => {
+    positionMap[pos.character] = {
+      position: pos.position.toUpperCase(),
+      color: pos.speakingColor || 'orange',
+      indicator: pos.visualIndicator || `${pos.speakingColor?.toUpperCase()} GLOW`,
+      voiceProfile: `VOICE_${idx + 1}_${pos.position.toUpperCase()}`
+    };
   });
 
-  // Get the correct language reference based on the original language options
+  // Calculate precise timing with overlap prevention
+  const totalDuration = 8; // seconds
+  let currentTime = 0;
+  const timingMap: Array<{
+    character: string;
+    startTime: number;
+    endTime: number;
+    dialogue: string;
+    emotion?: string;
+  }> = [];
+
+  characterDialogueMap.forEach((item) => {
+    const startTime = currentTime;
+    const endTime = Math.min(startTime + item.estimatedDuration, totalDuration);
+
+    timingMap.push({
+      character: item.character,
+      startTime: startTime,
+      endTime: endTime,
+      dialogue: item.dialogText || '',
+      emotion: item.emotion
+    });
+
+    currentTime = endTime + 0.1; // Small gap between speakers
+  });
+
+  // Generate ultra-precise speaking instructions
+  const ultraPreciseInstructions: string[] = [];
+  const orderWords = ['FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH', 'EIGHTH'];
+
+  timingMap.forEach((timing, index) => {
+    const orderWord = orderWords[index] || `DIALOGUE ${index + 1}`;
+    const speakerInfo = positionMap[timing.character] || {
+      position: 'CENTER',
+      color: 'white',
+      indicator: 'GLOW',
+      voiceProfile: 'DEFAULT'
+    };
+
+    const otherCharacters = [characters.karakter_1.nama, characters.karakter_2.nama, characters.karakter_3.nama]
+      .filter(name => name !== timing.character);
+
+    ultraPreciseInstructions.push(`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎬 ${orderWord} DIALOGUE SEGMENT | TIME: ${timing.startTime.toFixed(2)}s - ${timing.endTime.toFixed(2)}s
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🗣️ ACTIVE SPEAKER: ${timing.character}
+📍 SCREEN POSITION: ${speakerInfo.position}
+🎨 VISUAL INDICATOR: ${speakerInfo.indicator}
+🎭 EMOTION: ${timing.emotion?.toUpperCase() || 'NEUTRAL'}
+💬 DIALOGUE: "${timing.dialogue}"
+
+🎥 CAMERA INSTRUCTIONS:
+├─ SHOT TYPE: ${index === 0 ? 'WIDE ESTABLISHING → PUSH IN' : index % 2 === 0 ? 'MEDIUM CLOSE-UP' : 'OVER-SHOULDER'}
+├─ FOCUS: SHARP on ${timing.character}, BOKEH DEPTH f/1.4 on others
+├─ MOVEMENT: ${index === 0 ? 'SLOW DOLLY IN' : 'SUBTLE HANDHELD'}
+└─ FRAMING: ${speakerInfo.position} THIRD with NEGATIVE SPACE
+
+💡 LIGHTING MATRIX:
+├─ ${timing.character}: KEY LIGHT 100% + ${speakerInfo.color.toUpperCase()} RIM LIGHT
+├─ ${otherCharacters[0]}: FILL LIGHT 40%, NO COLOR
+└─ ${otherCharacters[1] || 'Environment'}: AMBIENT 20%, NO COLOR
+
+🎭 CHARACTER ANIMATION STATES:
+┌─ ${timing.character} [SPEAKING]:
+│  ├─ MOUTH: PRECISE LIP-SYNC (${timing.dialogue.length} phonemes)
+│  ├─ EYES: ${timing.emotion === 'happy' ? 'SQUINTED WITH JOY' : timing.emotion === 'sad' ? 'DOWNCAST' : 'DIRECT EYE CONTACT'}
+│  ├─ BODY: ${timing.emotion === 'excited' ? 'LEANING FORWARD' : 'NATURAL GESTURES'}
+│  └─ INDICATOR: ${speakerInfo.indicator} ACTIVE
+│
+├─ ${otherCharacters[0]} [LISTENING]:
+│  ├─ MOUTH: CLOSED, SUBTLE REACTIONS
+│  ├─ EYES: TRACKING SPEAKER
+│  ├─ BODY: ATTENTIVE POSTURE
+│  └─ INDICATOR: NO GLOW/AURA
+│
+└─ ${otherCharacters[1] || 'Background'} [PASSIVE]:
+   ├─ NATURAL IDLE ANIMATION
+   └─ INDICATOR: NO GLOW/AURA
+
+🔊 AUDIO MIXING:
+├─ ${timing.character} VOICE: 0dB CENTER (${speakerInfo.voiceProfile})
+├─ ROOM TONE: -20dB
+├─ FOLEY: -15dB (clothing, breathing)
+└─ MUSIC: -18dB (emotional underscore)`);
+  });
+
+  // Get the correct language reference
   const languageRef = languageOptions
     ? getCorrectLanguageReference(languageOptions.Language, languageOptions.Accent)
-    : getCorrectLanguageReference(language, characters.karakter_1.nama.includes('Mother') || characters.karakter_1.nama.includes('Father') ? 'British' : 'Betawi');
+    : getCorrectLanguageReference(language, 'Betawi');
 
-  return `🎥 PROFESSIONAL FILM PRODUCTION DIRECTIVE 🎥
-LANGUAGE EXECUTION: ${languageRef} with authentic accent and natural delivery
+  // Create enhanced character reference with voice profiles
+  const enhancedCharacterReference = enhancedPositions.map((pos, idx) => {
+    const info = positionMap[pos.character];
+    return `
+┌─ CHARACTER ${idx + 1}: ${pos.character}
+├─ POSITION: ${info.position} (LOCKED)
+├─ VISUAL ID: ${info.indicator}
+├─ VOICE ID: ${info.voiceProfile}
+└─ COLOR: ${info.color.toUpperCase()}`;
+  }).join('\n');
 
-📋 SCENE BREAKDOWN:
+  return `
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                    🎬 VEO3 ULTRA-PRECISION PRODUCTION DIRECTIVE 🎬                 ║
+║                         MULTI-CHARACTER DIALOGUE SYNCHRONIZATION                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+
+🌐 LANGUAGE SPECIFICATION: ${languageRef}
+
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                           CHARACTER IDENTIFICATION MATRIX                          ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+${enhancedCharacterReference}
+
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                          VISUAL IDENTIFICATION PROTOCOL                            ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+
+🎯 SPEAKER IDENTIFICATION RULES:
+1. ACTIVE SPEAKER = UNIQUE VISUAL INDICATOR ON
+2. NON-SPEAKERS = ALL INDICATORS OFF
+3. POSITION LOCK = NO CHARACTER MOVEMENT BETWEEN POSITIONS
+4. COLOR CONSISTENCY = EACH CHARACTER'S COLOR NEVER CHANGES
+
+🔍 VISUAL INDICATORS BY CHARACTER:
+├─ ${characters.karakter_1.nama}: ORANGE CIRCULAR GLOW + UPWARD LIGHT RAYS
+├─ ${characters.karakter_2.nama}: BLUE DIAMOND AURA + PULSING RINGS
+└─ ${characters.karakter_3.nama}: GREEN HEXAGONAL SHIELD + PARTICLES
+
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                              SCENE VISUAL CONTEXT                                  ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
 ${cleanVisual}
 
-⏱️ TIMING SHEET - 8 SECOND SCENE ⏱️
-${professionalTimingInstructions.join('\n')}
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                         PRECISE TIMING BREAKDOWN (8.0s)                            ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+${ultraPreciseInstructions.join('\n')}
 
-🎭 CAST SHEET:
-- LEAD: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
-- SUPPORTING: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
-- FEATURED: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
-
-📝 DIALOGUE SCRIPT (LOCKED):
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                              DIALOGUE TRANSCRIPT                                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
 ${formattedDialog}
 
-🎵 AUDIO POST-PRODUCTION:
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                              AUDIO LANDSCAPE                                       ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
 ${cleanAudio}
 
-🎬 DIRECTOR'S CRITICAL NOTES FOR VEO3:
-1. CHARACTER VOICE CASTING: Each character MUST have distinct voice timbre, age-appropriate, matching physical description
-2. LIP-SYNC PRECISION: Frame-accurate mouth movements ONLY during character's dialogue delivery
-3. REACTION SHOTS: Non-speaking characters maintain scene continuity with appropriate reactions
-4. DIALOGUE PACING: Natural conversation rhythm with micro-pauses between speakers
-5. SCENE CONTINUITY: Maintain 180-degree rule, consistent eye-lines, motivated blocking
-6. PERFORMANCE AUTHENTICITY: ${languageRef} delivery must sound native, not translated
-7. TECHNICAL SPECS: 24fps minimum, professional color grading, cinematic aspect ratio
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                          CRITICAL QUALITY CHECKPOINTS                              ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
 
-✅ FINAL QUALITY CHECK:
-□ ${characters.karakter_1.nama} delivers ONLY their scripted lines at designated times
-□ ${characters.karakter_2.nama} delivers ONLY their scripted lines at designated times
-□ ${characters.karakter_3.nama} delivers ONLY their scripted lines at designated times
-□ NO dialogue overlap or character voice confusion
-□ ALL dialogue in ${languageRef} with proper accent
-□ Professional film production quality matching industry standards`;
+✅ PRE-PRODUCTION CHECKLIST:
+□ Each character assigned unique position (LEFT/CENTER/RIGHT)
+□ Each character has distinct visual indicator system
+□ Voice profiles mapped to character positions
+□ Timing calculated to prevent dialogue overlap
+
+✅ PRODUCTION CHECKLIST:
+□ ONLY speaking character shows their unique indicator
+□ Lip-sync matches exact dialogue timing
+□ Non-speakers show appropriate listening animations
+□ Camera focuses on active speaker
+
+✅ POST-PRODUCTION CHECKLIST:
+□ Audio matches visual speaker indicators
+□ No voice bleeding between characters
+□ Emotional expressions match dialogue content
+□ All dialogue in ${languageRef}
+
+⚠️ COMMON ERRORS TO AVOID:
+❌ Multiple characters glowing simultaneously
+❌ Wrong character speaking from wrong position
+❌ Lip-sync on non-speaking characters
+❌ Characters switching positions mid-scene
+❌ Indicator colors mixing or changing
+
+🎯 FINAL DIRECTIVE: This is a PRECISION operation. Every frame must clearly show
+WHO is speaking WHEN through UNIQUE VISUAL INDICATORS. No ambiguity allowed.`;
 }
 
 // FUNGSI UNTUK VIDEO PROMPTS FROM IMAGE - JUGA DIPERBAIKI
@@ -713,23 +1105,25 @@ export async function generateVideoPromptsFromImage(
   });
 
   const dialogueInstructions = existingDialogue.hasDialogue ? `
-**CRITICAL DIALOGUE PRESERVATION RULE:**
+**CRITICAL DIALOGUE PRESERVATION AND DYNAMIC SCENE ADAPTATION RULE:**
 "The story idea ALREADY CONTAINS DIALOGUE. You MUST:
 1. EXTRACT the existing dialogue EXACTLY as written from the story
 2. DO NOT create any new dialogue
 3. USE ONLY the dialogue found in the story idea
-4. Distribute the existing dialogue across the 8 scenes appropriately
+4. INTELLIGENTLY DETERMINE the number of scenes based on the dialogue amount:
+   - If dialogue suggests 2-3 exchanges, create 3-4 scenes
+   - If dialogue suggests 4-6 exchanges, create 5-6 scenes
+   - If dialogue is extensive (7+ exchanges), create up to 8 scenes
+   - Each scene should have meaningful content, not filler
 5. If a scene has no dialogue from the original, leave dialogue fields empty for that scene
 6. When using British or US accent, translate character names (e.g., "Ibu" → "Mother", "Anak" → "Child")
 
-EXISTING DIALOGUE DETECTED (USE THESE EXACT DIALOGUES):
+EXISTING DIALOGUE DETECTED (${existingDialogue.dialogues.length} lines):
 ${formattedExistingDialogue.map(d => d.formatted).join('\n')}
 
-MAPPING FOR YOUR REFERENCE:
-${formattedExistingDialogue.map(d => `Original: ${d.original} → Use: ${d.formatted}`).join('\n')}
+SCENE COUNT GUIDANCE: Based on ${existingDialogue.dialogues.length} dialogue lines, create approximately ${Math.min(Math.max(3, Math.ceil(existingDialogue.dialogues.length / 2)), 8)} scenes.
 
-YOU ARE FORBIDDEN FROM CREATING NEW DIALOGUE. USE ONLY WHAT EXISTS ABOVE.
-DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW."` : `
+YOU ARE FORBIDDEN FROM CREATING NEW DIALOGUE. USE ONLY WHAT EXISTS ABOVE."` : `
 **DIALOGUE CREATION RULE:**
 "No existing dialogue was found in the story idea. You should CREATE appropriate dialogue for the characters based on the story context."
 
@@ -750,6 +1144,11 @@ DISTRIBUTE THESE DIALOGUES ACROSS THE 8 SCENES AS APPROPRIATE TO THE STORY FLOW.
     * Conversation logic (who asks, who answers, who sarcastically remarks) MUST MATCH EXACTLY.
 * **Language Style:** Use natural Jakartan slang (gue, lo, anjir, parah, kayak, gitu, sih, kan, deh).`;
 
+  // Determine the number of scenes to generate
+  const targetSceneCount = existingDialogue.hasDialogue
+    ? Math.min(Math.max(3, Math.ceil(existingDialogue.dialogues.length / 2)), 8)
+    : 8;
+
   const dynamicPrompt = `
 **MAIN SYSTEM INSTRUCTION:**
 You are a professional screenwriter specializing in high-quality 3D animation for Gemini Veo3.
@@ -765,70 +1164,26 @@ You are a professional screenwriter specializing in high-quality 3D animation fo
    - Dialogue format must be consistent: "[CHARACTER_NAME: (expression), dialogue]"
    - Indonesian language dialogues must use the same format as English dialogues
 
+3. **SCENE COUNT:**
+   - Generate EXACTLY ${targetSceneCount} scenes
+   - Each scene should be meaningful and advance the story
+   - Do not add filler scenes
+
 ${dialogueInstructions}
 
 **MAIN TASK:**
-Generate a valid JSON object with EXACTLY this structure. Return ONLY the JSON, no other text before or after.
+Generate a valid JSON object with EXACTLY ${targetSceneCount} scenes. Return ONLY the JSON, no other text before or after.
 
 **EXACT JSON STRUCTURE TO FOLLOW:**
 {
   "video_prompts": [
-    {
-      "scenePrompt": "A cinematic 3D animated scene showing...",
-      "narasi": "Narasi dalam bahasa Indonesia...",
+    ${Array.from({ length: targetSceneCount }, (_, i) => `{
+      "scenePrompt": "Scene ${i + 1} description...",
+      "narasi": "Narasi scene ${i + 1}...",
       "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
       "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
       "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 2 description...",
-      "narasi": "Narasi scene 2...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 3 description...",
-      "narasi": "Narasi scene 3...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 4 description...",
-      "narasi": "Narasi scene 4...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 5 description...",
-      "narasi": "Narasi scene 5...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 6 description...",
-      "narasi": "Narasi scene 6...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 7 description...",
-      "narasi": "Narasi scene 7...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    },
-    {
-      "scenePrompt": "Scene 8 description...",
-      "narasi": "Narasi scene 8...",
-      "dialog_en": "[Character A: (emotion), English dialogue]\\n[Character B: (emotion), Response]",
-      "dialog_id": "[Karakter A: (emosi), Dialog Indonesia]\\n[Karakter B: (emosi), Respon]",
-      "veo3_optimized_prompt": "LANGUAGE INSTRUCTION: Generate video with..."
-    }
+    }`).join(',\n    ')}
   ]
 }
 
@@ -1297,18 +1652,17 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
 
 **CRITICAL OUTPUT FORMAT - MUST USE EXACT FIELD NAMES:**
 {
-  "karakter_1": {
-    "nama": "[First character name]",
-    "deskripsi_fisik": "[Surreal and expressive description]"
-  },
-  "karakter_2": {
-    "nama": "[Second character name]",
-    "deskripsi_fisik": "[Surreal and expressive description]"
-  },
-  "karakter_3": {
-    "nama": "[Third character name]",
-    "deskripsi_fisik": "[Surreal and expressive description]"
-  }
+"karakter_1": {
+"nama": "Broccoli Man",
+"deskripsi_fisik": "Sosok manusia dengan kepala bulat kemerahan dan hidung besar seperti tomat, rambut dan jubahnya tersusun dari brokoli hidup yang segar, kakinya berupa akar pohon raksasa yang berdetak seperti nadi bumi."
+},
+"karakter_2": {
+"nama": "Toy Dinosaur Plane",
+"deskripsi_fisik": "Makhluk hibrida antara kepala dinosaurus reptil dan tubuh pesawat tempur besi, dengan baling-baling berputar di kedua sisi dan kokpit mini di atas kepala. Matanya tajam namun selalu membawa dot berwarna biru-merah."
+},
+"karakter_3": {
+"nama": "Tea Cup Doll",
+"deskripsi_fisik": "Cangkir porselen bergaya balerina mungil dengan wajah bayi cantik, mata besar yang selalu berkaca-kaca, telinga berbentuk pegangan cangkir dihiasi pita merah muda, dan selalu berdiri anggun di atas dua kaki kecilnya."
 }
 
 **IMPORTANT:** Return ONLY the JSON object. Do not include any explanatory text, markdown formatting, or code blocks. The response should start with { and end with }
@@ -1316,20 +1670,30 @@ export async function generateAnomalyCharacters(userIdea: string, apiSettings?: 
 **EXAMPLE:**
 If the story is about "A wise old wooden drum, a quiet Electric Pole, and a cheerful Street Lamp," the output must be:
 {
-  "karakter_1": {
-    "nama": "Gendang Tua",
-    "deskripsi_fisik": "Ancient wooden drum with weathered mahogany surface covered in intricate hand-carved patterns that glow softly when speaking. Has wise, half-closed eyes made from brass cymbals and a gentle smile formed by the drum's rim. Moves by rolling gracefully, leaving trails of golden dust"
-  },
-  "karakter_2": {
-    "nama": "Tiang Listrik",
-    "deskripsi_fisik": "Tall metallic pole with cables forming expressive eyebrows and a mustache. Body wrapped in ivy that lights up like neural pathways when thinking. Has transformer box chest that opens to reveal a glowing heart. Arms made of power lines that spark with emotion"
-  },
-  "karakter_3": {
-    "nama": "Lampu Jalan",
-    "deskripsi_fisik": "Cheerful street lamp with bulb head that changes color based on mood. Flexible metal neck allows expressive movements. Base has tiny wheels hidden under decorative iron scrollwork. Emits warm golden particles when happy, blue when sad"
-  }
+"karakter_1": {
+"nama": "Broccoli Man",
+"deskripsi_fisik": "Manusia brokoli dengan kepala bulat berwajah merah merona, hidung besar bulat, rambut dan pakaian dari sayuran brokoli segar, serta kaki besar berbentuk akar pohon yang berurat."
+},
+"karakter_2": {
+"nama": "Toy Dinosaur Plane",
+"deskripsi_fisik": "Mainan pesawat tempur bermoncong kepala dinosaurus hijau bersisik, lengkap dengan baling-baling di kedua sisi dan kokpit di atas kepala. Mulutnya bergigi tajam namun membawa dot biru."
+},
+"karakter_3": {
+"nama": "Plush Hippo",
+"deskripsi_fisik": "Boneka kuda nil berwarna abu-abu dengan gradasi gelap di kepala, mata bulat polos, mengenakan sepatu sneakers biru besar yang kebesaran untuk tubuhnya."
+},
+"karakter_4": {
+"nama": "Train Conductor",
+"deskripsi_fisik": "Miniatur lokomotif kereta berwajah manusia, bermata besar berkilau, mengenakan topi kondektur hitam dengan lambang spiral, serta pakaian seragam biru lengkap dengan sabuk."
+},
+"karakter_5": {
+"nama": "Tea Cup Doll",
+"deskripsi_fisik": "Cangkir teh mungil berwajah bayi perempuan dengan mata besar berbinar dan bulu mata lentik. Telinganya adalah pegangan cangkir, dihiasi pita pink, serta selalu membawa dot di mulut."
+},
+"karakter_6": {
+"nama": "Green Monkey",
+"deskripsi_fisik": "Monyet kecil berbulu hijau dengan wajah dan telinga pink, selalu setengah mengantuk, badannya keluar dari kulit pisang terbuka seperti selimut."
 }
-
 Analyze the story idea deeply and create 3 characters with strong physicality, expressions, and aura, as if they are ready to star in a world-class 3D animated film.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
@@ -1342,18 +1706,29 @@ Analyze the story idea deeply and create 3 characters with strong physicality, e
 
       // Try to map from alternative field names
       if (result.character_1 && result.character_2 && result.character_3) {
+        interface CharacterAlt {
+          name?: string;
+          nama?: string;
+          physical_description?: string;
+          deskripsi_fisik?: string;
+        }
+
+        const char1 = result.character_1 as CharacterAlt;
+        const char2 = result.character_2 as CharacterAlt;
+        const char3 = result.character_3 as CharacterAlt;
+
         return {
           karakter_1: {
-            nama: (result.character_1 as any).name || (result.character_1 as any).nama || '',
-            deskripsi_fisik: (result.character_1 as any).physical_description || (result.character_1 as any).deskripsi_fisik || ''
+            nama: char1.name || char1.nama || '',
+            deskripsi_fisik: char1.physical_description || char1.deskripsi_fisik || ''
           },
           karakter_2: {
-            nama: (result.character_2 as any).name || (result.character_2 as any).nama || '',
-            deskripsi_fisik: (result.character_2 as any).physical_description || (result.character_2 as any).deskripsi_fisik || ''
+            nama: char2.name || char2.nama || '',
+            deskripsi_fisik: char2.physical_description || char2.deskripsi_fisik || ''
           },
           karakter_3: {
-            nama: (result.character_3 as any).name || (result.character_3 as any).nama || '',
-            deskripsi_fisik: (result.character_3 as any).physical_description || (result.character_3 as any).deskripsi_fisik || ''
+            nama: char3.name || char3.nama || '',
+            deskripsi_fisik: char3.physical_description || char3.deskripsi_fisik || ''
           }
         };
       }
@@ -1392,18 +1767,33 @@ export async function generateAnomalyStory(
   // Check if dialogue already exists in the user idea
   const existingDialogue = detectExistingDialogue(userIdea);
 
+  // Use intelligent scene count calculation
+  const intelligentSceneCount = existingDialogue.hasDialogue
+    ? calculateIntelligentSceneCount(existingDialogue.dialogues)
+    : 8; // Default to 8 scenes if no dialogue
+
   const dialogueInstructions = existingDialogue.hasDialogue ? `
-**CRITICAL DIALOGUE PRESERVATION RULE:**
+**CRITICAL DIALOGUE PRESERVATION AND SCENE ADAPTATION RULE:**
 The story idea ALREADY CONTAINS DIALOGUE. You MUST:
 1. PRESERVE all existing dialogue EXACTLY as written
 2. Include the dialogue in appropriate scenes within the synopsis
 3. DO NOT create any new dialogue
 4. DO NOT modify the existing dialogue
-5. Distribute the dialogue naturally across the 8 scenes
+5. CREATE EXACTLY ${intelligentSceneCount} SCENES based on intelligent dialogue analysis:
+   - Dialogue count: ${existingDialogue.dialogues.length} lines
+   - Unique speakers: ${new Set(existingDialogue.dialogues.map(d => d.speaker.toLowerCase())).size}
+   - Total words: ${existingDialogue.dialogues.reduce((sum, d) => sum + d.text.split(/\s+/).length, 0)}
+   - Scene distribution: Distribute the dialogue naturally across ${intelligentSceneCount} scenes
+   - Each scene should have meaningful content and advance the story
 
-EXISTING DIALOGUE TO PRESERVE:
+EXISTING DIALOGUE TO PRESERVE (${existingDialogue.dialogues.length} dialogue lines detected):
 ${existingDialogue.dialogues.map(d => `${d.speaker}${d.emotion ? ` (${d.emotion})` : ''}: "${d.text}"`).join('\n')}
-` : '';
+
+MANDATORY: You MUST create EXACTLY ${intelligentSceneCount} scenes. No more, no less.
+` : `
+**SCENE GENERATION RULE:**
+Since no dialogue is provided, create a standard 8-scene synopsis for a complete short film.
+`;
 
   const prompt = `Given these three surreal characters:
     Character 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
@@ -1414,13 +1804,14 @@ ${existingDialogue.dialogues.map(d => `${d.speaker}${d.emotion ? ` (${d.emotion}
 
     ${dialogueInstructions}
 
-    Create a movie title and an 8-scene synopsis that combines these characters with the original idea.
-    
-    IMPORTANT: 
-    - If dialogue exists in the story idea, you MUST include it in the appropriate scenes
+    Create a movie title and synopsis that combines these characters with the original idea.
+
+    IMPORTANT:
+    - You MUST create EXACTLY ${intelligentSceneCount} scenes - this is based on intelligent analysis of the dialogue complexity
     - Each scene description should be detailed and cinematic
     - Preserve any existing dialogue EXACTLY as provided
-    
+    - Distribute the content naturally across all ${intelligentSceneCount} scenes
+
     Return ONLY a JSON object in this exact format, with no additional text:
     {
       "judul": "...",
@@ -1428,11 +1819,8 @@ ${existingDialogue.dialogues.map(d => `${d.speaker}${d.emotion ? ` (${d.emotion}
         "Scene 1...",
         "Scene 2...",
         "Scene 3...",
-        "Scene 4...",
-        "Scene 5...",
-        "Scene 6...",
-        "Scene 7...",
-        "Scene 8..."
+        ${Array.from({ length: intelligentSceneCount - 3 }, (_, i) => `"Scene ${i + 4}...",`).join('\n        ')}
+        // EXACTLY ${intelligentSceneCount} scenes total
       ]
     }`;
 
@@ -1488,7 +1876,7 @@ The prompt must include these elements:
 
 Return ONLY the final image prompt text without any commentary or formatting.
 
-**CRITICAL RULE:** 
+**CRITICAL RULE:**
 "Final image prompt must be under 800 characters. Use concise, impactful language that maximizes visual clarity and cinematic impression."`;
 
   return await callGeminiAPI(prompt, undefined, apiSettings);
@@ -1499,31 +1887,31 @@ export async function generateTwistedStoryIdea(inputs: { karakter: string; situa
   const genre_tone = "Modern, Surreal, Creative, Sci-fi, Dark Comedy, Mystery, Steampunk, Fantasy, Philosophical, Psychological Thriller";
 
   const dynamicPrompt = `
-**MAIN SYSTEM INSTRUCTION:**  
-You are a professional screenwriter specializing in unique and captivating 3D animated short films. Follow all the rules below without exception.  
+**MAIN SYSTEM INSTRUCTION:**
+You are a professional screenwriter specializing in unique and captivating 3D animated short films. Follow all the rules below without exception.
 
-**CRITICAL RULES:**  
+**CRITICAL RULES:**
 
-1. **ANTI-COPYRIGHT:**  
-   - DO NOT use characters/names/designs from existing IPs.  
-   - All elements must be 100% original from the user's idea.  
-   - Create completely new character names, locations, and concepts.  
+1. **ANTI-COPYRIGHT:**
+   - DO NOT use characters/names/designs from existing IPs.
+   - All elements must be 100% original from the user's idea.
+   - Create completely new character names, locations, and concepts.
 
-2. **LANGUAGE CONSISTENCY:**  
-   - Use natural, lively, and imaginative Indonesian language.  
-   - Avoid overly rigid or formal language.  
+2. **LANGUAGE CONSISTENCY:**
+   - Use natural, lively, and imaginative Indonesian language.
+   - Avoid overly rigid or formal language.
 
-3. **STORY STYLE:**  
-   - Match the tone to a modern, surreal, and creative genre.  
-   - The premise must be engaging with a strong hook and cinematic visual touches.  
+3. **STORY STYLE:**
+   - Match the tone to a modern, surreal, and creative genre.
+   - The premise must be engaging with a strong hook and cinematic visual touches.
 
-**MAIN TASK:**  
-Based on the following **STORY ELEMENTS**:  
-${idecerita}  
+**MAIN TASK:**
+Based on the following **STORY ELEMENTS**:
+${idecerita}
 
-Create an original, modern, surreal, and cinematic short film premise. Return only one concise paragraph without additional text.  
+Create an original, modern, surreal, and cinematic short film premise. Return only one concise paragraph without additional text.
 
-**REQUESTED GENRE/TONE:**  
+**REQUESTED GENRE/TONE:**
 ${genre_tone}`;
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
