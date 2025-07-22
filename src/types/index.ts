@@ -102,6 +102,12 @@ export interface GeneratedVideo {
   createdAt: Date;
 }
 
+export interface CharacterPosition {
+  character: string;
+  position: 'left' | 'center' | 'right';
+  speakingColor?: string; // Color when character is speaking (e.g., 'orange', 'blue', 'green')
+}
+
 export interface AnomalyScenePrompt {
   visual_prompt: string;
   audio_prompt: string;
@@ -109,6 +115,7 @@ export interface AnomalyScenePrompt {
   dialog_id_gaul: string;
   narasi: string;
   veo3_optimized_prompt: string; // NEW: Optimized prompt for Veo3
+  characterPositions?: CharacterPosition[]; // NEW: Track character positions
 }
 
 export interface VideoPromptWithOptimization {
