@@ -13,13 +13,14 @@ import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Preset character definitions
 const PRESET_CHARACTERS = [
-  { id: 'aye-aye', name: 'Aye-Aye', description: 'Mysterious nocturnal lemur with long fingers, large eyes that glow in the dark, and bat-like ears' },
-  { id: 'quokka', name: 'Quokka', description: 'The happiest animal on Earth with constant smile, round fluffy body, and tiny paws' },
-  { id: 'pink-fairy-armadillo', name: 'Pink Fairy Armadillo', description: 'Tiny armored creature with pink shell, silky white fur underneath, and powerful digging claws' },
-  { id: 'fennec-fox', name: 'Fennec Fox', description: 'Small desert fox with oversized ears, sandy fur, and bright curious eyes' },
-  { id: 'axolotl', name: 'Axolotl', description: 'Aquatic salamander with regenerative abilities, feathery gills, and perpetual smile' },
-  { id: 'pangolin', name: 'Pangolin', description: 'Scaly anteater that rolls into a ball, with armor-like scales and long sticky tongue' },
-  { id: 'saiga', name: 'Saiga', description: 'Antelope with distinctive inflated nose, translucent horns, and woolly coat' }
+  { id: 'tea-cup-doll', name: 'Tea Cup Doll', description: 'A delicate pink teacup with a baby doll face, long eyelashes, a pacifier, and a pink bow on the handle as an ear.' },
+  { id: 'green-monkey', name: 'Green Monkey', description: 'A small green monkey with pink facial accents, sleepy eyes, and dressed in a banana peel.' },
+  { id: 'plush-hippo', name: 'Plush Hippo', description: 'A plush-like purple hippo with dark gradient on head and a headset-like accessory.' },
+  { id: 'train-conductor', name: 'Train Conductor', description: 'A toy train engine with human-like face, conductor’s hat, large expressive eyes, and blue clothing detail.' },
+  { id: 'broccoli-man', name: 'Broccoli Man', description: 'A humanoid with a big red nose, broccoli-like hair and clothing, massive foot-like roots, and a colorful propeller hat.' },
+  { id: 'toy-dinosaur-plane', name: 'Toy Dinosaur Plane', description: 'A hybrid of a dinosaur head and a metallic propeller plane body, complete with pacifier and cockpit on top.' },
+  { id: 'walking-bats', name: 'Walking Bats', description: 'Two identical characters shaped like baseball bats with big smiles, cartoonish faces, and walking on their "handles".' },
+  { id: 'happy-boy', name: 'Happy Boy', description: 'A cheerful young boy wearing a blue owl-themed sweater and cap, red shorts, and blue sneakers, radiating playful energy.' }
 ];
 
 // Supporting character pool
@@ -63,6 +64,7 @@ const AnomalyMode = () => {
   const [useCharacterSelection, setUseCharacterSelection] = useState(false);
   const [selectedCharacters, setSelectedCharacters] = useState<SelectedCharacter[]>([]);
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
+  const [showSupportingDropdown, setShowSupportingDropdown] = useState(false);
   const [customCharacterName, setCustomCharacterName] = useState('');
   const [customCharacterDescription, setCustomCharacterDescription] = useState('');
   const [needSupportingCharacters, setNeedSupportingCharacters] = useState(false);
@@ -117,6 +119,20 @@ const AnomalyMode = () => {
 
   const removeCharacter = (index: number) => {
     setSelectedCharacters(selectedCharacters.filter((_, i) => i !== index));
+  };
+
+  const addSupportingCharacter = (character: typeof SUPPORTING_CHARACTERS[0]) => {
+    if (selectedCharacters.length >= 3) {
+      alert('Maximum 3 characters allowed');
+      return;
+    }
+    const newCharacter: SelectedCharacter = {
+      name: character.name,
+      description: character.description,
+      type: 'supporting'
+    };
+    setSelectedCharacters([...selectedCharacters, newCharacter]);
+    setShowSupportingDropdown(false);
   };
 
   const getRandomSupportingCharacter = () => {
@@ -445,6 +461,36 @@ ${basePrompt}`;
                   )}
                 </div>
 
+                {/* Supporting Character Selection */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowSupportingDropdown(!showSupportingDropdown)}
+                    disabled={selectedCharacters.length >= 3}
+                    className={`w-full p-3 text-left border rounded flex items-center justify-between ${selectedCharacters.length >= 3 ? 'bg-gray-100 cursor-not-allowed' : 'bg-green-50 hover:bg-green-100'
+                      }`}
+                  >
+                    <span>Select Supporting Character</span>
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+
+                  {showSupportingDropdown && selectedCharacters.length < 3 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {SUPPORTING_CHARACTERS.map((character, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => addSupportingCharacter(character)}
+                          className="w-full p-3 text-left hover:bg-green-50 border-b last:border-b-0"
+                        >
+                          <div className="font-medium">{character.name}</div>
+                          <div className="text-sm text-gray-600">{character.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Custom Character Input */}
                 <div className="space-y-2">
                   <h4 className="font-medium">Add Custom Character:</h4>
@@ -480,7 +526,7 @@ ${basePrompt}`;
                   />
                 </div>
 
-                {/* Supporting Characters Option */}
+                {/* Supporting Characters Auto-Fill Option */}
                 <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded">
                   <input
                     type="checkbox"
@@ -490,7 +536,7 @@ ${basePrompt}`;
                     className="w-4 h-4 text-yellow-600 rounded"
                   />
                   <label htmlFor="needSupportingCharacters" className="text-sm">
-                    Need additional supporting characters? (AI will auto-generate from pool: Wise Old Owl, Chatty Parrot, etc.)
+                    Auto-fill remaining slots with random supporting characters if less than 3 characters selected
                   </label>
                 </div>
               </>
