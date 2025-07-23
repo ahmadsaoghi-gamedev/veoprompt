@@ -13,14 +13,14 @@ import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Preset character definitions
 const PRESET_CHARACTERS = [
-  { id: 'tea-cup-doll', name: 'Tea Cup Doll', description: 'A delicate pink teacup with a baby doll face, long eyelashes, a pacifier, and a pink bow on the handle as an ear.' },
-  { id: 'green-monkey', name: 'Green Monkey', description: 'A small green monkey with pink facial accents, sleepy eyes, and dressed in a banana peel.' },
-  { id: 'plush-hippo', name: 'Plush Hippo', description: 'A plush-like purple hippo with dark gradient on head and a headset-like accessory.' },
-  { id: 'train-conductor', name: 'Train Conductor', description: 'A toy train engine with human-like face, conductor’s hat, large expressive eyes, and blue clothing detail.' },
-  { id: 'broccoli-man', name: 'Broccoli Man', description: 'A humanoid with a big red nose, broccoli-like hair and clothing, massive foot-like roots, and a colorful propeller hat.' },
-  { id: 'toy-dinosaur-plane', name: 'Toy Dinosaur Plane', description: 'A hybrid of a dinosaur head and a metallic propeller plane body, complete with pacifier and cockpit on top.' },
-  { id: 'walking-bats', name: 'Walking Bats', description: 'Two identical characters shaped like baseball bats with big smiles, cartoonish faces, and walking on their "handles".' },
-  { id: 'happy-boy', name: 'Happy Boy', description: 'A cheerful young boy wearing a blue owl-themed sweater and cap, red shorts, and blue sneakers, radiating playful energy.' }
+  { id: 'melancholy-pineapple', name: 'Melancholy Pineapple', description: 'A sorrowful pineapple with drooping crown leaves, crystalline tears streaming down its golden textured skin, and a perpetually sad expression carved into its surface.' },
+  { id: 'dancing-strawberry', name: 'Dancing Strawberry', description: 'A vibrant red strawberry with tiny anthropomorphic legs and arms, constantly swaying and twirling, with green leafy hair that bounces with every movement and a joyful smile.' },
+  { id: 'wise-apple-oracle', name: 'Wise Apple Oracle', description: 'An ancient crimson apple with a mystical third eye glowing on its forehead, a flowing white beard made of apple flesh, and deep wrinkles that tell stories of forgotten wisdom.' },
+  { id: 'phantom-grape-cluster', name: 'Phantom Grape Cluster', description: 'A floating cluster of spectral grapes, each with a whispering face trapped inside, glowing faintly purple in the dark.' },
+  { id: 'citrus-cyborg', name: 'Citrus Cyborg', description: 'A hybrid of orange and mechanical parts, with robotic limbs, one eye replaced by a lens, and peel segments reinforced with metal plating.' },
+  { id: 'banana-jester', name: 'Banana Jester', description: 'A lanky banana wearing a patched-up jester outfit, its peel half-open forming floppy hats, always cackling with an eerie echo.' },
+  { id: 'blueberry-twins', name: 'Blueberry Twins', description: 'Two conjoined blueberries with opposite personalities: one giggles non-stop while the other constantly scowls, moving with synchronized hops.' },
+  { id: 'watermelon-warden', name: 'Watermelon Warden', description: 'A towering watermelon knight with jagged rind armor, a spiked mace made from seeds, and glowing green eyes peering from a cracked surface.' }
 ];
 
 // Supporting character pool
@@ -173,22 +173,97 @@ const AnomalyMode = () => {
     // Ensure dialog has proper newlines between characters
     const dialogWithNewlines = rawDialog ? rawDialog.replace(/\]\s*\[/g, ']\n[') : '';
 
-    // Compose the final prompt with the veo3_optimized_prompt
-    const basePrompt = sceneData.veo3_optimized_prompt || `
+    // Get language instruction based on selection
+    let languageInstruction = '';
+    if (languageOptions.Language === 'Indonesia') {
+      if (languageOptions.Accent === 'Sunda') {
+        languageInstruction = 'LANGUAGE INSTRUCTION: ALL spoken dialogue must be in Sundanese only.';
+      } else if (languageOptions.Accent === 'Jawa') {
+        languageInstruction = 'LANGUAGE INSTRUCTION: ALL spoken dialogue must be in Javanese only.';
+      } else {
+        languageInstruction = 'LANGUAGE INSTRUCTION: ALL spoken dialogue must be in Indonesian only.';
+      }
+    } else if (languageOptions.Language === 'Inggris') {
+      if (languageOptions.Accent === 'British') {
+        languageInstruction = 'LANGUAGE INSTRUCTION: ALL spoken dialogue must be in English with British accent only.';
+      } else {
+        languageInstruction = 'LANGUAGE INSTRUCTION: ALL spoken dialogue must be in English with American accent only.';
+      }
+    }
+
+    // Format scene setup if available
+    let sceneSetupText = '';
+    if (sceneData.sceneSetup) {
+      sceneSetupText = `SCENE SETUP:
+- Location: ${sceneData.sceneSetup.location || 'Not specified'}
+- Atmosphere: ${sceneData.sceneSetup.atmosphere || 'Not specified'}
+- Time: ${sceneData.sceneSetup.timeOfDay || 'Not specified'}
+- Mood: ${sceneData.sceneSetup.mood || 'Not specified'}`;
+
+      if (sceneData.sceneSetup.weather) {
+        sceneSetupText += `\n- Weather: ${sceneData.sceneSetup.weather}`;
+      }
+    }
+
+    // Format characters list if available
+    let charactersText = '';
+    if (sceneData.characters && sceneData.characters.length > 0) {
+      charactersText = `\n\nCHARACTERS:\n${sceneData.characters.map(char =>
+        `- ${char.name}: ${char.age}, ${char.clothing}. Emotion: ${char.emotion}. Position: ${char.position}`
+      ).join('\n')}`;
+    }
+
+    // Format dialogue requirements
+    let dialogueRequirements = '';
+    if (sceneData.beatCount || sceneData.duration || sceneData.language) {
+      dialogueRequirements = '\n\nDIALOGUE REQUIREMENTS:';
+      if (sceneData.beatCount) {
+        dialogueRequirements += `\n- ${sceneData.beatCount} dialogue beats`;
+      }
+      if (sceneData.duration) {
+        dialogueRequirements += `\n- Total duration: ${sceneData.duration} seconds`;
+      }
+      if (sceneData.language) {
+        dialogueRequirements += `\n- Language: ${sceneData.language}`;
+      }
+      dialogueRequirements += '\n- Format: Each dialogue includes timing (e.g., [0-2s], [3-5s]) within 8-second scene';
+    }
+
+    // Compose the final prompt with proper structure
+    let finalPrompt = '';
+
+    if (sceneSetupText || charactersText || dialogueRequirements) {
+      // Use structured format if we have the data
+      finalPrompt = `${sceneSetupText}${charactersText}${dialogueRequirements}
+
+${languageInstruction}
+
+SCENE: ${sceneData.visual_prompt || 'No visual description available'}
+
+DIALOGUE SEQUENCE:
+${dialogWithNewlines}
+
+Visual force (Brain Prompt):
+${sceneData.veo3_optimized_prompt || 'No optimized prompt available'}`;
+    } else {
+      // Fallback to original format if structured data is not available
+      const basePrompt = sceneData.veo3_optimized_prompt || `
 ${sceneData.visual_prompt}
 
 ${sceneData.audio_prompt}
 
 ${dialogWithNewlines}
-    `.trim();
+      `.trim();
 
-    // Add "Visual force (Brain Prompt):" prefix
-    const finalPrompt = `Visual force (Brain Prompt):
+      finalPrompt = `${languageInstruction}
+
+Visual force (Brain Prompt):
 
 ${basePrompt}`;
+    }
 
     navigator.clipboard.writeText(finalPrompt);
-    alert('Professional scenario format prompt successfully copied with Visual force (Brain Prompt)!');
+    alert('Professional scenario format prompt successfully copied with scene setup and language instructions!');
   };
 
   const handleGenerate = async () => {
@@ -201,6 +276,32 @@ ${basePrompt}`;
     setLoadingMessage("Mempersiapkan mesin anomali...");
     setGeneratedPrompts([]);
     setError('');
+
+    // Add event listener for retry notifications
+    const handleRetryNotification = (event: CustomEvent) => {
+      const { waitTime, attempt, maxAttempts, errorType } = event.detail;
+      const waitSeconds = Math.ceil(waitTime / 1000);
+
+      let retryMessage = '';
+      switch (errorType) {
+        case 'model_overload':
+          retryMessage = `🤖 AI model is overloaded. Automatically retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+          break;
+        case 'rate_limit':
+          retryMessage = `⏱️ Rate limit reached. Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+          break;
+        case 'server_error':
+          retryMessage = `🔧 Server error detected. Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+          break;
+        default:
+          retryMessage = `🔄 Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+      }
+
+      setLoadingMessage(retryMessage);
+    };
+
+    window.addEventListener('rateLimitRetry', handleRetryNotification as EventListener);
+
     try {
       // 1. Fetch brain prompt at the beginning
       setLoadingMessage('Fetching visual style references from Brain Prompt...');
@@ -295,14 +396,34 @@ ${basePrompt}`;
       }
     } catch (err) {
       console.error("Gagal menghasilkan film anomali:", err);
+
       if (err instanceof Error) {
-        // Jika error berasal dari API (misal, API key salah atau network error)
-        setError(`Terjadi kesalahan pada API: ${err.message}. Pastikan API key Anda valid dan coba lagi.`);
+        // Enhanced error handling for different error types
+        let userFriendlyMessage = '';
+
+        if (err.message.toLowerCase().includes('model is overloaded') || err.message.includes('503')) {
+          userFriendlyMessage = `🤖 The AI model is currently overloaded due to high demand. This is temporary and the system automatically retried multiple times. Please wait a few minutes and try again.`;
+        } else if (err.message.toLowerCase().includes('rate limit') || err.message.includes('429')) {
+          userFriendlyMessage = `⏱️ Rate limit exceeded. The system automatically retried but the API is still busy. Please wait a moment and try again.`;
+        } else if (err.message.includes('API_KEY_INVALID') || err.message.includes('invalid key')) {
+          userFriendlyMessage = `🔑 API key issue detected. Please check your API key configuration in Settings and ensure it's valid.`;
+        } else if (err.message.includes('quota') || err.message.includes('exceeded')) {
+          userFriendlyMessage = `📊 API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.`;
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          userFriendlyMessage = `🌐 Network connection issue. Please check your internet connection and try again.`;
+        } else if (err.message.includes('500') || err.message.includes('502') || err.message.includes('504')) {
+          userFriendlyMessage = `🔧 Server error detected. The system automatically retried but the server is still having issues. Please try again in a few minutes.`;
+        } else {
+          userFriendlyMessage = `❌ Error: ${err.message}. Please ensure your API key is valid and try again.`;
+        }
+
+        setError(userFriendlyMessage);
       } else {
-        // Untuk error lainnya yang mungkin terjadi
-        setError("Terjadi kesalahan yang tidak diketahui. Silakan cek konsol untuk detail.");
+        setError("❓ An unknown error occurred. Please check the console for details and try again.");
       }
     } finally {
+      // Clean up event listener
+      window.removeEventListener('rateLimitRetry', handleRetryNotification as EventListener);
       setIsLoading(false);
       setLoadingMessage('');
     }
