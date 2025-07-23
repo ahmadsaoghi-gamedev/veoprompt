@@ -1,8 +1,8 @@
 import { APISettings } from '../types';
 
 export async function callGeminiAPI(
-  prompt: string, 
-  imageBase64?: string, 
+  prompt: string,
+  imageBase64?: string,
   apiSettings?: APISettings
 ): Promise<string> {
   const apiKey = apiSettings?.privateKey;
@@ -11,7 +11,7 @@ export async function callGeminiAPI(
     throw new Error('API key is required. Please configure your Google Generative Language API key in the API Settings.');
   }
 
-  const parts: Array<{text: string} | {inlineData: {mimeType: string, data: string}}> = [{ text: prompt }];
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string, data: string } }> = [{ text: prompt }];
   if (imageBase64) {
     parts.push({
       inlineData: {
@@ -46,11 +46,11 @@ export async function callGeminiAPI(
   if (!response.ok) {
     const errorData = await response.json();
     const errorMessage = errorData.error?.message || 'API request failed';
-    
+
     if (response.status === 400 && errorMessage.includes('API_KEY_INVALID')) {
       throw new Error('Invalid API key. Please check your Google Generative Language API key in the API Settings and ensure it has the correct permissions.');
     }
-    
+
     if (response.status === 403) {
       if (errorMessage.includes('quota')) {
         throw new Error('API quota exceeded. Please check your Google Cloud Console for usage limits or try again later.');
@@ -59,11 +59,11 @@ export async function callGeminiAPI(
         throw new Error('API key access denied. Please ensure the Generative Language API is enabled in your Google Cloud Console.');
       }
     }
-    
+
     if (response.status === 429) {
       throw new Error('Rate limit exceeded. Please wait a moment before making another request.');
     }
-    
+
     throw new Error(`API Error (${response.status}): ${errorMessage}`);
   }
 
@@ -94,11 +94,11 @@ export async function validateAPIKey(apiKey: string): Promise<{ isValid: boolean
     }
 
     const testPrompt = "Say 'API key is valid' in one sentence.";
-    await callGeminiAPI(testPrompt, undefined, { 
-      usePrivateKey: true, 
-      privateKey: apiKey, 
-      isActive: true, 
-      lastValidated: null 
+    await callGeminiAPI(testPrompt, undefined, {
+      usePrivateKey: true,
+      privateKey: apiKey,
+      isActive: true,
+      lastValidated: null
     });
     return { isValid: true };
   } catch (error) {
@@ -118,7 +118,7 @@ export async function generateVideo(prompt: string, apiSettings?: APISettings): 
 
   // Simulate video generation delay
   await new Promise(resolve => setTimeout(resolve, 3000));
-  
+
   // Return a mock video URL - in production this would be the actual video URL from Veo 3
   return `data:video/mp4;base64,${btoa('mock-video-data-' + Date.now())}`;
 }
@@ -135,14 +135,15 @@ export async function translateText(text: string, targetLanguage: string): Promi
 export async function generateAnomalyCharacters(userIdea: string, apiSettings?: APISettings): Promise<{
   karakter_1: { nama: string; deskripsi_fisik: string };
   karakter_2: { nama: string; deskripsi_fisik: string };
+  karakter_3: { nama: string; deskripsi_fisik: string };
 }> {
   const prompt = `Kamu adalah seorang desainer konsep. Berdasarkan ide cerita spesifik ini: '${userIdea}'
 
 Tugasmu:
-1.  Buat deskripsi fisik yang aneh dan surealis untuk 'Rice Cooker Filsuf'.
-2.  Buat deskripsi fisik yang aneh dan surealis untuk 'Spons Sinis'.
-3.  Berikan nama panggilan untuk keduanya.
-4.  Pastikan output dalam format JSON yang ketat: {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}}.`;
+1.  Buat deskripsi fisik yang aneh dan surealis untuk 3 karakter unik.
+2.  Berikan nama panggilan yang kreatif untuk ketiganya.
+3.  Pastikan setiap karakter memiliki ciri khas yang berbeda dan memorable.
+4.  Pastikan output dalam format JSON yang ketat: {"karakter_1": {"nama": "...", "deskripsi_fisik": "..."}, "karakter_2": {"nama": "...", "deskripsi_fisik": "..."}, "karakter_3": {"nama": "...", "deskripsi_fisik": "..."}}.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
   return JSON.parse(response);
@@ -159,13 +160,14 @@ interface AnomalyStoryResponse {
 }
 
 export async function generateAnomalyStory(
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
   userIdea: string,
   apiSettings?: APISettings
 ): Promise<AnomalyStoryResponse> {
-  const prompt = `Given these two surreal characters:
+  const prompt = `Given these three surreal characters:
     Character 1: ${characters.karakter_1.nama} - ${characters.karakter_1.deskripsi_fisik}
     Character 2: ${characters.karakter_2.nama} - ${characters.karakter_2.deskripsi_fisik}
+    Character 3: ${characters.karakter_3.nama} - ${characters.karakter_3.deskripsi_fisik}
 
     And this original story idea: "${userIdea}"
 
@@ -222,10 +224,13 @@ Return ONLY the final image prompt text with no additional commentary or formatt
 
 export async function generateAnomalyScenePrompt(
   storyContext: StoryContext,
-  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter },
+  characters: { karakter_1: AnomalyCharacter; karakter_2: AnomalyCharacter; karakter_3: AnomalyCharacter },
   sceneNumber: number,
   totalScenes: number,
   languageOptions: LanguageOptions,
+  referencePrompt: string,
+  selectedStyle: string,
+  aspectRatio: string,
   apiSettings?: APISettings
 ): Promise<{
   visual_prompt: string;
@@ -233,11 +238,29 @@ export async function generateAnomalyScenePrompt(
   dialog_en: string;
   dialog_id_gaul: string;
   narasi: string;
+  veo3_optimized_prompt: string;
+  sceneSetup?: {
+    location: string;
+    atmosphere: string;
+    timeOfDay: string;
+    mood: string;
+    weather?: string;
+  };
+  characters?: {
+    name: string;
+    age: string;
+    clothing: string;
+    emotion: string;
+    position: string;
+  }[];
+  beatCount?: number;
+  duration?: number;
+  language?: string;
 }> {
-  const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}) and ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik})`;
+  const idecerita = `${storyContext.judul} - Scene ${sceneNumber}: ${storyContext.sinopsis_per_adegan[sceneNumber - 1]}. Characters: ${characters.karakter_1.nama} (${characters.karakter_1.deskripsi_fisik}), ${characters.karakter_2.nama} (${characters.karakter_2.deskripsi_fisik}), and ${characters.karakter_3.nama} (${characters.karakter_3.deskripsi_fisik})`;
   const bahasa_dipilih = languageOptions.Language;
   const genre_tone = "Surreal, absurd, philosophical";
-  
+
   // Helper function to get dialog language based on accent
   const getDialogLanguageByAccent = (accent: string): string => {
     const languageMap: Record<string, string> = {
@@ -281,11 +304,35 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
   
   "audio_prompt": "[Language: INGGRIS] Deskripsi audio yang komprehensif. Include: musik latar (genre, tempo, instrumen), efek suara ambient, sound effects untuk aksi, dan atmosfer audio yang mendukung mood scene.",
   
-  "dialog_en": "[Language: INGGRIS] Dialog dalam format bracket dengan newlines. Format: '[${characters.karakter_1.nama}: (emotion), dialogue]\\n[${characters.karakter_2.nama}: (emotion), response]'. Total 8 detik - 15-25 kata.",
+  "dialog_en": "[Language: INGGRIS] Dialog dalam format bracket dengan timing dan newlines. Format: '[0-2s] Character: (emotion), dialogue' kemudian '[3-5s] Character2: (emotion), dialogue' dst. Total maksimal 8 detik. Bisa melibatkan 2-3 karakter.",
   
-  "dialog_id_gaul": "[Language: ${getDialogLanguageByAccent(languageOptions.Accent)}] Dialog dalam format bracket dengan newlines. Format: '[${characters.karakter_1.nama}: (emosi), dialog]\\n[${characters.karakter_2.nama}: (emosi), respon]'. Total 8 detik - 15-25 kata. HARUS menggunakan nama karakter: ${characters.karakter_1.nama} dan ${characters.karakter_2.nama}.",
+  "dialog_id_gaul": "[Language: ${getDialogLanguageByAccent(languageOptions.Accent)}] Dialog dalam format bracket dengan timing dan newlines. Format: '[0-2s] Karakter: (emosi), dialog' kemudian '[3-5s] Karakter2: (emosi), dialog' dst. Total maksimal 8 detik. Karakter dari: ${characters.karakter_1.nama}, ${characters.karakter_2.nama}, ${characters.karakter_3.nama}.",
   
-  "narasi": "[Language: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita."
+  "narasi": "[Language: INDONESIA] Narasi untuk voice-over dengan gaya yang sesuai genre cerita. Gunakan bahasa yang engaging, tidak monoton, dan mendukung atmosfer cerita.",
+  
+  "veo3_optimized_prompt": "[Language: CAMPURAN TERSTRUKTUR] Prompt teroptimasi untuk Veo3 dengan visual style: ${selectedStyle}, aspect ratio: ${aspectRatio}. Gabungkan elemen visual dari scene dengan gaya visual yang konsisten, JANGAN copy-paste referensi secara langsung.",
+  
+  "sceneSetup": {
+    "location": "[Language: INGGRIS] Lokasi spesifik dimana scene berlangsung",
+    "atmosphere": "[Language: INGGRIS] Deskripsi atmosfer dan suasana scene",
+    "timeOfDay": "[Language: INGGRIS] Waktu dalam hari (morning, afternoon, evening, night, etc)",
+    "mood": "[Language: INGGRIS] Mood emosional dari scene",
+    "weather": "[Language: INGGRIS] Kondisi cuaca jika relevan"
+  },
+  
+  "characters": [
+    {
+      "name": "Nama karakter",
+      "age": "Perkiraan umur (e.g., '25', 'mid-30s', 'elderly')",
+      "clothing": "Deskripsi pakaian yang dikenakan",
+      "emotion": "Emosi yang ditampilkan karakter",
+      "position": "Posisi karakter dalam scene (left, center, right, background, etc)"
+    }
+  ],
+  
+  "beatCount": 3,
+  "duration": 8,
+  "language": "${bahasa_dipilih}"
 }
 
 **PANDUAN KUALITAS:**
@@ -293,6 +340,8 @@ Berdasarkan **IDE CERITA** yang diberikan, generate JSON dengan struktur berikut
 - Audio: Spesifik tentang jenis musik dan sound effects
 - Dialog: Gunakan bahasa sehari-hari yang autentik
 - Narasi: Buat engaging dan mendukung emosi scene
+- Scene Setup: Berikan detail lokasi, atmosfer, waktu, dan mood yang jelas
+- Characters: Deskripsikan setiap karakter yang muncul dalam scene dengan detail
 
 **CONTOH ADAPTASI Language:**
 - Bahasa Indonesia: Natural, tidak formal berlebihan
@@ -309,14 +358,26 @@ ${bahasa_dipilih}
 **GENRE/TONE YANG DIMINTA:**
 ${genre_tone}
 
-**DURASI VIDEO: 8 DETIK - Dialog harus singkat dan padat (maksimal 10-15 kata total)**
+**DURASI VIDEO: 8 DETIK - Dialog harus singkat dan padat (maksimal 15-35 kata total)**
 
 Hasilkan JSON yang mengikuti struktur di atas dengan kualitas profesional.`;
 
   const response = await callGeminiAPI(dynamicPrompt, undefined, apiSettings);
   try {
-    const result = JSON.parse(response);
-    
+    // Clean the response to handle potential JSON issues
+    let cleanedResponse = response.trim();
+
+    // Remove any potential control characters
+    cleanedResponse = cleanedResponse.replace(/[\p{Cc}\p{Cf}]/gu, '');
+
+    // Try to extract JSON if wrapped in markdown or other text
+    const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedResponse = jsonMatch[0];
+    }
+
+    const result = JSON.parse(cleanedResponse);
+
     // Ensure dialog fields have proper newline formatting
     if (result.dialog_en) {
       result.dialog_en = result.dialog_en.replace(/\]\s*\[/g, ']\n[');
@@ -324,11 +385,37 @@ Hasilkan JSON yang mengikuti struktur di atas dengan kualitas profesional.`;
     if (result.dialog_id_gaul) {
       result.dialog_id_gaul = result.dialog_id_gaul.replace(/\]\s*\[/g, ']\n[');
     }
-    
+
+    // Count dialogue beats (accounting for timing format)
+    if (!result.beatCount && result.dialog_id_gaul) {
+      const dialogLines = result.dialog_id_gaul.split('\n').filter((line: string) => {
+        const trimmed = line.trim();
+        // Match both old format [Character: ...] and new format [0-2s] Character: ...
+        return trimmed.startsWith('[') && (trimmed.includes(':') || trimmed.match(/\[\d+-\d+s\]/));
+      });
+      result.beatCount = dialogLines.length;
+    }
+
+    // Ensure duration is set
+    if (!result.duration) {
+      result.duration = 8;
+    }
+
+    // Ensure language is set
+    if (!result.language) {
+      result.language = bahasa_dipilih;
+    }
+
+    // Generate veo3_optimized_prompt if not included in response
+    if (!result.veo3_optimized_prompt) {
+      result.veo3_optimized_prompt = `${result.visual_prompt}\n\nStyle: ${selectedStyle}\nAspect Ratio: ${aspectRatio}\n\nDIALOG REQUIREMENT:\n${result.dialog_id_gaul || result.dialog_en}`;
+    }
+
     return result;
   } catch (error) {
     console.error('Failed to parse JSON response:', error);
-    throw new Error('Invalid JSON response from API');
+    console.error('Raw response:', response);
+    throw new Error('Invalid JSON response from API. Please try again.');
   }
 }
 
@@ -337,7 +424,7 @@ export async function generateVideoPromptsFromImage(
   keyImage: string,
   languageOptions: LanguageOptions,
   apiSettings?: APISettings
-): Promise<{video_prompts: {scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string;}[]}> {
+): Promise<{ video_prompts: { scenePrompt: string; narasi: string; dialog_en: string; dialog_id: string; }[] }> {
   const bahasa_dipilih = languageOptions.Language;
   const genre_tone = "Cinematic, narrative-driven";
 
@@ -471,16 +558,16 @@ export async function fixMultiCharacterDialogue(
   const tone = settings.tone || 'neutral';
 
   // Helper function to extract dialogue from various formats
-  const extractDialogueFromInput = (input: string): Array<{speaker: string; emotion?: string; text: string}> => {
-    const dialogues: Array<{speaker: string; emotion?: string; text: string}> = [];
-    
+  const extractDialogueFromInput = (input: string): Array<{ speaker: string; emotion?: string; text: string }> => {
+    const dialogues: Array<{ speaker: string; emotion?: string; text: string }> = [];
+
     // Pattern 1: **Character:** "dialogue"
     const pattern1 = /\*\*([^:*]+):\*\*\s*"([^"]+)"/g;
     let match;
     while ((match = pattern1.exec(input)) !== null) {
       dialogues.push({ speaker: match[1].trim(), text: match[2].trim() });
     }
-    
+
     // Pattern 2: Character: "dialogue"
     const pattern2 = /^([^:*\n]+):\s*"([^"]+)"/gm;
     while ((match = pattern2.exec(input)) !== null) {
@@ -488,19 +575,19 @@ export async function fixMultiCharacterDialogue(
         dialogues.push({ speaker: match[1].trim(), text: match[2].trim() });
       }
     }
-    
+
     // Pattern 3: [Character: (emotion), dialogue]
     const pattern3 = /\[([^:]+):\s*\(([^)]+)\),\s*([^\]]+)\]/g;
     while ((match = pattern3.exec(input)) !== null) {
       dialogues.push({ speaker: match[1].trim(), emotion: match[2].trim(), text: match[3].trim() });
     }
-    
+
     // Pattern 4: Character (emotion): "dialogue"
     const pattern4 = /([^(\n]+)\s*\(([^)]+)\):\s*"([^"]+)"/g;
     while ((match = pattern4.exec(input)) !== null) {
       dialogues.push({ speaker: match[1].trim(), emotion: match[2].trim(), text: match[3].trim() });
     }
-    
+
     return dialogues;
   };
 
@@ -581,7 +668,7 @@ You must create exactly ${extractedDialogues.length} dialogue beats.
 Return ONLY the JSON object with no additional text.`;
 
   const response = await callGeminiAPI(prompt, undefined, apiSettings);
-  
+
   try {
     return JSON.parse(response);
   } catch (error) {

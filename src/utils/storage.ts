@@ -110,8 +110,8 @@ export function getAvailableBrainStyles(): Array<{ value: string; label: string 
     { value: 'lovecraftian_horror', label: 'Lovecraftian Horror' },
     { value: 'stand_by_me_doraemon', label: 'Stand By Me Doraemon' },
     { value: 'lord_of_the_rings', label: 'Lord of the Rings 3D' },
-    { value: 'vfx_3d', label: 'VFX 3D Animation' },
+    { value: 'promote', label: 'affiliate' },
     { value: 'videoclip_song', label: 'Video Clip Song Style' },
-    { value: 'effect_shader', label: 'Effect Shader Animation' }
+    { value: 'hyper-realistic', label: 'Effect Shader Animation' }
   ];
 }

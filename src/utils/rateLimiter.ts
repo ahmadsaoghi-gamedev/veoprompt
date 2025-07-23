@@ -86,42 +86,71 @@ class ExponentialBackoff {
   private baseDelay: number = 1000; // 1 second
   private maxDelay: number = 32000; // 32 seconds
   private maxRetries: number = 5;
+  private modelOverloadBaseDelay: number = 5000; // 5 seconds for model overload
+  private modelOverloadMaxDelay: number = 60000; // 60 seconds max for model overload
+  private modelOverloadMaxRetries: number = 8; // More retries for model overload
 
   async execute<T>(
     apiFunction: () => Promise<T>,
-    retries: number = this.maxRetries
+    retries?: number
   ): Promise<T> {
     let lastError: Error | null = null;
+    const maxAttempts = retries || this.maxRetries;
 
-    for (let attempt = 0; attempt < retries; attempt++) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         return await apiFunction();
       } catch (error) {
         lastError = error as Error;
 
-        if (this.isRateLimitError(error)) {
-          const waitTime = this.calculateBackoff(attempt);
-          console.log(`Rate limit hit. Waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`);
+        if (this.isRetryableError(error)) {
+          const errorType = this.getErrorType(error);
+          const waitTime = this.calculateBackoff(attempt, errorType);
+
+          console.log(`${errorType} error detected. Waiting ${waitTime}ms before retry ${attempt + 1}/${maxAttempts}`);
 
           // Update UI with retry information
-          this.notifyUI(waitTime, attempt + 1, retries);
+          this.notifyUI(waitTime, attempt + 1, maxAttempts, errorType);
 
           await new Promise(resolve => setTimeout(resolve, waitTime));
         } else {
-          // Non-rate limit error, throw immediately
+          // Non-retryable error, throw immediately
           throw error;
         }
       }
     }
 
-    throw new Error(`Max retries (${retries}) exceeded. Last error: ${lastError?.message}`);
+    throw new Error(`Max retries (${maxAttempts}) exceeded. Last error: ${lastError?.message}`);
   }
 
-  private calculateBackoff(attempt: number): number {
-    const delay = Math.min(this.baseDelay * Math.pow(2, attempt), this.maxDelay);
+  private calculateBackoff(attempt: number, errorType: 'rate_limit' | 'model_overload' | 'server_error'): number {
+    let baseDelay = this.baseDelay;
+    let maxDelay = this.maxDelay;
+
+    // Use different backoff strategies for different error types
+    if (errorType === 'model_overload') {
+      baseDelay = this.modelOverloadBaseDelay;
+      maxDelay = this.modelOverloadMaxDelay;
+    }
+
+    const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+
     // Add jitter to prevent thundering herd
     const jitter = Math.random() * 0.3 * delay;
+
+    // For model overload, add extra randomization to spread requests
+    if (errorType === 'model_overload') {
+      const extraJitter = Math.random() * 2000; // 0-2 seconds extra
+      return Math.floor(delay + jitter + extraJitter);
+    }
+
     return Math.floor(delay + jitter);
+  }
+
+  private isRetryableError(error: unknown): boolean {
+    return Boolean(this.isRateLimitError(error) ||
+      this.isModelOverloadError(error) ||
+      this.isServerError(error));
   }
 
   private isRateLimitError(error: unknown): boolean {
@@ -131,10 +160,43 @@ class ExponentialBackoff {
       err?.status === 429;
   }
 
-  private notifyUI(waitTime: number, attempt: number, maxAttempts: number) {
+  private isModelOverloadError(error: unknown): boolean {
+    const err = error as { message?: string; status?: number };
+    return err?.message?.toLowerCase().includes('model is overloaded') ||
+      err?.message?.toLowerCase().includes('overloaded') ||
+      err?.message?.includes('503') ||
+      err?.status === 503;
+  }
+
+  private isServerError(error: unknown): boolean {
+    const err = error as { message?: string; status?: number };
+    return err?.status === 500 ||
+      err?.status === 502 ||
+      err?.status === 504 ||
+      err?.message?.toLowerCase().includes('internal server error') ||
+      err?.message?.toLowerCase().includes('bad gateway') ||
+      err?.message?.toLowerCase().includes('gateway timeout') || false;
+  }
+
+  private getErrorType(error: unknown): 'rate_limit' | 'model_overload' | 'server_error' {
+    if (this.isModelOverloadError(error)) return 'model_overload';
+    if (this.isRateLimitError(error)) return 'rate_limit';
+    if (this.isServerError(error)) return 'server_error';
+    return 'rate_limit'; // fallback
+  }
+
+  private notifyUI(waitTime: number, attempt: number, maxAttempts: number, errorType: string) {
     window.dispatchEvent(new CustomEvent('rateLimitRetry', {
-      detail: { waitTime, attempt, maxAttempts }
+      detail: { waitTime, attempt, maxAttempts, errorType }
     }));
+  }
+
+  // Method to get appropriate retry count for error type
+  getMaxRetriesForError(error: unknown): number {
+    if (this.isModelOverloadError(error)) {
+      return this.modelOverloadMaxRetries;
+    }
+    return this.maxRetries;
   }
 }
 
@@ -330,8 +392,8 @@ class APIKeyRotator {
       const key = this.getCurrentKey();
       return await apiCall(key);
     } catch (error) {
-      if (this.isRateLimitError(error)) {
-        console.log('Rate limit hit, rotating API key...');
+      if (this.isRateLimitError(error) || this.isModelOverloadError(error)) {
+        console.log(`${this.isModelOverloadError(error) ? 'Model overload' : 'Rate limit'} detected, rotating API key...`);
         const newKey = this.rotateKey();
         return await apiCall(newKey);
       }
@@ -344,6 +406,14 @@ class APIKeyRotator {
     return err?.message?.toLowerCase().includes('rate limit') ||
       err?.message?.includes('429') ||
       err?.status === 429;
+  }
+
+  private isModelOverloadError(error: unknown): boolean {
+    const err = error as { message?: string; status?: number };
+    return err?.message?.toLowerCase().includes('model is overloaded') ||
+      err?.message?.toLowerCase().includes('overloaded') ||
+      err?.message?.includes('503') ||
+      err?.status === 503;
   }
 
   getStats() {
@@ -481,9 +551,10 @@ class RequestMonitor {
     } else {
       this.metrics.failedRequests++;
 
-      if (error && this.isRateLimitError(error)) {
+      if (error && (this.isRateLimitError(error) || this.isModelOverloadError(error))) {
+        const errorType = this.isModelOverloadError(error) ? 'Model Overload' : 'Rate Limit';
         this.metrics.rateLimitErrors.push({
-          message: error.message,
+          message: `${errorType}: ${error.message}`,
           timestamp: Date.now()
         });
 
@@ -529,6 +600,12 @@ class RequestMonitor {
   private isRateLimitError(error: Error): boolean {
     return error.message.toLowerCase().includes('rate limit') ||
       error.message.includes('429');
+  }
+
+  private isModelOverloadError(error: Error): boolean {
+    return error.message.toLowerCase().includes('model is overloaded') ||
+      error.message.toLowerCase().includes('overloaded') ||
+      error.message.includes('503');
   }
 
   getMetrics(): RequestMetrics {
@@ -709,27 +786,55 @@ export class RateLimitUIHelper {
 
 // 10. ERROR HANDLER
 export class RateLimitErrorHandler {
-  static handle(error: Error): { message: string; retryAfter?: number } {
+  static handle(error: Error): { message: string; retryAfter?: number; errorType: string } {
     let message = 'Something went wrong. ';
     let retryAfter: number | undefined;
+    let errorType = 'unknown';
 
-    if (error.message.toLowerCase().includes('rate limit')) {
+    if (error.message.toLowerCase().includes('model is overloaded') || error.message.includes('503')) {
+      message = "The AI model is currently overloaded. We'll automatically retry with longer delays...";
+      retryAfter = this.extractWaitTime(error.message) || 10; // Default 10 seconds for model overload
+      errorType = 'model_overload';
+    } else if (error.message.toLowerCase().includes('rate limit') || error.message.includes('429')) {
       message = "Too many requests. We'll automatically retry in a moment...";
-      retryAfter = this.extractWaitTime(error.message) || 60;
-    } else if (error.message.includes('invalid key')) {
-      message = 'API key issue. Please check your configuration.';
-    } else if (error.message.includes('quota')) {
+      retryAfter = this.extractWaitTime(error.message) || 5; // Default 5 seconds for rate limit
+      errorType = 'rate_limit';
+    } else if (error.message.includes('invalid key') || error.message.includes('API_KEY_INVALID')) {
+      message = 'API key issue. Please check your configuration in API Settings.';
+      errorType = 'auth_error';
+    } else if (error.message.includes('quota') || error.message.includes('exceeded')) {
       message = 'API quota exceeded. Please try again later or check your usage limits.';
-    } else if (error.message.includes('network')) {
+      errorType = 'quota_error';
+    } else if (error.message.includes('network') || error.message.includes('fetch')) {
       message = 'Network error. Please check your connection and try again.';
+      errorType = 'network_error';
+    } else if (error.message.includes('500') || error.message.includes('502') || error.message.includes('504')) {
+      message = 'Server error. We\'ll automatically retry...';
+      retryAfter = 5;
+      errorType = 'server_error';
     }
 
-    return { message, retryAfter };
+    return { message, retryAfter, errorType };
   }
 
   private static extractWaitTime(errorMessage: string): number | null {
     const match = errorMessage.match(/wait (\d+) seconds?/i);
     return match ? parseInt(match[1]) : null;
+  }
+
+  static getRetryMessage(errorType: string, attempt: number, maxAttempts: number, waitTime: number): string {
+    const waitSeconds = Math.ceil(waitTime / 1000);
+
+    switch (errorType) {
+      case 'model_overload':
+        return `AI model is overloaded. Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+      case 'rate_limit':
+        return `Rate limit reached. Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+      case 'server_error':
+        return `Server error. Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+      default:
+        return `Retrying in ${waitSeconds} seconds... (Attempt ${attempt}/${maxAttempts})`;
+    }
   }
 }
 
