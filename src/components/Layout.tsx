@@ -11,7 +11,8 @@ import {
   Zap,
   Lightbulb,
   MessageSquare,
-  BookOpen
+  BookOpen,
+  Film
 } from 'lucide-react';
 import { FaYoutube, FaTiktok, FaApple, FaHeart } from 'react-icons/fa';
 import { SiBuymeacoffee } from 'react-icons/si';
@@ -58,6 +59,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => 
     { id: 'anomaly', label: 'Anomaly Mode', icon: Lightbulb },
     { id: 'concept-viz', label: 'Concept Visualization', icon: Image },
     { id: 'dialogue-fixer', label: 'Dialogue Fixer', icon: MessageSquare },
+    { id: 'advanced-film', label: 'Advanced Film Generator', icon: Film },
     { id: 'guide', label: 'AI Film Guide', icon: BookOpen }
 
   ];

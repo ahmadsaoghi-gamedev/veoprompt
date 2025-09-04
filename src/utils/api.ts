@@ -82,6 +82,93 @@ export async function callGeminiAPI(
   }
 }
 
+// New function specifically for JSON responses
+export async function callGeminiAPIForJSON(
+  prompt: string,
+  imageBase64?: string,
+  apiSettings?: APISettings
+): Promise<Record<string, unknown>> {
+  const response = await callGeminiAPI(prompt, imageBase64, apiSettings);
+
+  try {
+    // Try to parse as JSON
+    const jsonResponse = JSON.parse(response);
+    return jsonResponse;
+  } catch {
+    // If parsing fails, try to extract JSON from the response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error('Failed to parse extracted JSON:', parseError);
+        throw new Error('Invalid JSON response from API. Please try again.');
+      }
+    }
+
+    // If no JSON found, throw error
+    throw new Error('API response is not in JSON format. Please check your prompt and try again.');
+  }
+}
+
+// Standardized JSON response types
+export interface StandardVideoPromptResponse {
+  videoPrompt: string;
+  sceneType?: string;
+  duration: number;
+  characters: string[];
+  objects: string[];
+  location: string;
+  timeOfDay: string;
+  weather: string;
+  cameraWork: string;
+  lighting: string;
+  audioElements: string[];
+  visualStyle: string;
+  metadata?: {
+    [key: string]: unknown;
+  };
+}
+
+export interface StandardSceneResponse {
+  title: string;
+  mainDescription: string;
+  scenes: Array<{
+    sceneNumber: number;
+    prompt: string;
+    duration: number;
+    characters: string[];
+    objects: string[];
+  }>;
+}
+
+export interface StandardMarketingResponse {
+  videoPrompt: string;
+  marketingMessage: string;
+  targetAudience: string;
+  callToAction: string;
+  visualElements: string[];
+  audioElements: string[];
+  duration: number;
+  style: string;
+  tone: string;
+}
+
+// Helper function to ensure JSON response format
+export function ensureJSONResponse(response: unknown, expectedKeys: string[]): Record<string, unknown> {
+  if (typeof response !== 'object' || response === null) {
+    throw new Error('Response is not a valid JSON object');
+  }
+
+  const responseObj = response as Record<string, unknown>;
+  const missingKeys = expectedKeys.filter(key => !(key in responseObj));
+  if (missingKeys.length > 0) {
+    console.warn(`Missing expected keys in response: ${missingKeys.join(', ')}`);
+  }
+
+  return responseObj;
+}
+
 export async function validateAPIKey(apiKey: string): Promise<{ isValid: boolean; error?: string }> {
   try {
     if (!apiKey || !apiKey.trim()) {
