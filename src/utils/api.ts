@@ -99,9 +99,22 @@ export async function callGeminiAPIForJSON(
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
-        return JSON.parse(jsonMatch[0]);
+        let jsonString = jsonMatch[0];
+
+        // Clean up common JSON issues
+        jsonString = jsonString
+          .replace(/\n\s*\n/g, '\n') // Remove empty lines
+          .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+          .replace(/([^\\])\\([^"\\/bfnrt])/g, '$1\\\\$2') // Fix unescaped backslashes
+          .replace(/\n/g, '\\n') // Escape newlines
+          .replace(/\r/g, '\\r') // Escape carriage returns
+          .replace(/\t/g, '\\t'); // Escape tabs
+
+        return JSON.parse(jsonString);
       } catch (parseError) {
         console.error('Failed to parse extracted JSON:', parseError);
+        console.error('Raw response:', response);
+        console.error('Extracted JSON:', jsonMatch[0]);
         throw new Error('Invalid JSON response from API. Please try again.');
       }
     }

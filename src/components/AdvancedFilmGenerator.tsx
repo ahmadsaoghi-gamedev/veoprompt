@@ -243,7 +243,7 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         };
     };
 
-    const generateScene = async (sceneNumber: number, previousScene?: SceneData): Promise<SceneData> => {
+    const generateScene = async (sceneNumber: number, previousScene?: SceneData, retryCount = 0): Promise<SceneData> => {
         if (!apiSettings?.isActive) throw new Error('API not configured');
         if (!currentProject) throw new Error('No project loaded');
 
@@ -317,7 +317,15 @@ ANIMATION STYLE GUIDELINES:
 - Movement: Appropriate for ${animationType?.label} animation
 - Visual effects: Suitable for ${animationType?.label} production
 
-Return ONLY a JSON object with this exact structure:
+CRITICAL JSON FORMATTING RULES:
+1. Use double quotes for all strings
+2. Escape all special characters properly
+3. No trailing commas
+4. No unescaped newlines in strings
+5. All strings must be on single lines
+6. Use proper JSON array and object syntax
+
+Return ONLY a valid JSON object with this exact structure:
 {
   "id": "scene_${sceneNumber}_${Date.now()}",
   "sceneNumber": ${sceneNumber},
@@ -352,41 +360,54 @@ Return ONLY a JSON object with this exact structure:
   "characterConsistency": "Character consistency requirements for this scene"
 }
 
-Make this scene compelling, unique, and anti-mainstream while maintaining character consistency and optimizing for ${animationType?.label} animation with professional ${language?.label} dialogue.`;
+IMPORTANT: Return ONLY the JSON object. No additional text, explanations, or markdown formatting. Ensure all strings are properly escaped and the JSON is valid.`;
 
-        const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
-        ensureJSONResponse(result, ['id', 'sceneNumber', 'prompt', 'characters', 'location', 'mood']);
+        try {
+            const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
+            ensureJSONResponse(result, ['id', 'sceneNumber', 'prompt', 'characters', 'location', 'mood']);
 
-        return {
-            id: result.id,
-            sceneNumber: result.sceneNumber,
-            duration: result.duration || 8,
-            prompt: result.prompt,
-            characters: result.characters || characters,
-            objects: result.objects || [],
-            location: result.location,
-            timeOfDay: result.timeOfDay,
-            weather: result.weather,
-            mood: result.mood,
-            cinematography: result.cinematography || {
-                cameraWork: '',
-                lighting: '',
-                colorPalette: '',
-                visualEffects: []
-            },
-            audio: result.audio || {
-                dialogue: [],
-                ambientSounds: [],
-                music: '',
-                soundEffects: []
-            },
-            storyBeat: result.storyBeat,
-            characterDevelopment: result.characterDevelopment,
-            visualMetaphors: result.visualMetaphors || [],
-            antiMainstreamElements: result.antiMainstreamElements || [],
-            continuityNotes: result.continuityNotes,
-            nextSceneSetup: result.nextSceneSetup
-        };
+            return {
+                id: result.id,
+                sceneNumber: result.sceneNumber,
+                duration: result.duration || 8,
+                prompt: result.prompt,
+                characters: result.characters || characters,
+                objects: result.objects || [],
+                location: result.location,
+                timeOfDay: result.timeOfDay,
+                weather: result.weather,
+                mood: result.mood,
+                cinematography: result.cinematography || {
+                    cameraWork: '',
+                    lighting: '',
+                    colorPalette: '',
+                    visualEffects: []
+                },
+                audio: result.audio || {
+                    dialogue: [],
+                    ambientSounds: [],
+                    music: '',
+                    soundEffects: []
+                },
+                storyBeat: result.storyBeat,
+                characterDevelopment: result.characterDevelopment,
+                visualMetaphors: result.visualMetaphors || [],
+                antiMainstreamElements: result.antiMainstreamElements || [],
+                continuityNotes: result.continuityNotes,
+                nextSceneSetup: result.nextSceneSetup
+            };
+        } catch (error) {
+            console.error(`Scene ${sceneNumber} generation failed (attempt ${retryCount + 1}):`, error);
+
+            // Retry up to 2 times
+            if (retryCount < 2) {
+                console.log(`Retrying scene ${sceneNumber} generation...`);
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+                return generateScene(sceneNumber, previousScene, retryCount + 1);
+            }
+
+            throw error;
+        }
     };
 
     const createNewProject = async () => {
@@ -491,14 +512,31 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
             const allScenes: SceneData[] = [];
 
             for (let i = 1; i <= currentProject.totalScenes; i++) {
-                const previousScene = allScenes[allScenes.length - 1];
-                const newScene = await generateScene(i, previousScene);
-                allScenes.push(newScene);
+                try {
+                    const previousScene = allScenes[allScenes.length - 1];
+                    const newScene = await generateScene(i, previousScene);
+                    allScenes.push(newScene);
 
-                // Small delay between scenes
-                if (i < currentProject.totalScenes) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Update progress
+                    setCurrentProject(prev => prev ? {
+                        ...prev,
+                        scenes: [...allScenes],
+                        updatedAt: new Date()
+                    } : null);
+
+                    // Small delay between scenes
+                    if (i < currentProject.totalScenes) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                } catch (sceneError) {
+                    console.error(`Failed to generate scene ${i}:`, sceneError);
+                    // Continue with next scene instead of stopping completely
+                    continue;
                 }
+            }
+
+            if (allScenes.length === 0) {
+                throw new Error('Failed to generate any scenes. Please check your API settings and try again.');
             }
 
             setCurrentProject(prev => prev ? {
@@ -508,7 +546,7 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
             } : null);
         } catch (error) {
             console.error('Failed to generate all scenes:', error);
-            alert('Failed to generate all scenes');
+            alert(`Failed to generate all scenes: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsGenerating(false);
         }
