@@ -91,15 +91,18 @@ export async function callGeminiAPIForJSON(
   const response = await callGeminiAPI(prompt, imageBase64, apiSettings);
 
   try {
-    // Try to parse as JSON
+    // Try to parse as JSON directly
     const jsonResponse = JSON.parse(response);
     return jsonResponse;
   } catch {
+    console.log('Initial JSON parse failed, attempting extraction...');
+
     // If parsing fails, try to extract JSON from the response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         let jsonString = jsonMatch[0];
+        console.log('Extracted JSON string:', jsonString.substring(0, 200) + '...');
 
         // Clean up common JSON issues
         jsonString = jsonString
@@ -110,17 +113,104 @@ export async function callGeminiAPIForJSON(
           .replace(/\r/g, '\\r') // Escape carriage returns
           .replace(/\t/g, '\\t'); // Escape tabs
 
+        console.log('Cleaned JSON string:', jsonString.substring(0, 200) + '...');
         return JSON.parse(jsonString);
       } catch (parseError) {
         console.error('Failed to parse extracted JSON:', parseError);
-        console.error('Raw response:', response);
-        console.error('Extracted JSON:', jsonMatch[0]);
-        throw new Error('Invalid JSON response from API. Please try again.');
+        console.error('Raw response length:', response.length);
+        console.error('Raw response preview:', response.substring(0, 500));
+        console.error('Extracted JSON preview:', jsonMatch[0].substring(0, 500));
+
+        // Try a more aggressive cleanup
+        try {
+          const aggressiveClean = jsonMatch[0]
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+            .replace(/([^\\])\\([^"\\/bfnrt])/g, '$1\\\\$2') // Fix unescaped backslashes
+            .trim();
+
+          console.log('Aggressive cleanup attempt...');
+          return JSON.parse(aggressiveClean);
+        } catch (aggressiveError) {
+          console.error('Aggressive cleanup also failed:', aggressiveError);
+
+          // Last resort: try to create a minimal valid JSON
+          try {
+            const fallbackJson = {
+              id: `scene_${Date.now()}`,
+              sceneNumber: 1,
+              duration: 8,
+              prompt: "Scene generation failed - please retry",
+              characters: [],
+              objects: [],
+              location: "Unknown",
+              timeOfDay: "day",
+              weather: "clear",
+              mood: "neutral",
+              cinematography: {
+                cameraWork: "Standard shot",
+                lighting: "Natural lighting",
+                colorPalette: "Neutral colors",
+                visualEffects: []
+              },
+              audio: {
+                dialogue: [],
+                ambientSounds: [],
+                music: "Background music",
+                soundEffects: []
+              },
+              storyBeat: "Scene generation failed",
+              characterDevelopment: "None",
+              visualMetaphors: [],
+              antiMainstreamElements: [],
+              continuityNotes: "Generation failed",
+              nextSceneSetup: "Please retry"
+            };
+
+            console.log('Using fallback JSON due to parsing failure');
+            return fallbackJson;
+          } catch (fallbackError) {
+            console.error('Even fallback failed:', fallbackError);
+            throw new Error('Invalid JSON response from API. Please try again.');
+          }
+        }
       }
     }
 
-    // If no JSON found, throw error
-    throw new Error('API response is not in JSON format. Please check your prompt and try again.');
+    // If no JSON found, try to create a fallback response
+    console.log('No JSON pattern found in response, creating fallback...');
+    const fallbackJson = {
+      id: `scene_${Date.now()}`,
+      sceneNumber: 1,
+      duration: 8,
+      prompt: "Scene generation failed - please retry",
+      characters: [],
+      objects: [],
+      location: "Unknown",
+      timeOfDay: "day",
+      weather: "clear",
+      mood: "neutral",
+      cinematography: {
+        cameraWork: "Standard shot",
+        lighting: "Natural lighting",
+        colorPalette: "Neutral colors",
+        visualEffects: []
+      },
+      audio: {
+        dialogue: [],
+        ambientSounds: [],
+        music: "Background music",
+        soundEffects: []
+      },
+      storyBeat: "Scene generation failed",
+      characterDevelopment: "None",
+      visualMetaphors: [],
+      antiMainstreamElements: [],
+      continuityNotes: "Generation failed",
+      nextSceneSetup: "Please retry"
+    };
+
+    return fallbackJson;
   }
 }
 

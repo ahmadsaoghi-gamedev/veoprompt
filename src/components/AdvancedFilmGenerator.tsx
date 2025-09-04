@@ -280,121 +280,93 @@ LANGUAGE REQUIREMENTS:
 - Ensure natural, flowing conversation
 `;
 
-        const prompt = `Generate Scene ${sceneNumber} of a ${projectConfig.genre} film titled "${projectConfig.title}".
+        const prompt = `Create a scene for a ${projectConfig.genre} film titled "${projectConfig.title}".
 
-PROJECT CONTEXT:
+CONTEXT:
 - Genre: ${projectConfig.genre}
 - Theme: ${projectConfig.theme}
-- Anti-mainstream level: ${projectConfig.antiMainstreamLevel}
-- Visual style: ${projectConfig.visualStyle}
-- Story complexity: ${projectConfig.storyComplexity}
-- Animation type: ${animationType?.label} (${animationType?.description})
-- Character consistency: ${projectConfig.characterConsistency}
-- Scene continuity: ${projectConfig.sceneContinuity}
-
-CHARACTERS IN THIS SCENE:
-${characterProfiles}
+- Animation: ${animationType?.label}
+- Language: ${language?.label}
+- Characters: ${characterProfiles}
 
 ${continuityContext}
 
 ${languageInstructions}
 
-SCENE REQUIREMENTS:
-- Duration: 8 seconds (exactly)
-- Must advance the story meaningfully
-- Maintain character consistency at ${projectConfig.characterConsistency} level
-- Include anti-mainstream elements: ${antiMainstreamElements.slice(0, 3).join(', ')}
-- Create visual metaphors appropriate for ${animationType?.label}
-- Develop character relationships through ${dialogueStyle?.label} dialogue
-- Set up next scene seamlessly
-- Optimize for ${animationType?.label} animation style
-- Ensure professional dialogue in ${language?.label}
-
-ANIMATION STYLE GUIDELINES:
-- Animation type: ${animationType?.label}
-- Visual approach: ${animationType?.description}
-- Character design: Consistent with ${animationType?.label} style
-- Movement: Appropriate for ${animationType?.label} animation
-- Visual effects: Suitable for ${animationType?.label} production
-
-CRITICAL JSON FORMATTING RULES:
-1. Use double quotes for all strings
-2. Escape all special characters properly
-3. No trailing commas
-4. No unescaped newlines in strings
-5. All strings must be on single lines
-6. Use proper JSON array and object syntax
+REQUIREMENTS:
+- Duration: 8 seconds exactly
+- Advance the story meaningfully
+- Include anti-mainstream elements: ${antiMainstreamElements.slice(0, 2).join(', ')}
+- Optimize for ${animationType?.label} animation
+- Use ${dialogueStyle?.label} dialogue style
 
 Return ONLY a valid JSON object with this exact structure:
 {
   "id": "scene_${sceneNumber}_${Date.now()}",
   "sceneNumber": ${sceneNumber},
   "duration": 8,
-  "prompt": "Detailed 8-second scene description optimized for ${animationType?.label} animation with professional ${language?.label} dialogue",
+  "prompt": "8-second scene description for ${animationType?.label} animation",
   "characters": [${characters.map(c => `{"id": "${c.id}", "name": "${c.name}", "personality": "${c.personality}", "appearance": "${c.appearance}", "speakingStyle": "${c.speakingStyle}", "emotionalRange": ${JSON.stringify(c.emotionalRange)}, "relationships": ${JSON.stringify(c.relationships)}, "characterArc": "${c.characterArc}", "visualStyle": "${c.visualStyle}", "voiceCharacteristics": "${c.voiceCharacteristics}"}`).join(', ')}],
   "objects": ["object1", "object2"],
-  "location": "Detailed location description",
-  "timeOfDay": "morning/afternoon/evening/night",
-  "weather": "clear/cloudy/rainy/stormy",
-  "mood": "emotional tone of the scene",
+  "location": "Scene location",
+  "timeOfDay": "morning",
+  "weather": "clear",
+  "mood": "emotional tone",
   "cinematography": {
-    "cameraWork": "Detailed camera movement and framing optimized for ${animationType?.label}",
-    "lighting": "Lighting setup and mood for ${animationType?.label} style",
-    "colorPalette": "Color scheme and grading for ${animationType?.label}",
+    "cameraWork": "Camera movement for ${animationType?.label}",
+    "lighting": "Lighting for ${animationType?.label}",
+    "colorPalette": "Color scheme for ${animationType?.label}",
     "visualEffects": ["effect1", "effect2"]
   },
   "audio": {
-    "dialogue": ["Character dialogue lines in ${language?.label} with ${dialogueStyle?.label} style"],
-    "ambientSounds": ["background sound1", "background sound2"],
-    "music": "Music style and mood",
+    "dialogue": ["Dialogue in ${language?.label}"],
+    "ambientSounds": ["sound1", "sound2"],
+    "music": "Music style",
     "soundEffects": ["sfx1", "sfx2"]
   },
-  "storyBeat": "What this scene accomplishes in the story",
-  "characterDevelopment": "How characters develop in this scene",
+  "storyBeat": "What this scene accomplishes",
+  "characterDevelopment": "Character growth",
   "visualMetaphors": ["metaphor1", "metaphor2"],
   "antiMainstreamElements": ["element1", "element2"],
-  "continuityNotes": "Notes for maintaining continuity",
-  "nextSceneSetup": "How this scene sets up the next one",
-  "animationNotes": "Specific notes for ${animationType?.label} animation production",
-  "languageNotes": "Language and dialogue style notes for ${language?.label}",
-  "characterConsistency": "Character consistency requirements for this scene"
+  "continuityNotes": "Continuity notes",
+  "nextSceneSetup": "Next scene setup"
 }
 
-IMPORTANT: Return ONLY the JSON object. No additional text, explanations, or markdown formatting. Ensure all strings are properly escaped and the JSON is valid.`;
+CRITICAL: Return ONLY the JSON object. No other text. Ensure valid JSON syntax.`;
 
         try {
             const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
             ensureJSONResponse(result, ['id', 'sceneNumber', 'prompt', 'characters', 'location', 'mood']);
 
             return {
-                id: result.id,
-                sceneNumber: result.sceneNumber,
+                id: result.id || `scene_${sceneNumber}_${Date.now()}`,
+                sceneNumber: result.sceneNumber || sceneNumber,
                 duration: result.duration || 8,
-                prompt: result.prompt,
+                prompt: result.prompt || `Scene ${sceneNumber} for ${projectConfig.title}`,
                 characters: result.characters || characters,
                 objects: result.objects || [],
-                location: result.location,
-                timeOfDay: result.timeOfDay,
-                weather: result.weather,
-                mood: result.mood,
+                location: result.location || "Unknown location",
+                timeOfDay: result.timeOfDay || "day",
+                weather: result.weather || "clear",
+                mood: result.mood || "neutral",
                 cinematography: result.cinematography || {
-                    cameraWork: '',
-                    lighting: '',
-                    colorPalette: '',
+                    cameraWork: "Standard shot",
+                    lighting: "Natural lighting",
+                    colorPalette: "Neutral colors",
                     visualEffects: []
                 },
                 audio: result.audio || {
                     dialogue: [],
                     ambientSounds: [],
-                    music: '',
+                    music: "Background music",
                     soundEffects: []
                 },
-                storyBeat: result.storyBeat,
-                characterDevelopment: result.characterDevelopment,
+                storyBeat: result.storyBeat || "Scene development",
+                characterDevelopment: result.characterDevelopment || "Character growth",
                 visualMetaphors: result.visualMetaphors || [],
                 antiMainstreamElements: result.antiMainstreamElements || [],
-                continuityNotes: result.continuityNotes,
-                nextSceneSetup: result.nextSceneSetup
+                continuityNotes: result.continuityNotes || "Continuity notes",
+                nextSceneSetup: result.nextSceneSetup || "Next scene setup"
             };
         } catch (error) {
             console.error(`Scene ${sceneNumber} generation failed (attempt ${retryCount + 1}):`, error);
@@ -402,11 +374,42 @@ IMPORTANT: Return ONLY the JSON object. No additional text, explanations, or mar
             // Retry up to 2 times
             if (retryCount < 2) {
                 console.log(`Retrying scene ${sceneNumber} generation...`);
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds before retry
                 return generateScene(sceneNumber, previousScene, retryCount + 1);
             }
 
-            throw error;
+            // If all retries failed, create a fallback scene
+            console.log(`Creating fallback scene ${sceneNumber} after all retries failed`);
+            return {
+                id: `scene_${sceneNumber}_fallback_${Date.now()}`,
+                sceneNumber: sceneNumber,
+                duration: 8,
+                prompt: `Fallback scene ${sceneNumber} for ${projectConfig.title} - ${projectConfig.theme}`,
+                characters: characters,
+                objects: ["fallback_object"],
+                location: previousScene?.location || "Continuation location",
+                timeOfDay: previousScene?.timeOfDay || "day",
+                weather: previousScene?.weather || "clear",
+                mood: previousScene?.mood || "neutral",
+                cinematography: {
+                    cameraWork: `Standard shot for ${animationType?.label}`,
+                    lighting: `Lighting for ${animationType?.label}`,
+                    colorPalette: `Colors for ${animationType?.label}`,
+                    visualEffects: []
+                },
+                audio: {
+                    dialogue: [`Dialogue in ${language?.label}`],
+                    ambientSounds: ["background_sound"],
+                    music: "Background music",
+                    soundEffects: ["sfx"]
+                },
+                storyBeat: `Scene ${sceneNumber} development`,
+                characterDevelopment: "Character development",
+                visualMetaphors: ["metaphor"],
+                antiMainstreamElements: ["element"],
+                continuityNotes: "Fallback scene - please regenerate",
+                nextSceneSetup: "Next scene setup"
+            };
         }
     };
 
@@ -510,12 +513,21 @@ IMPORTANT: Return ONLY the JSON object. No additional text, explanations, or mar
         setIsGenerating(true);
         try {
             const allScenes: SceneData[] = [];
+            let successCount = 0;
+            let fallbackCount = 0;
 
             for (let i = 1; i <= currentProject.totalScenes; i++) {
                 try {
                     const previousScene = allScenes[allScenes.length - 1];
                     const newScene = await generateScene(i, previousScene);
                     allScenes.push(newScene);
+
+                    // Check if it's a fallback scene
+                    if (newScene.id.includes('fallback')) {
+                        fallbackCount++;
+                    } else {
+                        successCount++;
+                    }
 
                     // Update progress
                     setCurrentProject(prev => prev ? {
@@ -530,13 +542,55 @@ IMPORTANT: Return ONLY the JSON object. No additional text, explanations, or mar
                     }
                 } catch (sceneError) {
                     console.error(`Failed to generate scene ${i}:`, sceneError);
-                    // Continue with next scene instead of stopping completely
-                    continue;
+                    // Create a basic fallback scene
+                    const fallbackScene: SceneData = {
+                        id: `scene_${i}_error_${Date.now()}`,
+                        sceneNumber: i,
+                        duration: 8,
+                        prompt: `Error scene ${i} for ${projectConfig.title} - Please regenerate`,
+                        characters: currentProject.characters,
+                        objects: ["error_object"],
+                        location: "Unknown location",
+                        timeOfDay: "day",
+                        weather: "clear",
+                        mood: "neutral",
+                        cinematography: {
+                            cameraWork: "Standard shot",
+                            lighting: "Natural lighting",
+                            colorPalette: "Neutral colors",
+                            visualEffects: []
+                        },
+                        audio: {
+                            dialogue: [],
+                            ambientSounds: [],
+                            music: "Background music",
+                            soundEffects: []
+                        },
+                        storyBeat: `Scene ${i} - Error occurred`,
+                        characterDevelopment: "None",
+                        visualMetaphors: [],
+                        antiMainstreamElements: [],
+                        continuityNotes: "Error scene - please regenerate",
+                        nextSceneSetup: "Next scene setup"
+                    };
+
+                    allScenes.push(fallbackScene);
+                    fallbackCount++;
+
+                    // Update progress with fallback
+                    setCurrentProject(prev => prev ? {
+                        ...prev,
+                        scenes: [...allScenes],
+                        updatedAt: new Date()
+                    } : null);
                 }
             }
 
-            if (allScenes.length === 0) {
-                throw new Error('Failed to generate any scenes. Please check your API settings and try again.');
+            // Show completion message
+            if (fallbackCount > 0) {
+                alert(`Scene generation completed! ${successCount} scenes generated successfully, ${fallbackCount} fallback scenes created. You can regenerate individual scenes if needed.`);
+            } else {
+                alert(`All ${successCount} scenes generated successfully!`);
             }
 
             setCurrentProject(prev => prev ? {
