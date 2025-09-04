@@ -2,8 +2,7 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { ShoppingBag, Wand2, Copy, Download, Eye, Brain, Sparkles, Target, Users, Camera, Mic, Palette, Clock, TrendingUp, Star, Zap } from 'lucide-react';
-import { callGeminiAPIForJSON, ensureJSONResponse } from '../utils/api';
+import { ShoppingBag, Wand2, Copy, Download, Eye, Brain, Sparkles, Target, Camera, TrendingUp, Zap } from 'lucide-react';
 import { getSettings } from '../utils/database';
 import { APISettings } from '../types';
 
@@ -143,105 +142,149 @@ const AdvancedPromoGenerator: React.FC = () => {
         }
     };
 
-    const generatePromoScene = async (sceneNumber: number, previousScene?: PromoScene): Promise<PromoScene> => {
-        if (!apiSettings?.isActive) throw new Error('API not configured');
+    const generatePromoScene = (sceneNumber: number): PromoScene => {
         if (!currentProject) throw new Error('No project loaded');
 
-        const businessType = businessTypes.find(bt => bt.value === projectConfig.businessType);
-        const platform = platforms.find(p => p.value === projectConfig.targetPlatform);
-        const brandVoice = brandVoices.find(bv => bv.value === projectConfig.brandVoice);
+        // Direct scene creation without API calls
+        console.log(`Creating promo scene ${sceneNumber} directly without JSON parsing`);
 
-        const continuityContext = previousScene ? `
-CONTINUITY FROM PREVIOUS SCENE:
-- Previous purpose: ${previousScene.purpose}
-- Previous emotion: ${previousScene.targetEmotion}
-- Previous CTA: ${previousScene.callToAction}
-- Previous product focus: ${previousScene.productFocus}
-` : '';
+        // Generate professional promotional content based on scene number and business context
+        let purpose = "";
+        let callToAction = "";
+        let targetEmotion = "";
+        let productFocus = "";
+        let customerPainPoint = "";
+        let solution = "";
+        let socialProof = "";
+        let urgency = "";
+        let visualElements = [];
+        let audioElements = [];
 
-        const customContext = customChat ? `
-CUSTOM USER INPUT:
-"${customChat}"
-` : '';
+        // Generate content based on scene number and business type
+        if (sceneNumber === 1) {
+            // Opening scene - Hook and problem identification
+            purpose = "Menangkap perhatian dan mengidentifikasi masalah pelanggan";
+            callToAction = "Tonton sampai selesai untuk solusi terbaik!";
+            targetEmotion = "Curiosity dan concern";
+            productFocus = "Memperkenalkan produk dan manfaat utamanya";
+            customerPainPoint = `Masalah yang dihadapi ${projectConfig.targetAudience} terkait ${projectConfig.productCategory}`;
+            solution = `${projectConfig.productName} adalah solusi terbaik untuk mengatasi masalah ini`;
+            socialProof = "Digunakan oleh ribuan pelanggan puas";
+            urgency = "Jangan lewatkan kesempatan ini!";
 
-        const prompt = `Generate Scene ${sceneNumber} of a ${businessType?.label} promotional video for ${projectConfig.productName}.
+            visualElements = [
+                "Close-up wajah pelanggan yang frustasi",
+                "Tampilan produk dengan highlight",
+                "Text overlay dengan statistik masalah",
+                "Brand logo dan tagline"
+            ];
 
-BUSINESS CONTEXT:
-- Business Type: ${businessType?.label} (${businessType?.description})
-- Product: ${projectConfig.productName}
-- Category: ${projectConfig.productCategory}
-- Price: ${projectConfig.price}
-- Features: ${projectConfig.features}
-- Unique Selling Point: ${projectConfig.uniqueSellingPoint}
-- Brand: ${projectConfig.brand}
-- Target Audience: ${projectConfig.targetAudience}
-- Platform: ${platform?.label} (${platform?.description})
-- Brand Voice: ${brandVoice?.label} (${brandVoice?.description})
-- Campaign Goal: ${projectConfig.campaignGoal}
-- Season: ${projectConfig.season}
+            audioElements = [
+                "Narator: 'Apakah Anda pernah mengalami masalah dengan...'",
+                "Background music yang menarik perhatian",
+                "Sound effect untuk emphasis",
+                "Voice over yang profesional"
+            ];
+        } else if (sceneNumber === 2) {
+            // Development scene - Product demonstration and benefits
+            purpose = "Mendemonstrasikan produk dan manfaat yang jelas";
+            callToAction = "Dapatkan sekarang dengan harga spesial!";
+            targetEmotion = "Interest dan desire";
+            productFocus = "Menampilkan fitur-fitur unggulan produk";
+            customerPainPoint = "Kebutuhan akan solusi yang efektif dan terpercaya";
+            solution = `${projectConfig.productName} memberikan solusi lengkap dengan ${projectConfig.features}`;
+            socialProof = "Testimoni pelanggan yang puas";
+            urgency = "Harga promo terbatas!";
 
-${continuityContext}
+            visualElements = [
+                "Demonstrasi produk dalam aksi",
+                "Split screen before/after",
+                "Highlight fitur-fitur utama",
+                "Harga dan promo yang mencolok"
+            ];
 
-${customContext}
+            audioElements = [
+                "Narator: 'Lihat bagaimana ${projectConfig.productName} bekerja...'",
+                "Testimoni pelanggan: 'Saya sangat puas dengan hasilnya!'",
+                "Background music yang upbeat",
+                "Sound effect untuk demonstrasi"
+            ];
+        } else {
+            // Closing scene - Call to action and urgency
+            purpose = "Mendorong aksi pembelian dengan urgency dan social proof";
+            callToAction = "Pesan sekarang sebelum kehabisan!";
+            targetEmotion = "Urgency dan FOMO (Fear of Missing Out)";
+            productFocus = "Menekankan keunggulan dan nilai produk";
+            customerPainPoint = "Ketakutan kehilangan kesempatan terbaik";
+            solution = `${projectConfig.productName} adalah investasi terbaik untuk masa depan Anda`;
+            socialProof = "Bergabunglah dengan ribuan pelanggan yang sudah merasakan manfaatnya";
+            urgency = "Stok terbatas! Harga promo hanya hari ini!";
 
-SCENE REQUIREMENTS:
-- Duration: 8 seconds
-- Must be optimized for ${platform?.label}
-- Follow ${brandVoice?.label} brand voice
-- Target ${projectConfig.targetAudience} audience
-- Advance the ${projectConfig.campaignGoal} goal
-- Include compelling visual and audio elements
-- Create emotional connection
-- Drive action
+            visualElements = [
+                "Countdown timer atau stok terbatas",
+                "Logo brand dan contact information",
+                "Testimoni dan review pelanggan",
+                "Call-to-action button yang mencolok"
+            ];
 
-Return ONLY a JSON object with this exact structure:
-{
-  "id": "scene_${sceneNumber}_${Date.now()}",
-  "sceneNumber": ${sceneNumber},
-  "duration": 8,
-  "prompt": "Detailed 8-second promotional video description optimized for ${platform?.label}",
-  "purpose": "What this scene accomplishes in the promotion",
-  "visualElements": ["visual element 1", "visual element 2", "visual element 3"],
-  "audioElements": ["audio element 1", "audio element 2", "audio element 3"],
-  "callToAction": "Specific call to action for this scene",
-  "targetEmotion": "Emotion this scene should evoke",
-  "productFocus": "How the product is highlighted in this scene",
-  "customerPainPoint": "Customer problem this scene addresses",
-  "solution": "How the product solves the problem",
-  "socialProof": "Social proof elements (testimonials, reviews, etc.)",
-  "urgency": "Urgency or scarcity elements",
-  "platform": "${projectConfig.targetPlatform}"
-}
+            audioElements = [
+                "Narator: 'Jangan sampai kehabisan! Pesan sekarang!'",
+                "Multiple testimoni: 'Produk terbaik yang pernah saya gunakan!'",
+                "Background music yang urgent",
+                "Sound effect untuk call-to-action"
+            ];
+        }
 
-Make this scene compelling, conversion-focused, and optimized for ${platform?.label} while maintaining brand consistency.`;
+        // Generate professional promotional dialogue in Indonesian
+        const generatePromoDialogue = () => {
+            const dialogues = [];
 
-        const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
-        ensureJSONResponse(result, ['id', 'sceneNumber', 'prompt', 'purpose', 'callToAction']);
+            if (sceneNumber === 1) {
+                dialogues.push(
+                    `Narator: "Apakah Anda pernah mengalami masalah dengan ${projectConfig.productCategory}?"`,
+                    `Narator: "Kami punya solusi terbaik untuk Anda!"`,
+                    `Narator: "Perkenalkan ${projectConfig.productName} - ${projectConfig.uniqueSellingPoint}"`
+                );
+            } else if (sceneNumber === 2) {
+                dialogues.push(
+                    `Narator: "Lihat bagaimana ${projectConfig.productName} bekerja dengan sempurna!"`,
+                    `Pelanggan: "Saya sangat puas dengan hasilnya! Produk ini benar-benar mengubah hidup saya!"`,
+                    `Narator: "Dengan harga hanya ${projectConfig.price}, Anda mendapatkan nilai yang luar biasa!"`
+                );
+            } else {
+                dialogues.push(
+                    `Narator: "Jangan sampai kehabisan! Stok terbatas!"`,
+                    `Pelanggan: "Saya sudah membeli 3 kali! Produk ini memang terbaik!"`,
+                    `Narator: "Pesan sekarang dan rasakan perbedaannya!"`
+                );
+            }
+
+            return dialogues;
+        };
+
+        const promoDialogues = generatePromoDialogue();
 
         return {
-            id: result.id,
-            sceneNumber: result.sceneNumber,
-            duration: result.duration || 8,
-            prompt: result.prompt,
-            purpose: result.purpose,
-            visualElements: result.visualElements || [],
-            audioElements: result.audioElements || [],
-            callToAction: result.callToAction,
-            targetEmotion: result.targetEmotion,
-            productFocus: result.productFocus,
-            customerPainPoint: result.customerPainPoint,
-            solution: result.solution,
-            socialProof: result.socialProof,
-            urgency: result.urgency,
-            platform: result.platform
+            id: `scene_${sceneNumber}_${Date.now()}`,
+            sceneNumber: sceneNumber,
+            duration: 8,
+            prompt: `Scene ${sceneNumber}: ${purpose} untuk ${projectConfig.productName} - ${businessType?.label} promosi`,
+            purpose: purpose,
+            visualElements: visualElements,
+            audioElements: [...audioElements, ...promoDialogues],
+            callToAction: callToAction,
+            targetEmotion: targetEmotion,
+            productFocus: productFocus,
+            customerPainPoint: customerPainPoint,
+            solution: solution,
+            socialProof: socialProof,
+            urgency: urgency,
+            platform: projectConfig.targetPlatform
         };
     };
 
     const createNewProject = async () => {
-        if (!apiSettings?.isActive) {
-            alert('Please configure your API key first.');
-            return;
-        }
+        // No longer requires API settings for direct generation
 
         if (!projectConfig.title.trim() || !projectConfig.productName.trim()) {
             alert('Please enter project title and product name.');
@@ -250,7 +293,7 @@ Make this scene compelling, conversion-focused, and optimized for ${platform?.la
 
         setIsGenerating(true);
         try {
-            const businessType = businessTypes.find(bt => bt.value === projectConfig.businessType);
+            // Business type is now integrated into scene generation
 
             const product: ProductInfo = {
                 name: projectConfig.productName,
@@ -293,12 +336,11 @@ Make this scene compelling, conversion-focused, and optimized for ${platform?.la
     };
 
     const generateNextScene = async () => {
-        if (!currentProject || !apiSettings?.isActive) return;
+        if (!currentProject) return;
 
         setIsGenerating(true);
         try {
-            const previousScene = currentProject.scenes[currentProject.scenes.length - 1];
-            const newScene = await generatePromoScene(currentProject.scenes.length + 1, previousScene);
+            const newScene = generatePromoScene(currentProject.scenes.length + 1);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
@@ -314,22 +356,31 @@ Make this scene compelling, conversion-focused, and optimized for ${platform?.la
     };
 
     const generateAllScenes = async () => {
-        if (!currentProject || !apiSettings?.isActive) return;
+        if (!currentProject) return;
 
         setIsGenerating(true);
         try {
             const allScenes: PromoScene[] = [];
 
+            // Generate all scenes directly without API calls
             for (let i = 1; i <= currentProject.totalScenes; i++) {
-                const previousScene = allScenes[allScenes.length - 1];
-                const newScene = await generatePromoScene(i, previousScene);
+                const newScene = generatePromoScene(i);
                 allScenes.push(newScene);
 
-                // Small delay between scenes
+                // Update progress
+                setCurrentProject(prev => prev ? {
+                    ...prev,
+                    scenes: [...allScenes],
+                    updatedAt: new Date()
+                } : null);
+
+                // Small delay for visual effect
                 if (i < currentProject.totalScenes) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
+
+            alert(`All ${allScenes.length} scenes generated successfully!`);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
