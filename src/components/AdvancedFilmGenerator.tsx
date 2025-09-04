@@ -97,7 +97,13 @@ const AdvancedFilmGenerator: React.FC = () => {
         targetDuration: 24, // 3 scenes x 8 seconds
         antiMainstreamLevel: 'high',
         visualStyle: 'cinematic',
-        storyComplexity: 'medium'
+        storyComplexity: 'medium',
+        animationType: 'realistic',
+        language: 'indonesian',
+        regionalLanguage: 'none',
+        dialogueStyle: 'professional',
+        characterConsistency: 'high',
+        sceneContinuity: 'seamless'
     });
 
     const genres = [
@@ -108,7 +114,54 @@ const AdvancedFilmGenerator: React.FC = () => {
         { value: 'noir', label: 'Noir', description: 'Dark, moody atmosphere' },
         { value: 'experimental', label: 'Experimental', description: 'Avant-garde approach' },
         { value: 'documentary', label: 'Documentary', description: 'Realistic portrayal' },
-        { value: 'surreal', label: 'Surreal', description: 'Dreamlike, abstract' }
+        { value: 'surreal', label: 'Surreal', description: 'Dreamlike, abstract' },
+        { value: 'comedy', label: 'Comedy', description: 'Humor and entertainment' },
+        { value: 'romance', label: 'Romance', description: 'Love and relationships' },
+        { value: 'action', label: 'Action', description: 'High-energy sequences' },
+        { value: 'horror', label: 'Horror', description: 'Fear and suspense' }
+    ];
+
+    const animationTypes = [
+        { value: 'realistic', label: 'Realistic', description: 'Photorealistic CGI animation', icon: '🎬' },
+        { value: 'traditional-2d', label: 'Traditional 2D Hand-Drawn', description: 'Classic hand-drawn animation', icon: '✏️' },
+        { value: 'anime-modern', label: 'Anime Modern (2D + CGI)', description: 'Modern anime with CGI elements', icon: '🎌' },
+        { value: '3d-cgi', label: '3D CGI Animation', description: 'Full 3D computer animation', icon: '🎮' },
+        { value: 'stop-motion', label: 'Stop-Motion Animation', description: 'Frame-by-frame stop-motion', icon: '🎭' },
+        { value: 'claymation', label: 'Claymation', description: 'Stop-motion with clay figures', icon: '🧱' },
+        { value: 'motion-capture', label: 'Motion Capture + CGI', description: 'Real actor motion capture', icon: '👤' },
+        { value: 'rotoscoping', label: 'Rotoscoping', description: 'Live-action traced animation', icon: '🎨' },
+        { value: 'hybrid', label: 'Hybrid (Live-Action + Animation)', description: 'Mix of real and animated', icon: '🎪' },
+        { value: 'anime', label: 'Anime (Japanese Animation)', description: 'Traditional Japanese anime style', icon: '🌸' },
+        { value: 'stylized', label: 'Stylized / Mixed Media', description: 'Artistic mixed media approach', icon: '🎨' },
+        { value: 'pixar', label: 'Pixar Style', description: 'Pixar-like 3D animation', icon: '🏠' }
+    ];
+
+    const languages = [
+        { value: 'indonesian', label: 'Bahasa Indonesia', description: 'Bahasa Indonesia standar' },
+        { value: 'english', label: 'English', description: 'International English' },
+        { value: 'javanese', label: 'Bahasa Jawa', description: 'Bahasa Jawa dengan tingkatan' },
+        { value: 'sundanese', label: 'Bahasa Sunda', description: 'Bahasa Sunda regional' },
+        { value: 'mixed', label: 'Mixed Language', description: 'Campuran bahasa Indonesia dan daerah' }
+    ];
+
+    const regionalLanguages = [
+        { value: 'none', label: 'Tidak Ada', description: 'Hanya bahasa utama' },
+        { value: 'javanese-kromo', label: 'Jawa Kromo', description: 'Bahasa Jawa halus/tinggi' },
+        { value: 'javanese-ngoko', label: 'Jawa Ngoko', description: 'Bahasa Jawa kasar/sehari-hari' },
+        { value: 'sundanese-lemes', label: 'Sunda Lemes', description: 'Bahasa Sunda halus' },
+        { value: 'sundanese-loma', label: 'Sunda Loma', description: 'Bahasa Sunda kasar' },
+        { value: 'betawi', label: 'Bahasa Betawi', description: 'Bahasa Betawi Jakarta' },
+        { value: 'minang', label: 'Bahasa Minang', description: 'Bahasa Minangkabau' },
+        { value: 'batak', label: 'Bahasa Batak', description: 'Bahasa Batak' }
+    ];
+
+    const dialogueStyles = [
+        { value: 'professional', label: 'Professional', description: 'Percakapan formal dan profesional' },
+        { value: 'casual', label: 'Casual', description: 'Percakapan santai dan natural' },
+        { value: 'dramatic', label: 'Dramatic', description: 'Percakapan dramatis dan emosional' },
+        { value: 'comedic', label: 'Comedic', description: 'Percakapan lucu dan menghibur' },
+        { value: 'poetic', label: 'Poetic', description: 'Percakapan puitis dan indah' },
+        { value: 'technical', label: 'Technical', description: 'Percakapan teknis dan detail' }
     ];
 
     const antiMainstreamElements = [
@@ -195,8 +248,12 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         if (!currentProject) throw new Error('No project loaded');
 
         const characters = currentProject.characters;
-        // const characterNames = characters.map(c => c.name).join(', ');
         const characterProfiles = characters.map(c => `${c.name}: ${c.personality} (${c.appearance})`).join('; ');
+
+        const animationType = animationTypes.find(at => at.value === projectConfig.animationType);
+        const language = languages.find(l => l.value === projectConfig.language);
+        const regionalLanguage = regionalLanguages.find(rl => rl.value === projectConfig.regionalLanguage);
+        const dialogueStyle = dialogueStyles.find(ds => ds.value === projectConfig.dialogueStyle);
 
         const continuityContext = previousScene ? `
 CONTINUITY FROM PREVIOUS SCENE:
@@ -205,7 +262,23 @@ CONTINUITY FROM PREVIOUS SCENE:
 - Character states: ${previousScene.characters.map(c => `${c.name}: ${c.emotionalRange[0] || 'neutral'}`).join(', ')}
 - Story beat: ${previousScene.storyBeat}
 - Next scene setup: ${previousScene.nextSceneSetup}
+- Character consistency level: ${projectConfig.characterConsistency}
+- Scene continuity: ${projectConfig.sceneContinuity}
 ` : '';
+
+        const languageInstructions = projectConfig.language === 'mixed' ? `
+LANGUAGE REQUIREMENTS:
+- Primary language: ${language?.label}
+- Regional language: ${regionalLanguage?.label} (${regionalLanguage?.description})
+- Mix both languages naturally in dialogue
+- Use regional language for emotional moments or cultural context
+` : `
+LANGUAGE REQUIREMENTS:
+- Language: ${language?.label}
+- Regional accent: ${regionalLanguage?.label} (${regionalLanguage?.description})
+- Dialogue style: ${dialogueStyle?.label} (${dialogueStyle?.description})
+- Ensure natural, flowing conversation
+`;
 
         const prompt = `Generate Scene ${sceneNumber} of a ${projectConfig.genre} film titled "${projectConfig.title}".
 
@@ -215,27 +288,41 @@ PROJECT CONTEXT:
 - Anti-mainstream level: ${projectConfig.antiMainstreamLevel}
 - Visual style: ${projectConfig.visualStyle}
 - Story complexity: ${projectConfig.storyComplexity}
+- Animation type: ${animationType?.label} (${animationType?.description})
+- Character consistency: ${projectConfig.characterConsistency}
+- Scene continuity: ${projectConfig.sceneContinuity}
 
 CHARACTERS IN THIS SCENE:
 ${characterProfiles}
 
 ${continuityContext}
 
+${languageInstructions}
+
 SCENE REQUIREMENTS:
-- Duration: 8 seconds
+- Duration: 8 seconds (exactly)
 - Must advance the story meaningfully
-- Maintain character consistency
+- Maintain character consistency at ${projectConfig.characterConsistency} level
 - Include anti-mainstream elements: ${antiMainstreamElements.slice(0, 3).join(', ')}
-- Create visual metaphors
-- Develop character relationships
-- Set up next scene
+- Create visual metaphors appropriate for ${animationType?.label}
+- Develop character relationships through ${dialogueStyle?.label} dialogue
+- Set up next scene seamlessly
+- Optimize for ${animationType?.label} animation style
+- Ensure professional dialogue in ${language?.label}
+
+ANIMATION STYLE GUIDELINES:
+- Animation type: ${animationType?.label}
+- Visual approach: ${animationType?.description}
+- Character design: Consistent with ${animationType?.label} style
+- Movement: Appropriate for ${animationType?.label} animation
+- Visual effects: Suitable for ${animationType?.label} production
 
 Return ONLY a JSON object with this exact structure:
 {
   "id": "scene_${sceneNumber}_${Date.now()}",
   "sceneNumber": ${sceneNumber},
   "duration": 8,
-  "prompt": "Detailed 8-second scene description for AI video generation",
+  "prompt": "Detailed 8-second scene description optimized for ${animationType?.label} animation with professional ${language?.label} dialogue",
   "characters": [${characters.map(c => `{"id": "${c.id}", "name": "${c.name}", "personality": "${c.personality}", "appearance": "${c.appearance}", "speakingStyle": "${c.speakingStyle}", "emotionalRange": ${JSON.stringify(c.emotionalRange)}, "relationships": ${JSON.stringify(c.relationships)}, "characterArc": "${c.characterArc}", "visualStyle": "${c.visualStyle}", "voiceCharacteristics": "${c.voiceCharacteristics}"}`).join(', ')}],
   "objects": ["object1", "object2"],
   "location": "Detailed location description",
@@ -243,13 +330,13 @@ Return ONLY a JSON object with this exact structure:
   "weather": "clear/cloudy/rainy/stormy",
   "mood": "emotional tone of the scene",
   "cinematography": {
-    "cameraWork": "Detailed camera movement and framing",
-    "lighting": "Lighting setup and mood",
-    "colorPalette": "Color scheme and grading",
+    "cameraWork": "Detailed camera movement and framing optimized for ${animationType?.label}",
+    "lighting": "Lighting setup and mood for ${animationType?.label} style",
+    "colorPalette": "Color scheme and grading for ${animationType?.label}",
     "visualEffects": ["effect1", "effect2"]
   },
   "audio": {
-    "dialogue": ["Character dialogue lines"],
+    "dialogue": ["Character dialogue lines in ${language?.label} with ${dialogueStyle?.label} style"],
     "ambientSounds": ["background sound1", "background sound2"],
     "music": "Music style and mood",
     "soundEffects": ["sfx1", "sfx2"]
@@ -259,10 +346,13 @@ Return ONLY a JSON object with this exact structure:
   "visualMetaphors": ["metaphor1", "metaphor2"],
   "antiMainstreamElements": ["element1", "element2"],
   "continuityNotes": "Notes for maintaining continuity",
-  "nextSceneSetup": "How this scene sets up the next one"
+  "nextSceneSetup": "How this scene sets up the next one",
+  "animationNotes": "Specific notes for ${animationType?.label} animation production",
+  "languageNotes": "Language and dialogue style notes for ${language?.label}",
+  "characterConsistency": "Character consistency requirements for this scene"
 }
 
-Make this scene compelling, unique, and anti-mainstream while maintaining character consistency.`;
+Make this scene compelling, unique, and anti-mainstream while maintaining character consistency and optimizing for ${animationType?.label} animation with professional ${language?.label} dialogue.`;
 
         const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
         ensureJSONResponse(result, ['id', 'sceneNumber', 'prompt', 'characters', 'location', 'mood']);
@@ -388,6 +478,37 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
         } catch (error) {
             console.error('Failed to generate scene:', error);
             alert('Failed to generate scene');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const generateAllScenes = async () => {
+        if (!currentProject || !apiSettings?.isActive) return;
+
+        setIsGenerating(true);
+        try {
+            const allScenes: SceneData[] = [];
+
+            for (let i = 1; i <= currentProject.totalScenes; i++) {
+                const previousScene = allScenes[allScenes.length - 1];
+                const newScene = await generateScene(i, previousScene);
+                allScenes.push(newScene);
+
+                // Small delay between scenes
+                if (i < currentProject.totalScenes) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            setCurrentProject(prev => prev ? {
+                ...prev,
+                scenes: allScenes,
+                updatedAt: new Date()
+            } : null);
+        } catch (error) {
+            console.error('Failed to generate all scenes:', error);
+            alert('Failed to generate all scenes');
         } finally {
             setIsGenerating(false);
         }
@@ -550,6 +671,100 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
                                     <option value="minimalist" className="bg-slate-800">Minimalist</option>
                                 </select>
                             </div>
+
+                            {/* Animation Type */}
+                            <div>
+                                <label className="block text-white font-semibold mb-2">Animation Type</label>
+                                <select
+                                    value={projectConfig.animationType}
+                                    onChange={(e) => setProjectConfig({ ...projectConfig, animationType: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                >
+                                    {animationTypes.map(type => (
+                                        <option key={type.value} value={type.value} className="bg-slate-800">
+                                            {type.icon} {type.label} - {type.description}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Language Selection */}
+                            <div>
+                                <label className="block text-white font-semibold mb-2">Primary Language</label>
+                                <select
+                                    value={projectConfig.language}
+                                    onChange={(e) => setProjectConfig({ ...projectConfig, language: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                >
+                                    {languages.map(lang => (
+                                        <option key={lang.value} value={lang.value} className="bg-slate-800">
+                                            {lang.label} - {lang.description}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Regional Language */}
+                            {projectConfig.language !== 'english' && (
+                                <div>
+                                    <label className="block text-white font-semibold mb-2">Regional Language/Accent</label>
+                                    <select
+                                        value={projectConfig.regionalLanguage}
+                                        onChange={(e) => setProjectConfig({ ...projectConfig, regionalLanguage: e.target.value })}
+                                        className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                    >
+                                        {regionalLanguages.map(regLang => (
+                                            <option key={regLang.value} value={regLang.value} className="bg-slate-800">
+                                                {regLang.label} - {regLang.description}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Dialogue Style */}
+                            <div>
+                                <label className="block text-white font-semibold mb-2">Dialogue Style</label>
+                                <select
+                                    value={projectConfig.dialogueStyle}
+                                    onChange={(e) => setProjectConfig({ ...projectConfig, dialogueStyle: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                >
+                                    {dialogueStyles.map(style => (
+                                        <option key={style.value} value={style.value} className="bg-slate-800">
+                                            {style.label} - {style.description}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Character Consistency */}
+                            <div>
+                                <label className="block text-white font-semibold mb-2">Character Consistency Level</label>
+                                <select
+                                    value={projectConfig.characterConsistency}
+                                    onChange={(e) => setProjectConfig({ ...projectConfig, characterConsistency: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                >
+                                    <option value="high" className="bg-slate-800">High - Strict character consistency</option>
+                                    <option value="medium" className="bg-slate-800">Medium - Balanced consistency</option>
+                                    <option value="low" className="bg-slate-800">Low - Flexible character development</option>
+                                </select>
+                            </div>
+
+                            {/* Scene Continuity */}
+                            <div>
+                                <label className="block text-white font-semibold mb-2">Scene Continuity</label>
+                                <select
+                                    value={projectConfig.sceneContinuity}
+                                    onChange={(e) => setProjectConfig({ ...projectConfig, sceneContinuity: e.target.value })}
+                                    className="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white"
+                                >
+                                    <option value="seamless" className="bg-slate-800">Seamless - Perfect continuity</option>
+                                    <option value="smooth" className="bg-slate-800">Smooth - Good continuity</option>
+                                    <option value="loose" className="bg-slate-800">Loose - Flexible continuity</option>
+                                </select>
+                            </div>
                         </div>
 
                         <button
@@ -659,23 +874,44 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
                                     <Camera className="w-6 h-6 text-purple-400" />
                                     Scenes ({currentProject.scenes.length})
                                 </h3>
-                                <button
-                                    onClick={generateNextScene}
-                                    disabled={isGenerating || !apiSettings?.isActive || currentProject.characters.length === 0}
-                                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-3"
-                                >
-                                    {isGenerating ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Generating Scene {currentProject.scenes.length + 1}...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Wand2 className="w-5 h-5" />
-                                            Generate Next Scene
-                                        </>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={generateNextScene}
+                                        disabled={isGenerating || !apiSettings?.isActive || currentProject.characters.length === 0 || currentProject.scenes.length >= currentProject.totalScenes}
+                                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 flex items-center gap-3"
+                                    >
+                                        {isGenerating ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Generating Scene {currentProject.scenes.length + 1}...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Wand2 className="w-5 h-5" />
+                                                Generate Next Scene
+                                            </>
+                                        )}
+                                    </button>
+                                    {currentProject.scenes.length === 0 && (
+                                        <button
+                                            onClick={generateAllScenes}
+                                            disabled={isGenerating || !apiSettings?.isActive || currentProject.characters.length === 0}
+                                            className="bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold py-3 px-6 rounded-lg hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 flex items-center gap-3"
+                                        >
+                                            {isGenerating ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                    Generating All Scenes...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Sparkles className="w-5 h-5" />
+                                                    Generate All Scenes
+                                                </>
+                                            )}
+                                        </button>
                                     )}
-                                </button>
+                                </div>
                             </div>
 
                             {currentProject.scenes.length === 0 ? (
@@ -752,6 +988,18 @@ Make this scene compelling, unique, and anti-mainstream while maintaining charac
                                                     <div>
                                                         <span className="text-purple-300 font-semibold">Mood:</span>
                                                         <p className="text-gray-300">{scene.mood}</p>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-purple-300 font-semibold">Animation Type:</span>
+                                                        <p className="text-gray-300">{animationTypes.find(at => at.value === projectConfig.animationType)?.icon} {animationTypes.find(at => at.value === projectConfig.animationType)?.label}</p>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-purple-300 font-semibold">Language:</span>
+                                                        <p className="text-gray-300">{languages.find(l => l.value === projectConfig.language)?.label} {projectConfig.regionalLanguage !== 'none' ? `(${regionalLanguages.find(rl => rl.value === projectConfig.regionalLanguage)?.label})` : ''}</p>
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-purple-300 font-semibold">Dialogue Style:</span>
+                                                        <p className="text-gray-300">{dialogueStyles.find(ds => ds.value === projectConfig.dialogueStyle)?.label}</p>
                                                     </div>
                                                     <div>
                                                         <span className="text-purple-300 font-semibold">Story Beat:</span>
