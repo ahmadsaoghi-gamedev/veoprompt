@@ -1,5 +1,94 @@
 import { APISettings } from '../types';
 
+// JSON repair function to fix common JSON issues
+function repairJSON(jsonString: string): string {
+  try {
+    // Remove any text before the first {
+    const firstBrace = jsonString.indexOf('{');
+    if (firstBrace > 0) {
+      jsonString = jsonString.substring(firstBrace);
+    }
+
+    // Remove any text after the last }
+    const lastBrace = jsonString.lastIndexOf('}');
+    if (lastBrace > 0 && lastBrace < jsonString.length - 1) {
+      jsonString = jsonString.substring(0, lastBrace + 1);
+    }
+
+    // Fix common issues
+    let repaired = jsonString
+      // Fix unescaped quotes in strings
+      .replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, (match, content) => {
+        return '"' + content.replace(/"/g, '\\"') + '"';
+      })
+      // Fix missing quotes around property names
+      .replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+      // Fix trailing commas
+      .replace(/,(\s*[}\]])/g, '$1')
+      // Fix missing commas between array elements
+      .replace(/\]\s*\[/g, '],[')
+      // Fix missing commas between object properties
+      .replace(/}\s*{/g, '},{')
+      // Fix unescaped newlines in strings
+      .replace(/"([^"]*)\n([^"]*)"/g, '"$1\\n$2"')
+      // Fix unescaped tabs in strings
+      .replace(/"([^"]*)\t([^"]*)"/g, '"$1\\t$2"')
+      // Fix unescaped backslashes
+      .replace(/([^\\])\\([^"\\/bfnrt])/g, '$1\\\\$2')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Try to balance braces and brackets
+    let openBraces = 0;
+    let openBrackets = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = 0; i < repaired.length; i++) {
+      const char = repaired[i];
+
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        escaped = true;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = !inString;
+        continue;
+      }
+
+      if (!inString) {
+        if (char === '{') openBraces++;
+        if (char === '}') openBraces--;
+        if (char === '[') openBrackets++;
+        if (char === ']') openBrackets--;
+      }
+    }
+
+    // Add missing closing braces/brackets
+    while (openBraces > 0) {
+      repaired += '}';
+      openBraces--;
+    }
+
+    while (openBrackets > 0) {
+      repaired += ']';
+      openBrackets--;
+    }
+
+    return repaired;
+  } catch (error) {
+    console.error('JSON repair failed:', error);
+    return jsonString;
+  }
+}
+
 export async function callGeminiAPI(
   prompt: string,
   imageBase64?: string,
@@ -111,7 +200,9 @@ export async function callGeminiAPIForJSON(
           .replace(/([^\\])\\([^"\\/bfnrt])/g, '$1\\\\$2') // Fix unescaped backslashes
           .replace(/\n/g, '\\n') // Escape newlines
           .replace(/\r/g, '\\r') // Escape carriage returns
-          .replace(/\t/g, '\\t'); // Escape tabs
+          .replace(/\t/g, '\\t') // Escape tabs
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
 
         console.log('Cleaned JSON string:', jsonString.substring(0, 200) + '...');
         return JSON.parse(jsonString);
@@ -121,32 +212,44 @@ export async function callGeminiAPIForJSON(
         console.error('Raw response preview:', response.substring(0, 500));
         console.error('Extracted JSON preview:', jsonMatch[0].substring(0, 500));
 
-        // Try a more aggressive cleanup
+        // Try a more aggressive cleanup with JSON repair
         try {
-          const aggressiveClean = jsonMatch[0]
+          let aggressiveClean = jsonMatch[0]
             .replace(/\s+/g, ' ') // Normalize whitespace
             .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
             .replace(/([^\\])\\([^"\\/bfnrt])/g, '$1\\\\$2') // Fix unescaped backslashes
             .trim();
+
+          // Try to repair common JSON issues
+          aggressiveClean = repairJSON(aggressiveClean);
 
           console.log('Aggressive cleanup attempt...');
           return JSON.parse(aggressiveClean);
         } catch (aggressiveError) {
           console.error('Aggressive cleanup also failed:', aggressiveError);
 
-          // Last resort: try to create a minimal valid JSON
+          // Last resort: try to extract partial data and create valid JSON
           try {
+            console.log('Attempting to extract partial data from broken JSON...');
+
+            // Try to extract basic information from the broken JSON
+            const idMatch = jsonMatch[0].match(/"id"\s*:\s*"([^"]+)"/);
+            const sceneNumberMatch = jsonMatch[0].match(/"sceneNumber"\s*:\s*(\d+)/);
+            const promptMatch = jsonMatch[0].match(/"prompt"\s*:\s*"([^"]+)"/);
+            const locationMatch = jsonMatch[0].match(/"location"\s*:\s*"([^"]+)"/);
+            const moodMatch = jsonMatch[0].match(/"mood"\s*:\s*"([^"]+)"/);
+
             const fallbackJson = {
-              id: `scene_${Date.now()}`,
-              sceneNumber: 1,
+              id: idMatch ? idMatch[1] : `scene_${Date.now()}`,
+              sceneNumber: sceneNumberMatch ? parseInt(sceneNumberMatch[1]) : 1,
               duration: 8,
-              prompt: "Scene generation failed - please retry",
+              prompt: promptMatch ? promptMatch[1] : "Scene generation failed - please retry",
               characters: [],
               objects: [],
-              location: "Unknown",
+              location: locationMatch ? locationMatch[1] : "Unknown",
               timeOfDay: "day",
               weather: "clear",
-              mood: "neutral",
+              mood: moodMatch ? moodMatch[1] : "neutral",
               cinematography: {
                 cameraWork: "Standard shot",
                 lighting: "Natural lighting",
@@ -167,7 +270,7 @@ export async function callGeminiAPIForJSON(
               nextSceneSetup: "Please retry"
             };
 
-            console.log('Using fallback JSON due to parsing failure');
+            console.log('Using partial data fallback JSON due to parsing failure');
             return fallbackJson;
           } catch (fallbackError) {
             console.error('Even fallback failed:', fallbackError);
