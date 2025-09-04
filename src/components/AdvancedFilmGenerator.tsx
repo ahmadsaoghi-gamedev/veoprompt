@@ -252,7 +252,6 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
 
         const animationType = animationTypes.find(at => at.value === projectConfig.animationType);
         const language = languages.find(l => l.value === projectConfig.language);
-        const regionalLanguage = regionalLanguages.find(rl => rl.value === projectConfig.regionalLanguage);
         const dialogueStyle = dialogueStyles.find(ds => ds.value === projectConfig.dialogueStyle);
 
         const continuityContext = previousScene ? `
@@ -266,73 +265,55 @@ CONTINUITY FROM PREVIOUS SCENE:
 - Scene continuity: ${projectConfig.sceneContinuity}
 ` : '';
 
-        const languageInstructions = projectConfig.language === 'mixed' ? `
-LANGUAGE REQUIREMENTS:
-- Primary language: ${language?.label}
-- Regional language: ${regionalLanguage?.label} (${regionalLanguage?.description})
-- Mix both languages naturally in dialogue
-- Use regional language for emotional moments or cultural context
-` : `
-LANGUAGE REQUIREMENTS:
-- Language: ${language?.label}
-- Regional accent: ${regionalLanguage?.label} (${regionalLanguage?.description})
-- Dialogue style: ${dialogueStyle?.label} (${dialogueStyle?.description})
-- Ensure natural, flowing conversation
-`;
+        // Language instructions are now integrated into the main prompt
 
-        const prompt = `Create a scene for a ${projectConfig.genre} film titled "${projectConfig.title}".
+        const prompt = `Generate Scene ${sceneNumber} for "${projectConfig.title}" - ${projectConfig.genre} film.
 
-CONTEXT:
-- Genre: ${projectConfig.genre}
-- Theme: ${projectConfig.theme}
-- Animation: ${animationType?.label}
-- Language: ${language?.label}
-- Characters: ${characterProfiles}
+STORY: ${projectConfig.theme}
+ANIMATION: ${animationType?.label}
+LANGUAGE: ${language?.label}
+CHARACTERS: ${characterProfiles}
 
 ${continuityContext}
 
-${languageInstructions}
+SCENE REQUIREMENTS:
+- 8 seconds duration
+- ${dialogueStyle?.label} dialogue style
+- Anti-mainstream elements: ${antiMainstreamElements.slice(0, 2).join(', ')}
 
-REQUIREMENTS:
-- Duration: 8 seconds exactly
-- Advance the story meaningfully
-- Include anti-mainstream elements: ${antiMainstreamElements.slice(0, 2).join(', ')}
-- Optimize for ${animationType?.label} animation
-- Use ${dialogueStyle?.label} dialogue style
-
-Return ONLY a valid JSON object with this exact structure:
+Generate a complete scene with this JSON structure:
 {
   "id": "scene_${sceneNumber}_${Date.now()}",
   "sceneNumber": ${sceneNumber},
   "duration": 8,
-  "prompt": "8-second scene description for ${animationType?.label} animation",
+  "prompt": "Detailed 8-second scene for ${animationType?.label} animation",
   "characters": [${characters.map(c => `{"id": "${c.id}", "name": "${c.name}", "personality": "${c.personality}", "appearance": "${c.appearance}", "speakingStyle": "${c.speakingStyle}", "emotionalRange": ${JSON.stringify(c.emotionalRange)}, "relationships": ${JSON.stringify(c.relationships)}, "characterArc": "${c.characterArc}", "visualStyle": "${c.visualStyle}", "voiceCharacteristics": "${c.voiceCharacteristics}"}`).join(', ')}],
-  "objects": ["object1", "object2"],
-  "location": "Scene location",
+  "objects": ["key_object"],
+  "location": "Specific location",
   "timeOfDay": "morning",
   "weather": "clear",
-  "mood": "emotional tone",
+  "mood": "dramatic",
   "cinematography": {
-    "cameraWork": "Camera movement for ${animationType?.label}",
-    "lighting": "Lighting for ${animationType?.label}",
-    "colorPalette": "Color scheme for ${animationType?.label}",
-    "visualEffects": ["effect1", "effect2"]
+    "cameraWork": "Camera movement",
+    "lighting": "Lighting setup",
+    "colorPalette": "Color scheme",
+    "visualEffects": ["effect1"]
   },
   "audio": {
-    "dialogue": ["Dialogue in ${language?.label}"],
-    "ambientSounds": ["sound1", "sound2"],
-    "music": "Music style",
-    "soundEffects": ["sfx1", "sfx2"]
+    "dialogue": ["Character dialogue"],
+    "ambientSounds": ["background_sound"],
+    "music": "Background music",
+    "soundEffects": ["sfx"]
   },
-  "storyBeat": "What this scene accomplishes",
+  "storyBeat": "Scene purpose in story",
   "characterDevelopment": "Character growth",
-  "visualMetaphors": ["metaphor1", "metaphor2"],
-  "antiMainstreamElements": ["element1", "element2"],
-  "continuityNotes": "Continuity notes",
-  "nextSceneSetup": "Next scene setup"
+  "visualMetaphors": ["metaphor"],
+  "antiMainstreamElements": ["element"],
+  "continuityNotes": "Continuity details",
+  "nextSceneSetup": "Next scene preparation"
 }
 
-CRITICAL: Return ONLY the JSON object. No other text. Ensure valid JSON syntax.`;
+Return only valid JSON.`;
 
         try {
             const result = await callGeminiAPIForJSON(prompt, undefined, apiSettings);
@@ -378,37 +359,41 @@ CRITICAL: Return ONLY the JSON object. No other text. Ensure valid JSON syntax.`
                 return generateScene(sceneNumber, previousScene, retryCount + 1);
             }
 
-            // If all retries failed, create a fallback scene
-            console.log(`Creating fallback scene ${sceneNumber} after all retries failed`);
+            // If all retries failed, create a meaningful fallback scene
+            console.log(`Creating meaningful fallback scene ${sceneNumber} after all retries failed`);
+
+            // Create a meaningful scene based on the project context
+            const meaningfulPrompt = `Scene ${sceneNumber}: ${projectConfig.theme}. ${characters.map(c => c.name).join(', ')} in a ${projectConfig.genre} setting. ${animationType?.label} animation style.`;
+
             return {
                 id: `scene_${sceneNumber}_fallback_${Date.now()}`,
                 sceneNumber: sceneNumber,
                 duration: 8,
-                prompt: `Fallback scene ${sceneNumber} for ${projectConfig.title} - ${projectConfig.theme}`,
+                prompt: meaningfulPrompt,
                 characters: characters,
-                objects: ["fallback_object"],
-                location: previousScene?.location || "Continuation location",
+                objects: ["key_prop", "environmental_element"],
+                location: previousScene?.location || "Story location",
                 timeOfDay: previousScene?.timeOfDay || "day",
                 weather: previousScene?.weather || "clear",
-                mood: previousScene?.mood || "neutral",
+                mood: previousScene?.mood || "dramatic",
                 cinematography: {
-                    cameraWork: `Standard shot for ${animationType?.label}`,
-                    lighting: `Lighting for ${animationType?.label}`,
-                    colorPalette: `Colors for ${animationType?.label}`,
-                    visualEffects: []
+                    cameraWork: `Dynamic shot for ${animationType?.label}`,
+                    lighting: `Mood lighting for ${animationType?.label}`,
+                    colorPalette: `Thematic colors for ${animationType?.label}`,
+                    visualEffects: ["atmospheric_effect"]
                 },
                 audio: {
-                    dialogue: [`Dialogue in ${language?.label}`],
-                    ambientSounds: ["background_sound"],
-                    music: "Background music",
-                    soundEffects: ["sfx"]
+                    dialogue: [`${dialogueStyle?.label} dialogue in ${language?.label}`],
+                    ambientSounds: ["environmental_sound"],
+                    music: "Thematic music",
+                    soundEffects: ["dramatic_sfx"]
                 },
-                storyBeat: `Scene ${sceneNumber} development`,
-                characterDevelopment: "Character development",
-                visualMetaphors: ["metaphor"],
-                antiMainstreamElements: ["element"],
-                continuityNotes: "Fallback scene - please regenerate",
-                nextSceneSetup: "Next scene setup"
+                storyBeat: `Scene ${sceneNumber}: ${projectConfig.theme} - ${characters.map(c => c.name).join(' and ')} face the story challenge`,
+                characterDevelopment: `${characters.map(c => c.name).join(', ')} develop through this scene`,
+                visualMetaphors: ["story_metaphor", "character_metaphor"],
+                antiMainstreamElements: ["unconventional_element", "unique_approach"],
+                continuityNotes: "Fallback scene - contains story elements",
+                nextSceneSetup: "Sets up next story beat"
             };
         }
     };
@@ -502,6 +487,31 @@ CRITICAL: Return ONLY the JSON object. No other text. Ensure valid JSON syntax.`
         } catch (error) {
             console.error('Failed to generate scene:', error);
             alert('Failed to generate scene');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const regenerateScene = async (sceneNumber: number) => {
+        if (!currentProject || !apiSettings?.isActive) return;
+
+        setIsGenerating(true);
+        try {
+            const previousScene = sceneNumber > 1 ? currentProject.scenes[sceneNumber - 2] : undefined;
+            const newScene = await generateScene(sceneNumber, previousScene);
+
+            setCurrentProject(prev => prev ? {
+                ...prev,
+                scenes: prev.scenes.map(scene =>
+                    scene.sceneNumber === sceneNumber ? newScene : scene
+                ),
+                updatedAt: new Date()
+            } : null);
+
+            alert(`Scene ${sceneNumber} regenerated successfully!`);
+        } catch (error) {
+            console.error('Failed to regenerate scene:', error);
+            alert('Failed to regenerate scene');
         } finally {
             setIsGenerating(false);
         }
@@ -1028,6 +1038,15 @@ CRITICAL: Return ONLY the JSON object. No other text. Ensure valid JSON syntax.`
                                                         <Copy className="w-4 h-4" />
                                                         Copy JSON
                                                     </button>
+                                                    {scene.id.includes('fallback') && (
+                                                        <button
+                                                            onClick={() => regenerateScene(scene.sceneNumber)}
+                                                            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 px-3 py-1 rounded-lg transition-colors"
+                                                        >
+                                                            <Wand2 className="w-4 h-4" />
+                                                            Regenerate
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
 
