@@ -18,6 +18,7 @@ import ConceptVizMode from './components/ConceptVizMode';
 import DialogueFixerMode from './components/DialogueFixerMode';
 import AdvancedFilmGenerator from './components/AdvancedFilmGenerator';
 import AdvancedPromoGenerator from './components/AdvancedPromoGenerator';
+import ASMRSlicePromptGenerator from './components/ASMRSlicePromptGenerator';
 import GuidePage from './components/GuidePage';
 import { Helmet } from 'react-helmet-async';
 import { initDB } from './utils/database';
@@ -98,6 +99,8 @@ function App() {
         return <AdvancedFilmGenerator />;
       case 'advanced-promo':
         return <AdvancedPromoGenerator />;
+      case 'asmr-slice':
+        return <ASMRSlicePromptGenerator />;
       case 'guide':
         return <GuidePage onBack={() => setActiveTab('assets')} />;
       default:

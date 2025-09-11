@@ -5,6 +5,8 @@ import { Helmet } from 'react-helmet-async';
 import { ShoppingBag, Wand2, Copy, Download, Eye, Brain, Sparkles, Target, Camera, TrendingUp, Zap } from 'lucide-react';
 import { getSettings } from '../utils/database';
 import { APISettings } from '../types';
+import { generateCompleteVeo3Prompt, Veo3SceneConfig } from '../utils/veo3-optimized-prompts';
+import { generateProfessionalDialogue, ProfessionalDialogueConfig } from '../utils/professional-dialogue-system';
 
 interface ProductInfo {
     name: string;
@@ -142,11 +144,83 @@ const AdvancedPromoGenerator: React.FC = () => {
         }
     };
 
-    const generatePromoScene = (sceneNumber: number): PromoScene => {
+    const generatePromoScene = async (sceneNumber: number): Promise<PromoScene> => {
         if (!currentProject) throw new Error('No project loaded');
 
-        // Direct scene creation without API calls
-        console.log(`Creating promo scene ${sceneNumber} directly without JSON parsing`);
+        console.log(`Creating enhanced Veo3-optimized promo scene ${sceneNumber}`);
+
+        // Create Veo3 scene configuration for promotional content
+        const veo3Config: Veo3SceneConfig = {
+            sceneNumber,
+            totalScenes: currentProject.totalScenes,
+            duration: 8,
+            genre: 'promotional',
+            animationType: 'realistic',
+            language: 'indonesian',
+            characters: [
+                {
+                    name: 'Narator',
+                    age: '30',
+                    personality: 'Professional and trustworthy',
+                    appearance: 'Professional presenter appearance',
+                    speakingStyle: 'professional',
+                    emotionalState: 'confident',
+                    position: 'center',
+                    clothing: 'business attire'
+                },
+                {
+                    name: 'Pelanggan',
+                    age: '25',
+                    personality: 'Satisfied customer',
+                    appearance: 'Happy and satisfied expression',
+                    speakingStyle: 'casual',
+                    emotionalState: 'excited',
+                    position: 'side',
+                    clothing: 'casual attire'
+                }
+            ],
+            storyContext: `${projectConfig.productName} - ${projectConfig.businessType} promotion`,
+            previousScene: undefined
+        };
+
+        // Generate professional promotional dialogue
+        const dialogueConfig: ProfessionalDialogueConfig = {
+            characters: [
+                {
+                    name: 'Narator',
+                    age: '30',
+                    personality: 'Professional and trustworthy',
+                    speakingStyle: 'professional',
+                    emotionalState: 'confident',
+                    backstory: 'Professional presenter',
+                    relationships: {},
+                    characterArc: 'Build trust and credibility',
+                    voiceCharacteristics: 'Clear and authoritative'
+                },
+                {
+                    name: 'Pelanggan',
+                    age: '25',
+                    personality: 'Satisfied customer',
+                    speakingStyle: 'casual',
+                    emotionalState: 'excited',
+                    backstory: 'Happy customer',
+                    relationships: {},
+                    characterArc: 'Share positive experience',
+                    voiceCharacteristics: 'Enthusiastic and genuine'
+                }
+            ],
+            sceneContext: `${projectConfig.productName} promotion`,
+            genre: 'promotional',
+            language: 'indonesian',
+            duration: 8,
+            emotionalArc: sceneNumber === 1 ? 'opening' : sceneNumber === currentProject.totalScenes ? 'resolution' : 'development',
+            previousDialogue: undefined
+        };
+
+        const professionalDialogue = generateProfessionalDialogue(dialogueConfig);
+
+        // Generate Veo3-optimized prompt
+        const veo3Prompt = generateCompleteVeo3Prompt(veo3Config, professionalDialogue.dialogue);
 
         // Generate professional promotional content based on scene number and business context
         let purpose = "";
@@ -235,40 +309,14 @@ const AdvancedPromoGenerator: React.FC = () => {
             ];
         }
 
-        // Generate professional promotional dialogue in Indonesian
-        const generatePromoDialogue = () => {
-            const dialogues = [];
-
-            if (sceneNumber === 1) {
-                dialogues.push(
-                    `Narator: "Apakah Anda pernah mengalami masalah dengan ${projectConfig.productCategory}?"`,
-                    `Narator: "Kami punya solusi terbaik untuk Anda!"`,
-                    `Narator: "Perkenalkan ${projectConfig.productName} - ${projectConfig.uniqueSellingPoint}"`
-                );
-            } else if (sceneNumber === 2) {
-                dialogues.push(
-                    `Narator: "Lihat bagaimana ${projectConfig.productName} bekerja dengan sempurna!"`,
-                    `Pelanggan: "Saya sangat puas dengan hasilnya! Produk ini benar-benar mengubah hidup saya!"`,
-                    `Narator: "Dengan harga hanya ${projectConfig.price}, Anda mendapatkan nilai yang luar biasa!"`
-                );
-            } else {
-                dialogues.push(
-                    `Narator: "Jangan sampai kehabisan! Stok terbatas!"`,
-                    `Pelanggan: "Saya sudah membeli 3 kali! Produk ini memang terbaik!"`,
-                    `Narator: "Pesan sekarang dan rasakan perbedaannya!"`
-                );
-            }
-
-            return dialogues;
-        };
-
-        const promoDialogues = generatePromoDialogue();
+        // Use professional dialogue instead of basic promo dialogue
+        const promoDialogues = professionalDialogue.dialogue;
 
         return {
             id: `scene_${sceneNumber}_${Date.now()}`,
             sceneNumber: sceneNumber,
             duration: 8,
-            prompt: `Scene ${sceneNumber}: ${purpose} untuk ${projectConfig.productName} - ${businessType?.label} promosi`,
+            prompt: veo3Prompt.visualPrompt,
             purpose: purpose,
             visualElements: visualElements,
             audioElements: [...audioElements, ...promoDialogues],
@@ -340,7 +388,7 @@ const AdvancedPromoGenerator: React.FC = () => {
 
         setIsGenerating(true);
         try {
-            const newScene = generatePromoScene(currentProject.scenes.length + 1);
+            const newScene = await generatePromoScene(currentProject.scenes.length + 1);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
@@ -362,9 +410,9 @@ const AdvancedPromoGenerator: React.FC = () => {
         try {
             const allScenes: PromoScene[] = [];
 
-            // Generate all scenes directly without API calls
+            // Generate all scenes with enhanced Veo3 optimization
             for (let i = 1; i <= currentProject.totalScenes; i++) {
-                const newScene = generatePromoScene(i);
+                const newScene = await generatePromoScene(i);
                 allScenes.push(newScene);
 
                 // Update progress
@@ -380,7 +428,7 @@ const AdvancedPromoGenerator: React.FC = () => {
                 }
             }
 
-            alert(`All ${allScenes.length} scenes generated successfully!`);
+            alert(`All ${allScenes.length} scenes generated successfully with Veo3 optimization!`);
 
             setCurrentProject(prev => prev ? {
                 ...prev,

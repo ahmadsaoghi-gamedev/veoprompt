@@ -1,0 +1,37 @@
+# Enhanced Veo3 Film Styles - Professional Quality Templates
+
+## CINEMATIC REALISTIC STYLE
+A photorealistic cinematic scene with professional lighting, shallow depth of field, and natural color grading. Characters have realistic facial expressions and natural movements. Camera work includes smooth dolly movements, rack focus, and dynamic compositions. Lighting uses three-point setup with warm key light, cool fill light, and rim lighting. Color palette: natural skin tones, warm highlights, cool shadows. Motion blur: 24fps cinematic quality. Aspect ratio: 16:9 widescreen.
+
+## PIXAR PREMIUM STYLE  
+A high-quality 3D animated scene in the style of Pixar Animation Studios. Characters have expressive faces with detailed emotions, smooth animations, and appealing designs. Lighting is soft and warm with bounce lighting creating friendly atmosphere. Color palette: bright, cheerful colors with soft shadows and high saturation. Camera movements are smooth and family-friendly. Textures are detailed and tactile. Motion blur: 24fps with smooth interpolation. Aspect ratio: 16:9 with rounded corners.
+
+## ANIME PROFESSIONAL STYLE
+A professional anime-style scene with dynamic camera work and dramatic compositions. Characters have detailed facial features with expressive eyes and smooth animations. Lighting uses cel-shaded techniques with strong rim lights and soft shadows. Color palette: vibrant, saturated colors with high contrast and bold outlines. Camera movements include quick cuts, zoom-ins for emotional moments, and wide establishing shots. Motion blur: 12fps traditional anime feel. Aspect ratio: 16:9 with letterboxing.
+
+## DRAMA CINEMATIC STYLE
+A dramatic cinematic scene with moody lighting and emotional depth. Characters show nuanced expressions and subtle body language. Lighting uses dramatic shadows and selective illumination to create atmosphere. Color palette: muted tones with selective color accents, warm skin tones, cool backgrounds. Camera work includes close-ups for emotional moments and wide shots for context. Motion blur: 24fps with subtle motion blur. Aspect ratio: 16:9 cinematic format.
+
+## THRILLER SUSPENSE STYLE
+A suspenseful scene with high contrast lighting and dynamic camera angles. Characters have intense expressions and quick, purposeful movements. Lighting uses harsh shadows and selective illumination to create tension. Color palette: desaturated colors with high contrast, cool tones, selective warm accents. Camera work includes Dutch angles, quick cuts, and extreme close-ups. Motion blur: 24fps with sharp focus on key elements. Aspect ratio: 16:9 with tight framing.
+
+## ROMANCE INTIMATE STYLE
+An intimate romantic scene with soft, warm lighting and gentle camera movements. Characters have tender expressions and graceful movements. Lighting uses soft, diffused light with warm color temperature. Color palette: warm, soft colors with gentle gradients and romantic lighting. Camera work includes gentle tracking shots and close-ups for emotional connection. Motion blur: 24fps with smooth, flowing movements. Aspect ratio: 16:9 with soft focus backgrounds.
+
+## COMEDY LIGHT STYLE
+A lighthearted comedic scene with bright, cheerful lighting and playful camera work. Characters have exaggerated expressions and bouncy animations. Lighting is bright and even with minimal shadows. Color palette: bright, saturated colors with high contrast and playful elements. Camera work includes quick cuts, zoom-ins for comedic timing, and dynamic angles. Motion blur: 24fps with crisp, clear movements. Aspect ratio: 16:9 with playful compositions.
+
+## FANTASY EPIC STYLE
+An epic fantasy scene with dramatic lighting and grand scale. Characters have heroic proportions and majestic movements. Lighting uses dramatic rim lighting and atmospheric effects. Color palette: rich, saturated colors with magical elements and ethereal lighting. Camera work includes sweeping movements, dramatic angles, and grand establishing shots. Motion blur: 24fps with epic, flowing movements. Aspect ratio: 16:9 with grand scale compositions.
+
+## SCI-FI FUTURISTIC STYLE
+A futuristic sci-fi scene with cool lighting and sleek designs. Characters have modern, streamlined appearances and precise movements. Lighting uses cool color temperature with neon accents and high-tech elements. Color palette: cool blues and purples with bright neon accents and metallic surfaces. Camera work includes smooth, precise movements and dynamic angles. Motion blur: 24fps with sharp, precise movements. Aspect ratio: 16:9 with futuristic compositions.
+
+## HORROR ATMOSPHERIC STYLE
+A atmospheric horror scene with dark lighting and unsettling compositions. Characters have tense expressions and cautious movements. Lighting uses harsh shadows and selective illumination to create fear. Color palette: desaturated colors with high contrast, cool tones, and selective warm accents. Camera work includes Dutch angles, quick cuts, and extreme close-ups. Motion blur: 24fps with sharp focus on key elements. Aspect ratio: 16:9 with tight, claustrophobic framing.
+
+## DOCUMENTARY REALISTIC STYLE
+A realistic documentary-style scene with natural lighting and authentic movements. Characters have natural expressions and realistic body language. Lighting uses available light with minimal artificial enhancement. Color palette: natural, muted colors with authentic skin tones and realistic environments. Camera work includes handheld movements and natural compositions. Motion blur: 24fps with natural, realistic movements. Aspect ratio: 16:9 with documentary-style framing.
+
+## EXPERIMENTAL ARTISTIC STYLE
+An experimental artistic scene with unique lighting and creative compositions. Characters have stylized appearances and artistic movements. Lighting uses creative techniques with unusual color temperatures and artistic effects. Color palette: artistic, creative colors with unique combinations and artistic effects. Camera work includes creative angles, unusual movements, and artistic compositions. Motion blur: 24fps with artistic, creative movements. Aspect ratio: 16:9 with experimental compositions.

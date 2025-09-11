@@ -6,6 +6,9 @@ import { RotateCcw, Wand2, Copy, Download, Eye, Brain, Sparkles, Film, Users, Ca
 import { callGeminiAPIForJSON, ensureJSONResponse } from '../utils/api';
 import { getSettings } from '../utils/database';
 import { APISettings } from '../types';
+import { generateCompleteVeo3Prompt, Veo3SceneConfig } from '../utils/veo3-optimized-prompts';
+import { generateProfessionalDialogue, ProfessionalDialogueConfig } from '../utils/professional-dialogue-system';
+import { generateEnhancedStoryFlow, optimizeStoryFlow as optimizeStoryFlowEnhanced, StoryFlowConfig } from '../utils/enhanced-story-flow';
 
 interface CharacterProfile {
     id: string;
@@ -227,177 +230,105 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         };
     };
 
-    const generateScene = (sceneNumber: number, previousScene?: SceneData): SceneData => {
+    const generateScene = async (sceneNumber: number, previousScene?: SceneData): Promise<SceneData> => {
         if (!currentProject) throw new Error('No project loaded');
 
         const characters = currentProject.characters;
         const animationType = animationTypes.find(at => at.value === projectConfig.animationType);
-        const language = languages.find(l => l.value === projectConfig.language);
-        const dialogueStyle = dialogueStyles.find(ds => ds.value === projectConfig.dialogueStyle);
 
-        // Direct scene creation without API calls
+        console.log(`Creating enhanced Veo3-optimized scene ${sceneNumber}`);
 
-        // Skip JSON parsing completely - create scene directly
-        console.log(`Creating scene ${sceneNumber} directly without JSON parsing`);
+        // Create Veo3 scene configuration
+        const veo3Config: Veo3SceneConfig = {
+            sceneNumber,
+            totalScenes: currentProject.totalScenes,
+            duration: 8,
+            genre: projectConfig.genre,
+            animationType: projectConfig.animationType,
+            language: projectConfig.language,
+            characters: characters.map(char => ({
+                name: char.name,
+                age: char.age.toString(),
+                personality: char.personality,
+                appearance: char.appearance,
+                speakingStyle: char.speakingStyle,
+                emotionalState: char.emotionalRange[0] || 'neutral',
+                position: 'center',
+                clothing: 'casual attire'
+            })),
+            storyContext: projectConfig.theme,
+            previousScene: previousScene ? {
+                sceneNumber: previousScene.sceneNumber,
+                totalScenes: currentProject.totalScenes,
+                duration: previousScene.duration,
+                genre: projectConfig.genre,
+                animationType: projectConfig.animationType,
+                language: projectConfig.language,
+                characters: previousScene.characters.map(char => ({
+                    name: char.name,
+                    age: char.age.toString(),
+                    personality: char.personality,
+                    appearance: char.appearance,
+                    speakingStyle: char.speakingStyle,
+                    emotionalState: char.emotionalRange[0] || 'neutral',
+                    position: 'center',
+                    clothing: 'casual attire'
+                })),
+                storyContext: projectConfig.theme
+            } : undefined
+        };
 
-        // Create a meaningful scene based on the project context
+        // Generate professional dialogue
+        const dialogueConfig: ProfessionalDialogueConfig = {
+            characters: characters.map(char => ({
+                name: char.name,
+                age: char.age.toString(),
+                personality: char.personality,
+                speakingStyle: char.speakingStyle,
+                emotionalState: char.emotionalRange[0] || 'neutral',
+                backstory: char.backstory,
+                relationships: char.relationships,
+                characterArc: char.characterArc,
+                voiceCharacteristics: char.voiceCharacteristics
+            })),
+            sceneContext: projectConfig.theme,
+            genre: projectConfig.genre,
+            language: projectConfig.language,
+            duration: 8,
+            emotionalArc: sceneNumber === 1 ? 'opening' : sceneNumber === currentProject.totalScenes ? 'resolution' : 'development',
+            previousDialogue: previousScene?.audio.dialogue
+        };
+
+        const professionalDialogue = generateProfessionalDialogue(dialogueConfig);
+
+        // Generate Veo3-optimized prompt
+        const veo3Prompt = generateCompleteVeo3Prompt(veo3Config, professionalDialogue.dialogue);
+
+        // Create enhanced scene data
         const sceneId = `scene_${sceneNumber}_${Date.now()}`;
-        const meaningfulPrompt = `Scene ${sceneNumber}: ${projectConfig.theme}. ${characters.map(c => c.name).join(', ')} in a ${projectConfig.genre} setting. ${animationType?.label} animation style.`;
+        const meaningfulPrompt = veo3Prompt.visualPrompt;
 
-        // Generate story content based on scene number and theme
+        // Determine story beat based on scene number
         let storyBeat = "";
         let characterDevelopment = "";
         let visualMetaphors = [];
         let antiMainstreamElements = [];
-        let dialogues = [];
-
-        // Generate dialogues based on language and scene context
-        if (language?.value === 'indonesia') {
-            if (sceneNumber === 1) {
-                if (dialogueStyle?.value === 'dramatic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Halo, apa kabar? Saya baru saja mendengar tentang ${projectConfig.theme} - ini akan mengubah segalanya!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Wah, sungguh menakjubkan! Ceritakan lebih detail tentang hal ini - saya tidak sabar mendengarnya!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Baik, mari kita mulai petualangan epik ini bersama-sama!"`
-                    ];
-                } else if (dialogueStyle?.value === 'comedic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Halo, apa kabar? Saya baru saja mendengar tentang ${projectConfig.theme} - lucu banget!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Wah, menarik sekali! Ceritakan lebih detail tentang hal ini - saya penasaran nih!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Baik, mari kita mulai petualangan kocak ini bersama-sama!"`
-                    ];
-                } else {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Halo, apa kabar? Saya baru saja mendengar tentang ${projectConfig.theme}."`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Wah, menarik sekali! Ceritakan lebih detail tentang hal ini."`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Baik, mari kita mulai petualangan ini bersama-sama."`
-                    ];
-                }
-            } else if (sceneNumber === 2) {
-                if (dialogueStyle?.value === 'dramatic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Ternyata ada tantangan yang tidak terduga di sini - ini akan sulit!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, tapi kita harus tetap semangat dan mencari solusinya - kita bisa!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Benar, mari kita hadapi ini dengan kepala dingin dan tekad baja!"`
-                    ];
-                } else if (dialogueStyle?.value === 'comedic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Ternyata ada tantangan yang tidak terduga di sini - wah ribet nih!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, tapi kita harus tetap semangat dan mencari solusinya - yuk kita cari!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Benar, mari kita hadapi ini dengan kepala dingin - santai aja!"`
-                    ];
-                } else {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Ternyata ada tantangan yang tidak terduga di sini."`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, tapi kita harus tetap semangat dan mencari solusinya."`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Benar, mari kita hadapi ini dengan kepala dingin."`
-                    ];
-                }
-            } else {
-                if (dialogueStyle?.value === 'dramatic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Akhirnya kita berhasil mengatasi semua rintangan ini - sungguh luar biasa!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, pengalaman ini membuat kita lebih kuat dan bijaksana - kita telah menang!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Mari kita lanjutkan perjalanan kita ke depan dengan penuh keyakinan!"`
-                    ];
-                } else if (dialogueStyle?.value === 'comedic') {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Akhirnya kita berhasil mengatasi semua rintangan ini - alhamdulillah!"`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, pengalaman ini membuat kita lebih kuat dan bijaksana - seru banget!"`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Mari kita lanjutkan perjalanan kita ke depan - masih banyak yang seru!"`
-                    ];
-                } else {
-                    dialogues = [
-                        `${characters[0]?.name || 'Karakter 1'}: "Akhirnya kita berhasil mengatasi semua rintangan ini."`,
-                        `${characters[1]?.name || 'Karakter 2'}: "Ya, pengalaman ini membuat kita lebih kuat dan bijaksana."`,
-                        `${characters[0]?.name || 'Karakter 1'}: "Mari kita lanjutkan perjalanan kita ke depan."`
-                    ];
-                }
-            }
-        } else if (language?.value === 'english') {
-            if (sceneNumber === 1) {
-                dialogues = [
-                    `${characters[0]?.name || 'Character 1'}: "Hello, how are you? I just heard about ${projectConfig.theme}."`,
-                    `${characters[1]?.name || 'Character 2'}: "Wow, that's very interesting! Tell me more details about this."`,
-                    `${characters[0]?.name || 'Character 1'}: "Alright, let's start this adventure together."`
-                ];
-            } else if (sceneNumber === 2) {
-                dialogues = [
-                    `${characters[0]?.name || 'Character 1'}: "It turns out there are unexpected challenges here."`,
-                    `${characters[1]?.name || 'Character 2'}: "Yes, but we must stay enthusiastic and find a solution."`,
-                    `${characters[0]?.name || 'Character 1'}: "Right, let's face this with a cool head."`
-                ];
-            } else {
-                dialogues = [
-                    `${characters[0]?.name || 'Character 1'}: "Finally, we managed to overcome all these obstacles."`,
-                    `${characters[1]?.name || 'Character 2'}: "Yes, this experience makes us stronger and wiser."`,
-                    `${characters[0]?.name || 'Character 1'}: "Let's continue our journey forward."`
-                ];
-            }
-        } else if (language?.value === 'jawa') {
-            if (sceneNumber === 1) {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Halo, piye kabare? Aku nembe krungu babagan ${projectConfig.theme}."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Wah, menarik banget! Ceritakno luwih rinci babagan iki."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Oke, ayo kita miwiti petualangan iki bebarengan."`
-                ];
-            } else if (sceneNumber === 2) {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Ternyata ana tantangan sing ora diduga ing kene."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Ya, nanging kita kudu tetep semangat lan goleki solusine."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Bener, ayo kita adhepi iki kanthi kepala adhem."`
-                ];
-            } else {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Akhirnya kita kasil ngatasi kabeh rintangan iki."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Ya, pengalaman iki ndadekake kita luwih kuwat lan bijaksana."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Ayo kita nerusake perjalanan kita menyang ngarep."`
-                ];
-            }
-        } else if (language?.value === 'sunda') {
-            if (sceneNumber === 1) {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Halo, kumaha damang? Abdi nembé ngadéngé ngeunaan ${projectConfig.theme}."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Wah, pikaresepeun pisan! Caritakeun langkung rinci ngeunaan ieu."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Muhun, hayu urang mimitian petualangan ieu babarengan."`
-                ];
-            } else if (sceneNumber === 2) {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Ternyata aya tantangan anu teu kaduga di dieu."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Enya, tapi urang kudu tetep sumanget jeung milarian solusina."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Leres, hayu urang nyanghareupan ieu kalayan sirah anu tiis."`
-                ];
-            } else {
-                dialogues = [
-                    `${characters[0]?.name || 'Karakter 1'}: "Tungtungna urang tiasa ngatasi sadaya rintangan ieu."`,
-                    `${characters[1]?.name || 'Karakter 2'}: "Enya, pangalaman ieu ngajadikeun urang langkung kuat jeung wijaksana."`,
-                    `${characters[0]?.name || 'Karakter 1'}: "Hayu urang neruskeun perjalanan urang ka hareup."`
-                ];
-            }
-        } else {
-            // Default to Indonesian if no language selected
-            dialogues = [
-                `${characters[0]?.name || 'Karakter 1'}: "Halo, apa kabar? Saya baru saja mendengar tentang ${projectConfig.theme}."`,
-                `${characters[1]?.name || 'Karakter 2'}: "Wah, menarik sekali! Ceritakan lebih detail tentang hal ini."`,
-                `${characters[0]?.name || 'Karakter 1'}: "Baik, mari kita mulai petualangan ini bersama-sama."`
-            ];
-        }
 
         if (sceneNumber === 1) {
             storyBeat = `Opening scene: ${projectConfig.theme} - ${characters.map(c => c.name).join(' and ')} are introduced to the story`;
             characterDevelopment = `${characters.map(c => c.name).join(', ')} establish their personalities and motivations`;
             visualMetaphors = ["opening_metaphor", "character_introduction"];
             antiMainstreamElements = ["unconventional_opening", "unique_character_intro"];
-        } else if (sceneNumber === 2) {
-            storyBeat = `Development scene: ${projectConfig.theme} - ${characters.map(c => c.name).join(' and ')} face the main conflict`;
-            characterDevelopment = `${characters.map(c => c.name).join(', ')} react to the story challenge`;
-            visualMetaphors = ["conflict_metaphor", "tension_visual"];
-            antiMainstreamElements = ["unconventional_conflict", "unique_approach"];
-        } else {
+        } else if (sceneNumber === currentProject.totalScenes) {
             storyBeat = `Resolution scene: ${projectConfig.theme} - ${characters.map(c => c.name).join(' and ')} resolve the story`;
             characterDevelopment = `${characters.map(c => c.name).join(', ')} grow and change through the experience`;
             visualMetaphors = ["resolution_metaphor", "transformation_visual"];
             antiMainstreamElements = ["unconventional_resolution", "unique_ending"];
+        } else {
+            storyBeat = `Development scene: ${projectConfig.theme} - ${characters.map(c => c.name).join(' and ')} face the main conflict`;
+            characterDevelopment = `${characters.map(c => c.name).join(', ')} react to the story challenge`;
+            visualMetaphors = ["conflict_metaphor", "tension_visual"];
+            antiMainstreamElements = ["unconventional_conflict", "unique_approach"];
         }
 
         return {
@@ -412,13 +343,13 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
             weather: previousScene?.weather || "clear",
             mood: previousScene?.mood || "dramatic",
             cinematography: {
-                cameraWork: `Dynamic shot for ${animationType?.label}`,
-                lighting: `Mood lighting for ${animationType?.label}`,
-                colorPalette: `Thematic colors for ${animationType?.label}`,
+                cameraWork: veo3Prompt.cinematographyPrompt.split('\n')[0] || `Dynamic shot for ${animationType?.label}`,
+                lighting: veo3Prompt.cinematographyPrompt.split('\n')[2] || `Mood lighting for ${animationType?.label}`,
+                colorPalette: veo3Prompt.cinematographyPrompt.split('\n')[4] || `Thematic colors for ${animationType?.label}`,
                 visualEffects: ["atmospheric_effect"]
             },
             audio: {
-                dialogue: dialogues,
+                dialogue: professionalDialogue.dialogue,
                 ambientSounds: ["environmental_sound"],
                 music: "Thematic music",
                 soundEffects: ["dramatic_sfx"]
@@ -427,8 +358,8 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
             characterDevelopment: characterDevelopment,
             visualMetaphors: visualMetaphors,
             antiMainstreamElements: antiMainstreamElements,
-            continuityNotes: "Generated scene with story elements",
-            nextSceneSetup: "Sets up next story beat"
+            continuityNotes: veo3Prompt.characterConsistencyPrompt,
+            nextSceneSetup: veo3Prompt.sceneTransitionPrompt
         };
     };
 
@@ -509,7 +440,7 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         setIsGenerating(true);
         try {
             const previousScene = currentProject.scenes[currentProject.scenes.length - 1];
-            const newScene = generateScene(currentProject.scenes.length + 1, previousScene);
+            const newScene = await generateScene(currentProject.scenes.length + 1, previousScene);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
@@ -532,7 +463,7 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         setIsGenerating(true);
         try {
             const previousScene = sceneNumber > 1 ? currentProject.scenes[sceneNumber - 2] : undefined;
-            const newScene = generateScene(sceneNumber, previousScene);
+            const newScene = await generateScene(sceneNumber, previousScene);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
@@ -558,10 +489,31 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
         try {
             const allScenes: SceneData[] = [];
 
-            // Generate all scenes directly without API calls
+            // Generate enhanced story flow first
+            const storyFlowConfig: StoryFlowConfig = {
+                totalScenes: currentProject.totalScenes,
+                genre: projectConfig.genre,
+                theme: projectConfig.theme,
+                characters: currentProject.characters.map(char => ({
+                    name: char.name,
+                    role: char.personality,
+                    arc: char.characterArc,
+                    relationships: char.relationships,
+                    emotionalState: char.emotionalRange[0] || 'neutral',
+                    development: char.characterArc
+                })),
+                targetDuration: projectConfig.targetDuration,
+                storyArc: projectConfig.theme,
+                emotionalJourney: ['curiosity', 'tension', 'catharsis']
+            };
+
+            const enhancedStoryFlow = generateEnhancedStoryFlow(storyFlowConfig);
+            optimizeStoryFlowEnhanced(enhancedStoryFlow);
+
+            // Generate all scenes with enhanced Veo3 optimization
             for (let i = 1; i <= currentProject.totalScenes; i++) {
                 const previousScene = allScenes[allScenes.length - 1];
-                const newScene = generateScene(i, previousScene);
+                const newScene = await generateScene(i, previousScene);
                 allScenes.push(newScene);
 
                 // Update progress
@@ -577,7 +529,7 @@ Make this character unique, memorable, and suitable for anti-mainstream storytel
                 }
             }
 
-            alert(`All ${allScenes.length} scenes generated successfully!`);
+            alert(`All ${allScenes.length} scenes generated successfully with Veo3 optimization!`);
 
             setCurrentProject(prev => prev ? {
                 ...prev,
