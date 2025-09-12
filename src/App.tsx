@@ -19,6 +19,7 @@ import DialogueFixerMode from './components/DialogueFixerMode';
 import AdvancedFilmGenerator from './components/AdvancedFilmGenerator';
 import AdvancedPromoGenerator from './components/AdvancedPromoGenerator';
 import ASMRSlicePromptGenerator from './components/ASMRSlicePromptGenerator';
+import ImageGenerator from './components/ImageGenerator';
 import GuidePage from './components/GuidePage';
 import { Helmet } from 'react-helmet-async';
 import { initDB } from './utils/database';
@@ -101,6 +102,8 @@ function App() {
         return <AdvancedPromoGenerator />;
       case 'asmr-slice':
         return <ASMRSlicePromptGenerator />;
+      case 'image-generator':
+        return <ImageGenerator />;
       case 'guide':
         return <GuidePage onBack={() => setActiveTab('assets')} />;
       default:
@@ -133,7 +136,7 @@ function App() {
       <Layout activeTab={activeTab} onTabChange={setActiveTab}>
         {renderActiveComponent()}
       </Layout>
-      m    </>
+    </>
   );
 }
 
