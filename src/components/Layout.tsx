@@ -65,6 +65,7 @@ const Layout = ({ children, activeTab, onTabChange }: LayoutProps) => {
     { id: 'concept-viz', label: 'Concept Visualization', icon: Image },
     { id: 'dialogue-fixer', label: 'Dialogue Fixer', icon: MessageSquare },
     { id: 'advanced-film', label: 'Advanced Film Generator', icon: Film },
+    { id: 'improved-film', label: 'Improved Film Generator', icon: Film },
     { id: 'advanced-promo', label: 'Advanced Promo Generator', icon: ShoppingBag },
     { id: 'asmr-slice', label: 'ASMR Slice Generator', icon: Scissors },
     { id: 'image-generator', label: 'Image Generator', icon: Palette },

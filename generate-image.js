@@ -4,6 +4,7 @@ import fs from 'fs';
 
 const prompt = process.argv[2] || 'A beautiful sunset over mountains';
 const outputFile = process.argv[3] || 'generated-image.png';
+const figurineMode = process.argv.includes('--figurine');
 
 // Pollinations.ai parameters
 const params = new URLSearchParams({
@@ -14,9 +15,18 @@ const params = new URLSearchParams({
     nologo: 'true'
 });
 
-const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?${params.toString()}`;
+// Modify prompt for figurine mode
+let finalPrompt = prompt;
+if (figurineMode) {
+    finalPrompt = `create a 1/7 scale commercialized figurine of the characters in the picture, in a realistic style, in a real environment. The figurine is placed on a computer desk. The figurine has a round transparent acrylic base, with no text on the base. The content on the computer screen is the Zbrush modeling process of this figurine. Next to the computer screen is a BANDAI-style toy packaging box printed with the original artwork. The packaging features two-dimensional flat illustrations. Character face: ${prompt}`;
+}
+
+const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?${params.toString()}`;
 
 console.log(`🎨 Generating: "${prompt}"`);
+if (figurineMode) {
+    console.log(`🎭 Mode: Figurine Mode (Custom Character)`);
+}
 console.log(`🌐 Using: Pollinations.ai (Free API)`);
 console.log(`💾 Output: ${outputFile}`);
 console.log('⏳ Please wait...\n');
@@ -24,7 +34,7 @@ console.log('⏳ Please wait...\n');
 const options = {
     hostname: 'image.pollinations.ai',
     port: 443,
-    path: `/prompt/${encodeURIComponent(prompt)}?${params.toString()}`,
+    path: `/prompt/${encodeURIComponent(finalPrompt)}?${params.toString()}`,
     method: 'GET',
     headers: {
         'Accept': 'image/*',

@@ -1,5 +1,5 @@
 // Image Generator Utility
-// Integration with Pollinations.ai (Free Text-to-Image API)
+// Integration with Gemini API (Supports Image Input)
 
 export interface ImageGenerationResult {
     success: boolean;
@@ -9,8 +9,111 @@ export interface ImageGenerationResult {
     timestamp: Date;
 }
 
-// Image generation using Pollinations.ai
-export async function generateImage(prompt: string): Promise<ImageGenerationResult> {
+// Image generation using Gemini API with image input support, fallback to Pollinations.ai
+export async function generateImage(prompt: string, inputImageData?: string): Promise<ImageGenerationResult> {
+    try {
+        // Import getSettings dynamically to avoid circular dependencies
+        const { getSettings } = await import('./database');
+        const settings = await getSettings();
+
+        if (!settings?.privateKey || !settings?.isActive) {
+            console.log('Gemini API key not found, falling back to Pollinations.ai');
+            return await generateImageWithPollinations(prompt);
+        }
+
+        // Create the request payload
+        const requestBody: {
+            contents: Array<{
+                parts: Array<{
+                    text?: string;
+                    inlineData?: {
+                        mimeType: string;
+                        data: string;
+                    };
+                }>;
+            }>;
+        } = {
+            contents: [{
+                parts: [{
+                    text: prompt
+                }]
+            }]
+        };
+
+        // Add image input if provided
+        if (inputImageData) {
+            // Remove data URL prefix if present
+            const base64Data = inputImageData.replace(/^data:image\/[a-z]+;base64,/, '');
+
+            requestBody.contents[0].parts.push({
+                inlineData: {
+                    mimeType: "image/png",
+                    data: base64Data
+                }
+            });
+        }
+
+        // Make API call to Gemini 2.5 Flash Image Preview
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${settings.privateKey}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            }
+        );
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.error?.message || 'Failed to generate image';
+
+            // Handle specific error cases with user-friendly messages
+            if (response.status === 429) {
+                console.log('Gemini API quota exceeded, falling back to Pollinations.ai');
+                return await generateImageWithPollinations(prompt);
+            } else if (response.status === 403) {
+                throw new Error('API access denied. Please check your API key permissions and billing status.');
+            } else if (response.status === 400) {
+                throw new Error('Invalid request. Please check your prompt and try again.');
+            } else {
+                throw new Error(`API Error: ${errorMessage}`);
+            }
+        }
+
+        const data = await response.json();
+
+        // Extract image data from response
+        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+            const content = data.candidates[0].content;
+
+            if (content.parts && content.parts.length > 0) {
+                for (const part of content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        return {
+                            success: true,
+                            imageData: part.inlineData.data,
+                            prompt,
+                            timestamp: new Date()
+                        };
+                    }
+                }
+            }
+        }
+
+        throw new Error('No image data found in API response');
+
+    } catch (error) {
+        console.error('Image generation error:', error);
+        // If Gemini fails, try Pollinations.ai as fallback
+        console.log('Gemini API failed, trying Pollinations.ai as fallback');
+        return await generateImageWithPollinations(prompt);
+    }
+}
+
+// Fallback function using Pollinations.ai (free, but no image input support)
+async function generateImageWithPollinations(prompt: string): Promise<ImageGenerationResult> {
     try {
         // Pollinations.ai API endpoint
         const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
@@ -26,7 +129,7 @@ export async function generateImage(prompt: string): Promise<ImageGenerationResu
 
         const fullUrl = `${pollinationsUrl}?${params.toString()}`;
 
-        console.log('Generating image with Pollinations.ai:', fullUrl);
+        console.log('Generating image with Pollinations.ai (fallback):', fullUrl);
 
         // Make API call to Pollinations.ai
         const response = await fetch(fullUrl, {
@@ -53,10 +156,10 @@ export async function generateImage(prompt: string): Promise<ImageGenerationResu
         };
 
     } catch (error) {
-        console.error('Image generation error:', error);
+        console.error('Pollinations.ai fallback error:', error);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            error: error instanceof Error ? error.message : 'Both Gemini API and Pollinations.ai failed',
             prompt,
             timestamp: new Date()
         };

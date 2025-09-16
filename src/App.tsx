@@ -17,6 +17,7 @@ import AnomalyMode from './components/AnomalyMode';
 import ConceptVizMode from './components/ConceptVizMode';
 import DialogueFixerMode from './components/DialogueFixerMode';
 import AdvancedFilmGenerator from './components/AdvancedFilmGenerator';
+import ImprovedFilmGenerator from './components/ImprovedFilmGenerator';
 import AdvancedPromoGenerator from './components/AdvancedPromoGenerator';
 import ASMRSlicePromptGenerator from './components/ASMRSlicePromptGenerator';
 import ImageGenerator from './components/ImageGenerator';
@@ -98,6 +99,8 @@ function App() {
         return <DialogueFixerMode />;
       case 'advanced-film':
         return <AdvancedFilmGenerator />;
+      case 'improved-film':
+        return <ImprovedFilmGenerator />;
       case 'advanced-promo':
         return <AdvancedPromoGenerator />;
       case 'asmr-slice':
