@@ -78,7 +78,7 @@ const ImageAnalysis: React.FC = () => {
     setSelectedAccent(e.target.value);
   };
 
-  type LanguageKey = 'indonesian' | 'sundanese' | 'javanese' | 'betawi' | 'madurese';
+  type LanguageKey = 'indonesian' | 'sundanese' | 'javanese' | 'betawi' | 'madurese' | 'english' | 'no-language';
   type AccentKey = 'standard' | 'jakarta' | 'regional' | 'formal' | 'casual';
 
   const getLanguageSpecificInstructions = (language: LanguageKey, accent: AccentKey) => {
@@ -102,6 +102,14 @@ const ImageAnalysis: React.FC = () => {
       madurese: {
         voiceNote: 'Authentic Madurese accent with island characteristics',
         culturalContext: 'Madurese cultural context and local expressions'
+      },
+      english: {
+        voiceNote: 'Natural English voice with clear pronunciation',
+        culturalContext: 'International cultural context and expressions'
+      },
+      'no-language': {
+        voiceNote: 'No dialogue or voice required',
+        culturalContext: 'Visual storytelling without dialogue'
       }
     };
 
@@ -211,16 +219,19 @@ Cinematography:
 
 Audio:
 ${getLanguageSpecificInstructions(selectedLanguage as LanguageKey, selectedAccent as AccentKey).voiceNote}
-${getLanguageSpecificInstructions(selectedLanguage as LanguageKey, selectedAccent as AccentKey).accentNote}
-dialogue in ${selectedLanguage} (${selectedAccent}):
-[CHARACTER NAME 1 (speaking tone): "dialog line 1 in Indonesian"]
-[CHARACTER NAME 2 (speaking tone): "dialog line 2 in Indonesian"]
+${selectedLanguage !== 'no-language' ? getLanguageSpecificInstructions(selectedLanguage as LanguageKey, selectedAccent as AccentKey).accentNote : ''}
+${selectedLanguage !== 'no-language' ? `dialogue in ${selectedLanguage} (${selectedAccent}):` : 'No dialogue required:'}
+${selectedLanguage !== 'no-language' ? 
+  `[CHARACTER NAME 1 (speaking tone): "dialog line 1 in ${selectedLanguage === 'english' ? 'English' : 'Indonesian'}"]
+[CHARACTER NAME 2 (speaking tone): "dialog line 2 in ${selectedLanguage === 'english' ? 'English' : 'Indonesian'}"]` :
+  '[No dialogue - visual storytelling only]'
+}
 Ambient Sounds:
   Sound 1 (${volumeSoundEffects}%)
   Sound 2 (${volumeSoundEffects}%)
 Audio Mix: [Brief audio mixing description]
-${captionMode === 'with-caption' ?
-          `Caption Display: Show accurate captions in ${selectedLanguage} with proper timing synchronization` :
+${captionMode === 'with-caption' && selectedLanguage !== 'no-language' ?
+          `Caption Display: Show accurate captions in ${selectedLanguage === 'english' ? 'English' : selectedLanguage} with proper timing synchronization` :
           `Caption Display: No captions, clean video output without text overlay`
         }
 Cultural Context: ${getLanguageSpecificInstructions(selectedLanguage as LanguageKey, selectedAccent as AccentKey).culturalContext}
@@ -561,6 +572,8 @@ Ultra Sharp 4K Quality
                       <option value="javanese">Bahasa Jawa</option>
                       <option value="betawi">Bahasa Betawi</option>
                       <option value="madurese">Bahasa Madura</option>
+                      <option value="english">English</option>
+                      <option value="no-language">No Language</option>
                     </select>
                   </div>
 
