@@ -10,6 +10,7 @@ const ImageGenerator = () => {
     const [uploadedFace, setUploadedFace] = useState<string | null>(null);
     const [useFigurineMode, setUseFigurineMode] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+    const [aspectRatio, setAspectRatio] = useState<'1:1' | '16:9' | '9:16' | '4:3' | '3:4'>('1:1');
 
     // Template prompts untuk figurine mode
     const figurineTemplates = [
@@ -89,8 +90,11 @@ const ImageGenerator = () => {
                 }
             }
 
-            const imageResult = await generateImage(finalPrompt, useFigurineMode ? uploadedFace : undefined);
+            const imageResult = await generateImage(finalPrompt, useFigurineMode ? uploadedFace : undefined, { aspectRatio });
             setResult(imageResult);
+            if (!imageResult.success) {
+                setError(imageResult.error || 'Failed to generate image');
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate image');
         } finally {
@@ -99,14 +103,17 @@ const ImageGenerator = () => {
     };
 
     const handleDownload = () => {
-        if (result?.imageData) {
-            const link = document.createElement('a');
-            link.href = `data:image/png;base64,${result.imageData}`;
-            link.download = `generated-image-${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        const imageUrl = result?.imageUrl;
+        const imageData = result?.imageData;
+        if (!imageUrl && !imageData) {
+            return;
         }
+        const link = document.createElement('a');
+        link.href = imageUrl || `data:image/png;base64,${imageData}`;
+        link.download = `generated-image-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const examplePrompts = useFigurineMode ? [
@@ -123,6 +130,14 @@ const ImageGenerator = () => {
         "A minimalist composition featuring a single, delicate red maple leaf positioned in the bottom-right of the frame with vast negative space."
     ];
 
+    const aspectOptions = [
+        { value: '1:1', label: '1:1 (Square)' },
+        { value: '9:16', label: '9:16 (Portrait)' },
+        { value: '16:9', label: '16:9 (Landscape)' },
+        { value: '4:3', label: '4:3' },
+        { value: '3:4', label: '3:4' }
+    ];
+
     return (
         <div className="max-w-4xl mx-auto p-6">
             <div className="bg-white rounded-lg shadow-lg p-6">
@@ -135,7 +150,7 @@ const ImageGenerator = () => {
                         Generate images from text descriptions and photos using <a href="https://ai.google.dev/gemini-api/docs" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Gemini API</a> (Supports Image Input).
                     </p>
                     <p className="text-sm text-gray-500 mt-2">
-                        💡 If Gemini quota is exceeded, the system will automatically use <a href="https://pollinations.ai/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Pollinations.ai</a> as a free fallback.
+                        💡 If Gemini quota is exceeded, the system will automatically use Puter.js, then <a href="https://pollinations.ai/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Pollinations.ai</a> as a fallback.
                     </p>
                 </div>
 
@@ -229,6 +244,24 @@ const ImageGenerator = () => {
                     </div>
                 )}
 
+                <div className="mb-6">
+                    <label htmlFor="aspect-ratio" className="block text-sm font-medium text-gray-700 mb-2">
+                        Aspect Ratio:
+                    </label>
+                    <select
+                        id="aspect-ratio"
+                        value={aspectRatio}
+                        onChange={(e) => setAspectRatio(e.target.value as '1:1' | '16:9' | '9:16' | '4:3' | '3:4')}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        {aspectOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 {useFigurineMode && (
                     <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                         <h3 className="text-lg font-semibold text-blue-800 mb-2">🎭 Figurine Mode Active</h3>
@@ -269,13 +302,13 @@ const ImageGenerator = () => {
                     </div>
                 )}
 
-                {result && (
+                {result?.success && (result.imageUrl || result.imageData) && (
                     <div className="mb-6">
                         <div className="bg-gray-50 rounded-lg p-4 mb-4">
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">Generated Image:</h3>
                             <div className="text-center">
                                 <img
-                                    src={`data:image/png;base64,${result.imageData}`}
+                                    src={result.imageUrl || `data:image/png;base64,${result.imageData}`}
                                     alt="Generated"
                                     className="max-w-full h-auto rounded-lg shadow-md mx-auto"
                                 />
