@@ -17,6 +17,7 @@ interface CharacterReference {
     voiceStyle: string;
     textToImagePrompt: string;
     generatedImageData?: string;
+    generatedImageUrl?: string;
 }
 
 interface SceneOutput {
@@ -25,6 +26,7 @@ interface SceneOutput {
     textToImagePrompt: string;
     imageToVideoPrompt: string;
     generatedImageData?: string;
+    generatedImageUrl?: string;
 }
 
 interface FilmProject {
@@ -119,13 +121,13 @@ Make the character unique, memorable, and suitable for the ${selectedStyle?.labe
         };
     };
 
-    const generateCharacterImage = async (characterRef: CharacterReference): Promise<string | undefined> => {
+    const generateCharacterImage = async (characterRef: CharacterReference): Promise<{ imageData?: string; imageUrl?: string } | undefined> => {
         try {
             const enhancedPrompt = enhancePrompt(characterRef.textToImagePrompt, 'photorealistic', 'high');
             const result = await generateImage(enhancedPrompt);
 
-            if (result.success && result.imageData) {
-                return result.imageData;
+            if (result.success && (result.imageData || result.imageUrl)) {
+                return { imageData: result.imageData, imageUrl: result.imageUrl };
             }
             return undefined;
         } catch (error) {
@@ -185,8 +187,9 @@ Make sure the character remains consistent across all scenes and the prompts are
                 const enhancedPrompt = enhancePrompt(updatedScenes[i].textToImagePrompt, 'photorealistic', 'high');
                 const result = await generateImage(enhancedPrompt);
 
-                if (result.success && result.imageData) {
+                if (result.success && (result.imageData || result.imageUrl)) {
                     updatedScenes[i].generatedImageData = result.imageData;
+                    updatedScenes[i].generatedImageUrl = result.imageUrl;
                 }
             } catch (error) {
                 console.error(`Failed to generate image for scene ${updatedScenes[i].sceneNumber}:`, error);
@@ -216,7 +219,8 @@ Make sure the character remains consistent across all scenes and the prompts are
 
             // Step 2: Generate character image
             const characterImage = await generateCharacterImage(characterRef);
-            characterRef.generatedImageData = characterImage;
+            characterRef.generatedImageData = characterImage?.imageData;
+            characterRef.generatedImageUrl = characterImage?.imageUrl;
 
             // Step 3: Generate scene outputs
             setCurrentStep('scenes');
@@ -438,12 +442,12 @@ Make sure the character remains consistent across all scenes and the prompts are
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                     {/* Character Image */}
-                                    {currentProject.characterReference.generatedImageData && (
+                                    {(currentProject.characterReference.generatedImageUrl || currentProject.characterReference.generatedImageData) && (
                                         <div>
                                             <h4 className="text-white font-semibold mb-2">Character Image</h4>
                                             <div className="bg-gray-900 p-4 rounded-lg">
                                                 <img
-                                                    src={`data:image/png;base64,${currentProject.characterReference.generatedImageData}`}
+                                                    src={currentProject.characterReference.generatedImageUrl || `data:image/png;base64,${currentProject.characterReference.generatedImageData}`}
                                                     alt={currentProject.characterReference.name}
                                                     className="w-full h-auto rounded-lg"
                                                 />
@@ -521,12 +525,12 @@ Make sure the character remains consistent across all scenes and the prompts are
 
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                                 {/* Scene Image */}
-                                                {scene.generatedImageData && (
+                                                {(scene.generatedImageUrl || scene.generatedImageData) && (
                                                     <div>
                                                         <h5 className="text-white font-semibold mb-2">Scene Image</h5>
                                                         <div className="bg-gray-900 p-4 rounded-lg">
                                                             <img
-                                                                src={`data:image/png;base64,${scene.generatedImageData}`}
+                                                                src={scene.generatedImageUrl || `data:image/png;base64,${scene.generatedImageData}`}
                                                                 alt={`Scene ${scene.sceneNumber}`}
                                                                 className="w-full h-auto rounded-lg"
                                                             />

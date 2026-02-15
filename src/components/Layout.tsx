@@ -144,11 +144,11 @@ const Layout = ({ children, activeTab, onTabChange }: LayoutProps) => {
                     <FaTiktok className="w-5 h-5 text-white" />
                   </a>
                   <a
-                    href="https://apps.apple.com/to/developer/hermizariafis/id1662246465"
+                    href="https://play.google.com/store/apps/developer?id=BiraaStudio"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all"
-                    aria-label="App Store"
+                    aria-label="Google Play"
                   >
                     <FaApple className="w-5 h-5 text-white" />
                   </a>
