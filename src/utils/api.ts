@@ -1,5 +1,10 @@
 import { APISettings } from '../types';
 
+export const GEMINI_TEXT_MODEL = 'gemini-2.5-flash';
+const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+export const buildGeminiTextGenerateContentUrl = (apiKey: string) =>
+  `${GEMINI_API_BASE_URL}/${GEMINI_TEXT_MODEL}:generateContent?key=${apiKey}`;
+
 // JSON repair function to fix common JSON issues
 function repairJSON(jsonString: string): string {
   try {
@@ -124,7 +129,7 @@ export async function callGeminiAPI(
   };
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    buildGeminiTextGenerateContentUrl(apiKey),
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

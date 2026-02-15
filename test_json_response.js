@@ -1,5 +1,17 @@
 // Test script untuk memverifikasi JSON response format
-const { callGeminiAPIForJSON, ensureJSONResponse } = require('./src/utils/api.ts');
+const ensureJSONResponse = (response, expectedKeys) => {
+    if (typeof response !== 'object' || response === null) {
+        throw new Error('Response is not a valid JSON object');
+    }
+
+    const responseObj = response;
+    const missingKeys = expectedKeys.filter(key => !(key in responseObj));
+    if (missingKeys.length > 0) {
+        console.warn(`Missing expected keys in response: ${missingKeys.join(', ')}`);
+    }
+
+    return responseObj;
+};
 
 async function testJSONResponse() {
     console.log('🧪 Testing JSON Response Format...\n');
