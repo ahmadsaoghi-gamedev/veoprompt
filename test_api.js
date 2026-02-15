@@ -30,7 +30,7 @@ async function callGeminiAPI(prompt, imageBase64, apiSettings) {
     };
 
     const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -104,7 +104,11 @@ async function validateAPIKey(apiKey) {
 
 // Test functions
 async function runAPITests() {
-    const apiKey = 'AIzaSyDbmz0E5cSZWjw11bL8Z9dM4IZiUp0L6zw';
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        console.log('❌ Missing GEMINI_API_KEY environment variable. Skipping API tests.');
+        return;
+    }
 
     console.log('🚀 Starting API Tests...\n');
 

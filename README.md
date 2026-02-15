@@ -150,6 +150,7 @@ node test_json_response.js
 - Backward compatibility tetap terjaga
 - Error handling ditingkatkan untuk JSON parsing
 - Type safety ditingkatkan dengan TypeScript interfaces
+- Model upgraded to Gemini 2.5 Flash to avoid deprecation issues.
 
 ## 📄 License
 

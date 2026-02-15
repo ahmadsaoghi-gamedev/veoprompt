@@ -1,4 +1,5 @@
 import { APISettings, VideoPromptWithOptimization, Frame, FrameTransition, TrackedCharacter, MultiFrameAnalysis, MultiFramePromptResult } from '../types';
+import { buildGeminiTextGenerateContentUrl } from './api';
 
 interface LanguageOptions {
     Language: string;
@@ -45,7 +46,7 @@ export async function callGeminiAPI(
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+                buildGeminiTextGenerateContentUrl(apiKey),
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

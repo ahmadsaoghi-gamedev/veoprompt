@@ -3,10 +3,15 @@
 
 import { validateAPIKey, callGeminiAPI } from './src/utils/api.js';
 
-const TEST_API_KEY = 'AIzaSyDbmz0E5cSZWjw11bL8Z9dM4IZiUp0L6zw';
+const TEST_API_KEY = process.env.GEMINI_API_KEY;
 
 async function runComprehensiveTest() {
     console.log('🚀 Starting Comprehensive API Integration Test...\n');
+
+    if (!TEST_API_KEY) {
+        console.log('❌ Missing GEMINI_API_KEY environment variable. Skipping API integration tests.');
+        return;
+    }
 
     // Test 1: API Key Validation
     console.log('📋 Test 1: API Key Validation');
